@@ -1,7 +1,5 @@
 package com.google.iamnotok;
 
-import com.google.iamnotok.EmergencyContactsHelper.Contact;
-
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -21,6 +19,8 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
+
+import com.google.iamnotok.EmergencyContactsHelper.Contact;
 
 /**
  * Puts the phone to the emergency state and notifies the contacts in the
