@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, EmergencyInfoActivity!</string>
+    <string name="app_name">I\'m Not OK</string>
+    <string name="view_and_edit_emergency_info">View and edit emergency info</string>
+    <string name="change_application_settings">Change application settings</string>
+    <string name="i_am_not_ok_start">I am not OK!</string>
+    <string name="unable_to_track_actions_for_emergency_title">I\'m Not Ok - unable to start the pattern tracker</string>
+    <string name="unable_to_track_actions_for_emergency_msg">Click here to retry.</string>
+    <string name="cancel">Cancel</string>
+    <string name="retry">Retry</string>
+    <string name="SOS">SOS</string>
+    <string name="emergency_response_starting">Sending SOS messages to your emergency contacts</string>
+    <string name="click_to_disable">Click to disable</string>
+    <string name="contact_picker">Edit contacts to inform</string>
+    <string name="add_contact">Add a contact</string>
+    <string name="view_contacts">View contacts</string>
+    <string name="no_contacts">No contacts available to display.\n\nTo add contacts, press <font fgcolor="#ffffffff"><b>Menu</b></font> and touch <font fgcolor="#ffffffff"><b>Add contact</b></font>.</string>
+    <string name="checkbox_sms_notification">sms_notification</string>
+    <string name="checkbox_email_notification">email_notification</string>
+    <string name="edittext_cancelation_delay">cancelation_delay</string>
+    <string name="i_am_now_ok">I am NOW OK</string>
+</resources>

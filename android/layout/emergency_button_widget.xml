@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent" android:layout_height="fill_parent"
+  android:paddingTop="10dp" android:paddingBottom="10dp"
+  android:paddingLeft="3dp" android:paddingRight="3dp">
+  <Button android:id="@+id/ImNowOKButton"
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent"
+    android:background="@drawable/btn_iamok" 
+    android:text="@string/i_am_now_ok"
+    android:textColor="#FFFFFFFF" 
+    android:textSize="14dip"></Button>
+  <Button android:id="@+id/EmergencyButton"
+    android:layout_width="fill_parent" android:layout_height="fill_parent"
+    android:background="@drawable/btn_custom" android:text="@string/SOS"
+    android:textColor="#FFFFFFFF" android:textSize="16dip"></Button>
+</FrameLayout>
