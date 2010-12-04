@@ -29,6 +29,9 @@
     <string name="checkbox_call_notification_desc">Call the first contact on case of emergency</string>
     <string name="edittext_cancelation_delay">cancelation_delay</string>
 
+	<string name="quiet_mode_cat">Quiet Mode settings</string>
+	<string name="quiet_mode_enable">Enable quiet mode</string>
+	<string name="quiet_mode_num_clicks">Number of clicks to trigger emergency</string>
 	<!-- Notification strings -->
 	<string name="no_notification_defined">No notification methods defined</string>
 

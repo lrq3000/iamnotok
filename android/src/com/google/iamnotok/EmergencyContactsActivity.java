@@ -6,17 +6,18 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
+import android.widget.AdapterView.OnItemLongClickListener;
 
 /**
  * A simple list of contacts: list/add/remove.
@@ -39,12 +40,9 @@ public class EmergencyContactsActivity extends ListActivity {
 	
 	private void registerReceivers() {
 	    // Register the Screen on/off receiver
-	    IntentFilter filterOn = new IntentFilter("android.intent.action.SCREEN_ON");
-	    IntentFilter filterOff = new IntentFilter("android.intent.action.SCREEN_OFF");
-	    ScreenOnOffReceiver receiver = new ScreenOnOffReceiver();
-	    registerReceiver(receiver, filterOn);
-	    registerReceiver(receiver, filterOff);
-
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		ScreenOnOffReceiver.register(getApplicationContext(), 
+				prefs.getBoolean(getString(R.string.quiet_mode_enable), true));
 	}
 	protected void setupListView() {
 		// Long click to remove contacts.

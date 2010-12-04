@@ -24,4 +24,6 @@
           android:summary="Seconds before notifying of emergency situation." 
           android:numeric="signed"
           android:defaultValue="10" />      
+<PreferenceCategory android:title="@string/quiet_mode_cat" android:key="@string/quiet_mode_cat"><CheckBoxPreference android:key="@string/quiet_mode_enable" android:defaultValue="true" android:enabled="true" android:title="@string/quiet_mode_enable"></CheckBoxPreference>
+</PreferenceCategory>
 </PreferenceScreen>

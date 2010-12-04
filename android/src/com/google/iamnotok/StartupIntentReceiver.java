@@ -5,7 +5,8 @@ package com.google.iamnotok;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class StartupIntentReceiver extends BroadcastReceiver {
@@ -20,12 +21,15 @@ public class StartupIntentReceiver extends BroadcastReceiver {
       new Intent(context, PatternTrackingService.class);
     context.startService(patternTrackingServiceIntent);
     
-    // Register the Screen on/off receiver
-    IntentFilter filterOn = new IntentFilter("android.intent.action.SCREEN_ON");
-    IntentFilter filterOff = new IntentFilter("android.intent.action.SCREEN_OFF");
-    ScreenOnOffReceiver receiver = new ScreenOnOffReceiver();
-    context.registerReceiver(receiver, filterOn);
-    context.registerReceiver(receiver, filterOff);
-
+    registerReceivers(context.getApplicationContext());
   }
+  
+	private void registerReceivers(Context context) {
+	    // Register the Screen on/off receiver
+		SharedPreferences prefs = PreferenceManager
+		.getDefaultSharedPreferences(context);
+		ScreenOnOffReceiver.register(context.getApplicationContext(), 
+				prefs.getBoolean(context.getString(R.string.quiet_mode_enable), true));
+	}
+
 }

@@ -1,7 +1,10 @@
 package com.google.iamnotok;
 
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceScreen;
 
 /**
  * Activity for changing application settings - updates SharedPreferences
@@ -16,4 +19,16 @@ public class ApplicationSettingsActivity extends PreferenceActivity {
 		super.onCreate(savedInstanceState);		
 		this.addPreferencesFromResource(R.xml.preferences);
 	}
+
+	@Override
+	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+			Preference preference) {
+		if (preference.getKey().equalsIgnoreCase(getString(R.string.quiet_mode_enable))) {
+			ScreenOnOffReceiver.register(getApplicationContext(), 
+					((CheckBoxPreference) preference).isChecked());
+		}
+		return super.onPreferenceTreeClick(preferenceScreen, preference);
+	}
+
+
 }
