@@ -1,10 +1,12 @@
 package com.google.iamnotok;
 
 import android.content.Context;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 
 /**
@@ -15,19 +17,37 @@ public class LocationTracker {
   private static final String mLogTag = "IAmNotOk! - LocationTracker";
   
   private LocationManager mLocationManager;
-  private LocationListener mLocationListener;
+  private GpsStatus.Listener mGpsStatusListener;
+  private LocationListener mGpsLocationListener;
+  private LocationListener mCellLocationListener;
   private Location mLocation;
   private Location mLastNotifiedLocation;
+  private int mLastNotifiedLocationTime;
+  private boolean mIsGpsConnected = false;
   
   public LocationTracker(Context context) {
     mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-    mLocationListener = new UserLocationListener();
-    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+    
+    mGpsStatusListener = new GpsStatusListener();
+    mLocationManager.addGpsStatusListener(mGpsStatusListener);
+    
+    mGpsLocationListener = new UserLocationListener();
+    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mGpsLocationListener);
+    
+    mCellLocationListener = new UserLocationListener();
+    mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mCellLocationListener);
   }
   
-  private synchronized void setLocation(Location location) {
+  private synchronized void setLocation(Location location, LocationListener listener) {
+    if (isGpsAvailable() && listener == mCellLocationListener) {
+	  return;
+    }
     mLocation = location;
     this.notifyAll();
+  }
+  
+  private synchronized boolean isGpsAvailable() {
+    return mIsGpsConnected;
   }
 
   /**
@@ -58,12 +78,27 @@ public class LocationTracker {
     }
   }
   
+  private class GpsStatusListener implements GpsStatus.Listener {
+	@Override
+	public void onGpsStatusChanged(int event) {
+      switch (event) {
+      case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
+    	if (mLastNotifiedLocation != null) {
+    	  mIsGpsConnected = (SystemClock.elapsedRealtime() - mLastNotifiedLocationTime) < 3000;
+    	}
+    	break;
+      case GpsStatus.GPS_EVENT_FIRST_FIX:
+        mIsGpsConnected = true;
+      }
+	}
+  }
+  
   private class UserLocationListener implements LocationListener {
     public void onLocationChanged(Location location) {
       Log.d(mLogTag, "Location has changed");
       // TODO(vytautas): add some additional logic here that checks if the new
       // location is more accurate, etc.
-      LocationTracker.this.setLocation(location);
+      LocationTracker.this.setLocation(location, this);
     }
 
     public void onProviderDisabled(String provider) {
