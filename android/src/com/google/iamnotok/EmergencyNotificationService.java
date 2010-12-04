@@ -293,7 +293,11 @@ public class EmergencyNotificationService extends Service {
 	private String getMailAddress() {
 	  Account[] accounts = AccountManager.get(this).getAccounts();
 	  if (accounts.length > 0) {
-	    return accounts[0].name;
+	    for (int i = 0; i < accounts.length; i++) {
+        if (accounts[i].type.toLowerCase().contains("google")) {
+          return accounts[i].name;
+        }
+      }
 	  }
 	  return "";
 	}
