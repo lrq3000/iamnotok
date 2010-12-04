@@ -16,8 +16,17 @@
     <string name="add_contact">Add a contact</string>
     <string name="view_contacts">View contacts</string>
     <string name="no_contacts">No contacts available to display.\n\nTo add contacts, press <font fgcolor="#ffffffff"><b>Menu</b></font> and touch <font fgcolor="#ffffffff"><b>Add contact</b></font>.</string>
+
+	<!--  Preferences -->
     <string name="checkbox_sms_notification">sms_notification</string>
+    <string name="checkbox_sms_notification_title">SMS notification</string>
+    <string name="checkbox_sms_notification_desc">Allow notifications via SMS</string>
+    <string name="checkbox_email_notification_title">Email notification</string>
     <string name="checkbox_email_notification">email_notification</string>
+    <string name="checkbox_email_notification_desc">Allow notifications via email</string>
+    <string name="checkbox_call_notification_title">Call notification</string>
+    <string name="checkbox_call_notification">call_notification</string>
+    <string name="checkbox_call_notification_desc">Call the first contact on case of emergency</string>
     <string name="edittext_cancelation_delay">cancelation_delay</string>
     <string name="i_am_now_ok">I am NOW OK</string>
 </resources>

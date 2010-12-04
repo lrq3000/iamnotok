@@ -2,16 +2,22 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
       <CheckBoxPreference 
           android:key="@string/checkbox_sms_notification" 
-          android:title="SMS Notification" 
-          android:summary="Allow notifications via SMS" 
+          android:title="@string/checkbox_sms_notification_title"
+          android:summary="@string/checkbox_sms_notification_desc" 
           android:enabled="true" 
           android:defaultValue="true"  />
        <CheckBoxPreference 
           android:key="@string/checkbox_email_notification" 
-          android:title="Email Notification" 
-          android:summary="Allow notifications via email" 
+          android:title="@string/checkbox_email_notification_title"
+          android:summary="@string/checkbox_email_notification_desc" 
           android:enabled="true" 
           android:defaultValue="true" />
+       <CheckBoxPreference 
+          android:key="@string/checkbox_call_notification" 
+          android:title="@string/checkbox_call_notification_title"
+          android:summary="@string/checkbox_call_notification_desc" 
+          android:enabled="true" 
+          android:defaultValue="false" />
        <EditTextPreference 
           android:key="@string/edittext_cancelation_delay" 
           android:title="Cancelation delay" 
