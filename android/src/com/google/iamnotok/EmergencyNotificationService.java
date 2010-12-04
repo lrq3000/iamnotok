@@ -92,6 +92,8 @@ public class EmergencyNotificationService extends Service {
 			return;
 		}
 
+		contactHelper.contactIds();
+		
 		if (this.getState() == NORMAL_STATE) {
 			Log.d(mLogTag, "Starting the service");
 			changeState(WAITING_STATE);
