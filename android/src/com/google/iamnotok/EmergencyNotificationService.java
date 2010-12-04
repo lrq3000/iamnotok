@@ -233,8 +233,8 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private String getMapUrl(Location loc) {
-		return "http://maps.google.com/maps?ll=" + loc.getLatitude() + ","
-				+ loc.getLongitude();
+		String template = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=%f,%f&sll=%f,%f&sspn=0.005055,0.009645&ie=UTF8&z=16";
+		return String.format(template, loc.getLatitude(),loc.getLongitude(), loc.getLatitude(),loc.getLongitude());
 	}
 
 	/**

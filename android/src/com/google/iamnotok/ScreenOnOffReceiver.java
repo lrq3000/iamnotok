@@ -1,10 +1,8 @@
 package com.google.iamnotok;
 
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.util.Log;
 
 import com.google.iamnotok.utils.LimitedQueue;
@@ -37,18 +35,8 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 	}
 
 	private void TriggerEvent(Context context) {
-		//TODO - trigger full event;
 	    Intent intent = new Intent(context, EmergencyNotificationService.class);
 	    intent.putExtra(EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE, true);
-//		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	    context.startService(intent);
-		
-//		//calling to example phone number
-//		String number = "0544330376";
-//		Intent i = new Intent(Intent.ACTION_CALL,
-//                Uri.fromParts("tel", number, null));
-//		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        context.startActivity(i);
-//        Log.d("ImNotOK", "Calling Emergency number");
 	}
 }
