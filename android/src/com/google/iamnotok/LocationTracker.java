@@ -124,6 +124,10 @@ public class LocationTracker {
         e.printStackTrace();
       }
     }
+    if (mLocation == null) {
+      return null;
+    }
+    
     // Construct a copy of the current location.
     mLastNotifiedLocation = mLocation;
     return new Location(mLocation);

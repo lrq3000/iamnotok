@@ -144,13 +144,7 @@ public class EmergencyNotificationService extends Service {
 				} else {
 					Log.d(mLogTag, "Getting location");
 					Location loc = mLocationTracker.getLocation();
-					String address = mLocationTracker.getLocationAddress();
-					Log.d(mLogTag, "Sending the location - '" + message + "'");
-					message = "I am not OK! My current location is: "
-						+ "'" + address + "' ("
-						+ "latitude: "
-						+ loc.getLatitude() + ", longitude: "
-						+ loc.getLongitude() + ")";
+          message = formatMessage(loc);
 				}
 
 				String SENT = "SMS_SENT";
@@ -254,11 +248,10 @@ public class EmergencyNotificationService extends Service {
 		} else {
 			Log.d(mLogTag, "Getting location");
 			Location loc = mLocationTracker.getLocation();
-			Log.d(mLogTag, "Sending the location - latitude: "
-					+ loc.getLatitude() + ", longitude: " + loc.getLongitude());
-			message = "I am not OK! My current location is: latitude "
-					+ loc.getLatitude() + ", longitude " + loc.getLongitude();
-			message += " " + getMapUrl(loc);
+			message = formatMessage(loc);
+			if (loc != null) {
+			  message += " " + getMapUrl(loc);
+			}
 		}
 
 		try {
@@ -269,6 +262,22 @@ public class EmergencyNotificationService extends Service {
 		} catch (Exception e) {
 			Log.e("SendMail", e.getMessage(), e);
 		}
+	}
+	
+	private String formatMessage(Location loc) {
+	  String message = "I am not OK!";
+    if (loc == null) {
+      message += " No location information available!";
+    } else {
+      String address = mLocationTracker.getLocationAddress();
+      message += " My current location is: "
+        + "'" + address + "' ("
+        + "latitude: "
+        + loc.getLatitude() + ", longitude: "
+        + loc.getLongitude() + ")";
+      Log.d(mLogTag, "Sending the location - '" + message + "'");
+    }
+    return message;
 	}
 
 	private String formatSubject() {
