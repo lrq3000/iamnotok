@@ -24,6 +24,9 @@ import android.util.Log;
 public class LocationTracker {
   private static final String mLogTag = "IAmNotOk! - LocationTracker";
   
+  private static final int MAX_LOCATION_TRIALS = 10;
+  private static final int GET_LOCATION_TIMEOUT = 1000;
+  
   private Context mContext;
   private LocationManager mLocationManager;
   private GpsStatus.Listener mGpsStatusListener;
@@ -106,17 +109,17 @@ public class LocationTracker {
     }   
       
     return address;
-  } 
+  }
 
   /**
    * Should be called from a separate thread since may block waiting for
    * location.
    */
   public synchronized Location getLocation() {
-    while (mLocation == null) {
+    for (int trials = 0; trials < MAX_LOCATION_TRIALS && mLocation == null; ++trials) {
       try {
         Log.d(mLogTag, "Waiting for location");
-        this.wait();
+        this.wait(GET_LOCATION_TIMEOUT);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
