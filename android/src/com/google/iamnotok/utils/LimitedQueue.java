@@ -21,7 +21,7 @@ public class LimitedQueue<E> extends LinkedList<E> {
 			this.remove();
 		}
 		
-		return this.offer(item);
+		return super.offer(item);
 	}
 	
 }

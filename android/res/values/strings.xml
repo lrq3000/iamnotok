@@ -28,5 +28,9 @@
     <string name="checkbox_call_notification">call_notification</string>
     <string name="checkbox_call_notification_desc">Call the first contact on case of emergency</string>
     <string name="edittext_cancelation_delay">cancelation_delay</string>
+
+	<!-- Notification strings -->
+	<string name="no_notification_defined">No notification methods defined</string>
+
     <string name="i_am_now_ok">I am NOW OK</string>
 </resources>

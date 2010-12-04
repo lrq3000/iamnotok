@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -33,8 +34,18 @@ public class EmergencyContactsActivity extends ListActivity {
 		contactsHelper = new EmergencyContactsHelper(getApplicationContext());
 		setListAdapter(createAdapter());
 		setupListView();
+		registerReceivers();
 	}
 	
+	private void registerReceivers() {
+	    // Register the Screen on/off receiver
+	    IntentFilter filterOn = new IntentFilter("android.intent.action.SCREEN_ON");
+	    IntentFilter filterOff = new IntentFilter("android.intent.action.SCREEN_OFF");
+	    ScreenOnOffReceiver receiver = new ScreenOnOffReceiver();
+	    registerReceiver(receiver, filterOn);
+	    registerReceiver(receiver, filterOff);
+
+	}
 	protected void setupListView() {
 		// Long click to remove contacts.
 		getListView().setOnItemLongClickListener(new OnItemLongClickListener() {
