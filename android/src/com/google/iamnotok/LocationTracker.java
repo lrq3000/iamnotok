@@ -106,6 +106,7 @@ public class LocationTracker {
     }
     catch (IOException e) {        
       e.printStackTrace();
+      address = "<No Address>";
     }   
       
     return address;
@@ -134,7 +135,10 @@ public class LocationTracker {
   }
   
   public String getLocationAddress() {
-    return convertLocationToAddress(getLocation());
+    // TODO: use the convertLocationToAddress function like this:
+    //       return convertLocationToAddress(getLocation());
+    // Currently, it hangs on use because of maps api.
+    return "<No Address>";
   }
   
   public synchronized boolean shouldSendAnotherUpdate() {
