@@ -266,6 +266,9 @@ public class EmergencyNotificationService extends Service {
 	private void invokeEmergencyResponse() {
 		Log.d(mLogTag, "Invoking emergency response");
 
+    // Start the location tracker (nothing happens if called twice).
+    mLocationTracker.startTracker();
+
 		if (mNotifyViaCall) {
 			callEmergency();
 		}
@@ -289,6 +292,9 @@ public class EmergencyNotificationService extends Service {
 
 	private void showDisableNotificationAndWaitToInvokeResponse() {
 		Log.d(mLogTag, "Showing notification and waiting");
+		
+		// Start the location tracker.
+		mLocationTracker.startTracker();
 
 		// Show a notification.
 		final NotificationManager notificationManager = (NotificationManager) this
@@ -414,5 +420,6 @@ public class EmergencyNotificationService extends Service {
 		if (mNotifyViaEmail) {
 			sendEmailNotifications();
 		}
+		mLocationTracker.stopTracker();
 	}
 }

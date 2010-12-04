@@ -27,6 +27,12 @@ public class LocationTracker {
   
   public LocationTracker(Context context) {
     mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+  }
+  
+  public void startTracker() {
+    if (mGpsStatusListener != null) {
+      return;
+    }
     
     mGpsStatusListener = new GpsStatusListener();
     mLocationManager.addGpsStatusListener(mGpsStatusListener);
@@ -36,6 +42,20 @@ public class LocationTracker {
     
     mCellLocationListener = new UserLocationListener();
     mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mCellLocationListener);
+  }
+  
+  public void stopTracker() {
+    if (mGpsStatusListener != null) {
+      mLocationManager.removeGpsStatusListener(mGpsStatusListener);
+    }
+    
+    if (mGpsLocationListener != null) {
+      mLocationManager.removeUpdates(mGpsLocationListener);
+    }
+    
+    if (mCellLocationListener != null) {
+      mLocationManager.removeUpdates(mCellLocationListener);
+    }
   }
   
   private synchronized void setLocation(Location location, LocationListener listener) {
