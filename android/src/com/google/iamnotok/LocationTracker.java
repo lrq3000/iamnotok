@@ -1,6 +1,14 @@
 package com.google.iamnotok;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
+import com.google.android.maps.GeoPoint;
+
 import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -16,6 +24,7 @@ import android.util.Log;
 public class LocationTracker {
   private static final String mLogTag = "IAmNotOk! - LocationTracker";
   
+  private Context mContext;
   private LocationManager mLocationManager;
   private GpsStatus.Listener mGpsStatusListener;
   private LocationListener mGpsLocationListener;
@@ -26,6 +35,7 @@ public class LocationTracker {
   private boolean mIsGpsConnected = false;
   
   public LocationTracker(Context context) {
+    mContext = context;
     mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
   }
   
@@ -69,6 +79,34 @@ public class LocationTracker {
   private synchronized boolean isGpsAvailable() {
     return mIsGpsConnected;
   }
+  
+  public String convertLocationToAddress(Location location) {
+    if (location == null) {
+      return "<No Address>";
+    }
+	  
+    String address = "";
+    Geocoder geoCoder = new Geocoder(
+        mContext, Locale.getDefault());
+    GeoPoint point = new GeoPoint(
+            (int) (location.getLatitude() * 1E6), 
+            (int) (location.getLongitude() * 1E6));
+    try {
+      List<Address> addresses = geoCoder.getFromLocation(
+        point.getLatitudeE6()  / 1E6, 
+        point.getLongitudeE6() / 1E6, 1);
+   
+      if (addresses.size() > 0) {
+        for (int index = 0; index < addresses.get(0).getMaxAddressLineIndex(); index++)
+          address += addresses.get(0).getAddressLine(index) + " ";
+      }
+    }
+    catch (IOException e) {        
+      e.printStackTrace();
+    }   
+      
+    return address;
+  } 
 
   /**
    * Should be called from a separate thread since may block waiting for
@@ -86,6 +124,10 @@ public class LocationTracker {
     // Construct a copy of the current location.
     mLastNotifiedLocation = mLocation;
     return new Location(mLocation);
+  }
+  
+  public String getLocationAddress() {
+    return convertLocationToAddress(getLocation());
   }
   
   public synchronized boolean shouldSendAnotherUpdate() {
@@ -128,8 +170,7 @@ public class LocationTracker {
     }
 
     public void onStatusChanged(String provider, int status, Bundle extras) {
-    }
-
+    }    
   }
 
 }

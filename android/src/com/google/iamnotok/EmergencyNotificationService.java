@@ -144,12 +144,13 @@ public class EmergencyNotificationService extends Service {
 				} else {
 					Log.d(mLogTag, "Getting location");
 					Location loc = mLocationTracker.getLocation();
-					Log.d(mLogTag, "Sending the location - latitude: "
-							+ loc.getLatitude() + ", longitude: "
-							+ loc.getLongitude());
-					message = "I am not OK! My current location is: latitude "
-							+ loc.getLatitude() + ", longitude "
-							+ loc.getLongitude();
+					String address = mLocationTracker.getLocationAddress();
+					Log.d(mLogTag, "Sending the location - '" + message + "'");
+					message = "I am not OK! My current location is: "
+						+ "'" + address + "' ("
+						+ "latitude: "
+						+ loc.getLatitude() + ", longitude: "
+						+ loc.getLongitude() + ")";
 				}
 
 				String SENT = "SMS_SENT";
