@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
@@ -94,12 +95,21 @@ public class EmergencyNotificationService extends Service {
 		if (this.getState() == NORMAL_STATE) {
 			Log.d(mLogTag, "Starting the service");
 			changeState(WAITING_STATE);
-			boolean showNotification = intent.getBooleanExtra(
+			boolean showNotification = true;
+			if (intent != null) {
+				showNotification = intent.getBooleanExtra(
 					SHOW_NOTIFICATION_WITH_DISABLE, false);
+			}
 
 			// Start location tracker from here since it takes some time to get
 			// the first GPS fix.
 			mLocationTracker = new LocationTracker(this);
+
+			// Get instance of Vibrator from current Context
+			Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+			 
+			// Vibrate for 300 milliseconds
+			v.vibrate(300);
 
 			if (showNotification) {
 				this.showDisableNotificationAndWaitToInvokeResponse();
