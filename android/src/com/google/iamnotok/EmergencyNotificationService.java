@@ -1,5 +1,7 @@
 package com.google.iamnotok;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -17,6 +19,7 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -242,6 +245,7 @@ public class EmergencyNotificationService extends Service {
 	 */
 	private void sendEmailMessage(String to) {
 		Log.d(mLogTag, "Sending email to: " + to);
+		String subject = formatSubject();
 		String message = "";
 		if (getState() == NORMAL_STATE) {
 			message = "I am now OK";
@@ -259,14 +263,27 @@ public class EmergencyNotificationService extends Service {
 		try {
 			GMailSender sender = new GMailSender(
 					"imnotokandroidapplication@gmail.com", "googlezurich");
-			sender.sendMail(message, message, "imnotokapplication@gmail.com",
+			sender.sendMail(subject, message, "imnotokapplication@gmail.com",
 					to);
 		} catch (Exception e) {
 			Log.e("SendMail", e.getMessage(), e);
 		}
 	}
 
-	private void invokeEmergencyResponse() {
+	private String formatSubject() {
+	  Account[] accounts = AccountManager.get(this).getAccounts();
+	  String name = "";
+	  if (accounts.length > 0) {
+	    name = accounts[0].name;
+	  } else {
+	    TelephonyManager telMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+	    name = telMgr.getLine1Number();
+	  }
+	  
+	  return "Emergency message from " + name;
+  }
+
+  private void invokeEmergencyResponse() {
 		Log.d(mLogTag, "Invoking emergency response");
 
     // Start the location tracker (nothing happens if called twice).

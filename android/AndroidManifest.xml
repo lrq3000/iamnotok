@@ -14,9 +14,7 @@
 		<service android:name=".EmergencyNotificationService"></service>
 		<service android:name=".PatternTrackingService"></service>
 
-		<!--  
-    <activity android:name=".MainActivity"></activity>
-     -->
+		<!-- <activity android:name=".MainActivity"></activity> -->
 		<activity android:name=".ApplicationSettingsActivity"></activity>
 		<receiver android:name=".StartupIntentReceiver">
 			<intent-filter>
@@ -40,7 +38,6 @@
 	<uses-permission android:name="android.permission.CALL_PHONE" />
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
-
-
-
+	<uses-permission android:name="android.permission.GET_ACCOUNTS" />
+	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 </manifest> 
