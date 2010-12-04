@@ -111,8 +111,11 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void sendTextNotifications() {
-		for (Contact contact : contactHelper.getAllContacts())
-			sendTextMessage(contact.getPhone());
+		for (Contact contact : contactHelper.getAllContacts()) {
+		  if (contact.getPhone() != null) {
+		    sendTextMessage(contact.getPhone());
+		  }
+		}
 	}
 
 	private void sendEmailNotifications() {
