@@ -24,8 +24,11 @@ public class ApplicationSettingsActivity extends PreferenceActivity {
 	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
 			Preference preference) {
 		if (preference.getKey().equalsIgnoreCase(getString(R.string.quiet_mode_enable))) {
-			ScreenOnOffReceiver.register(getApplicationContext(), 
-					((CheckBoxPreference) preference).isChecked());
+			if (((CheckBoxPreference) preference).isChecked()) {
+				ScreenOnOffReceiver.register(getApplicationContext());
+			} else {
+				ScreenOnOffReceiver.unregister(getApplicationContext());
+			}
 		}
 		return super.onPreferenceTreeClick(preferenceScreen, preference);
 	}

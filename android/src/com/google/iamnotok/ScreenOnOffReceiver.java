@@ -27,20 +27,19 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 	private LimitedQueue<Long> clicksQueue = new LimitedQueue<Long>(CLICK_NUMBER);
 	private int timeLimit = 5*1000; //5 seconds
 
-	public static void register(Context context, boolean register) {
+	public static void register(Context context) {
 		ScreenOnOffReceiver rec = instance();
 		if (rec == null) {
 			return;
 		}
-		if (register) {
-		    IntentFilter filterOn = new IntentFilter("android.intent.action.SCREEN_ON");
-		    IntentFilter filterOff = new IntentFilter("android.intent.action.SCREEN_OFF");
-		    context.registerReceiver(rec, filterOn);
-		    context.registerReceiver(rec, filterOff);
-		} else {
-			context.unregisterReceiver(rec);
-		}
+	    IntentFilter filterOn = new IntentFilter("android.intent.action.SCREEN_ON");
+	    IntentFilter filterOff = new IntentFilter("android.intent.action.SCREEN_OFF");
+	    context.registerReceiver(rec, filterOn);
+	    context.registerReceiver(rec, filterOff);
 	}
+	public static void unregister(Context context) {
+		context.unregisterReceiver(instance());
+	}	
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -56,13 +55,13 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 		
 		if (timeInterval < timeLimit){
 			Log.w("ImNotOK","triggering the event");
-			this.TriggerEvent(context.getApplicationContext());
+			this.triggerEvent(context.getApplicationContext());
 			clicksQueue.clear();
 		}
 	
 	}
 
-	private void TriggerEvent(Context context) {
+	private void triggerEvent(Context context) {
 	    Intent intent = new Intent(context, EmergencyNotificationService.class);
 	    intent.putExtra(EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE, true);
 	    context.startService(intent);

@@ -41,8 +41,10 @@ public class EmergencyContactsActivity extends ListActivity {
 	private void registerReceivers() {
 	    // Register the Screen on/off receiver
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		ScreenOnOffReceiver.register(getApplicationContext(), 
-				prefs.getBoolean(getString(R.string.quiet_mode_enable), true));
+		if (prefs.getBoolean(getString(R.string.quiet_mode_enable), true)) {
+			ScreenOnOffReceiver.register(getApplicationContext());
+		}
+		
 	}
 	protected void setupListView() {
 		// Long click to remove contacts.
