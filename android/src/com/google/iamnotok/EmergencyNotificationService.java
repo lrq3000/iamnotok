@@ -257,8 +257,8 @@ public class EmergencyNotificationService extends Service {
 		try {
 			GMailSender sender = new GMailSender(
 					"imnotokandroidapplication@gmail.com", "googlezurich");
-			sender.sendMail(subject, message, "imnotokapplication@gmail.com",
-					to);
+			sender.sendMail(getMailAddress(), subject, message,
+			    "imnotokapplication@gmail.com", to);
 		} catch (Exception e) {
 			Log.e("SendMail", e.getMessage(), e);
 		}
@@ -280,15 +280,22 @@ public class EmergencyNotificationService extends Service {
     return message;
 	}
 
-	private String formatSubject() {
+	private String getMailAddress() {
 	  Account[] accounts = AccountManager.get(this).getAccounts();
-	  String name = "";
 	  if (accounts.length > 0) {
-	    name = accounts[0].name;
-	  } else {
-	    TelephonyManager telMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-	    name = telMgr.getLine1Number();
+	    return accounts[0].name;
 	  }
+	  return "";
+	}
+	
+	private String formatSubject() {
+	  String name = getMailAddress();
+	  if (name.equals("")) {
+	    name += " ";
+	  }
+    TelephonyManager telMgr = (TelephonyManager) getSystemService(
+        Context.TELEPHONY_SERVICE);
+    name += telMgr.getLine1Number();
 	  
 	  return "Emergency message from " + name;
   }
