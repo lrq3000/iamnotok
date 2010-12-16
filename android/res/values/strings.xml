@@ -17,7 +17,7 @@
     <string name="view_contacts">View contacts</string>
     <string name="no_contacts">No contacts available to display.\n\nTo add contacts, press <font fgcolor="#ffffffff"><b>Menu</b></font> and touch <font fgcolor="#ffffffff"><b>Add contact</b></font>.</string>
 
-	<!--  Preferences -->
+    <!--  Preferences -->
     <string name="checkbox_sms_notification">sms_notification</string>
     <string name="checkbox_sms_notification_title">SMS notification</string>
     <string name="checkbox_sms_notification_desc">Allow notifications via SMS</string>
@@ -29,11 +29,11 @@
     <string name="checkbox_call_notification_desc">Call the first contact on case of emergency</string>
     <string name="edittext_cancelation_delay">cancelation_delay</string>
 
-	<string name="quiet_mode_cat">Quiet Mode settings</string>
-	<string name="quiet_mode_enable">Enable quiet mode</string>
-	<string name="quiet_mode_num_clicks">Number of clicks to trigger emergency</string>
-	<!-- Notification strings -->
-	<string name="no_notification_defined">No notification methods defined</string>
+    <string name="quiet_mode_cat">Quiet Mode settings</string>
+    <string name="quiet_mode_enable">Enable quiet mode</string>
+    <string name="quiet_mode_num_clicks">Number of clicks to trigger emergency</string>
+    <!-- Notification strings -->
+    <string name="no_notification_defined">No notification methods defined</string>
 
     <string name="i_am_now_ok">I am NOW OK</string>
 </resources>
