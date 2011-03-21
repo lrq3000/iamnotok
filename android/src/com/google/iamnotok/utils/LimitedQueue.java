@@ -16,6 +16,7 @@ public class LimitedQueue<E> extends LinkedList<E> {
 		this.maxSize = maxSizeP;
 	}
 
+	@Override
 	public boolean offer(E item){
 		if (this.size() == maxSize){
 			this.remove();

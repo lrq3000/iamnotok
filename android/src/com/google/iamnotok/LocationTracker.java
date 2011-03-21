@@ -167,20 +167,24 @@ public class LocationTracker {
   }
   
   private class UserLocationListener implements LocationListener {
-    public void onLocationChanged(Location location) {
+    @Override
+	public void onLocationChanged(Location location) {
       Log.d(mLogTag, "Location has changed");
       // TODO(vytautas): add some additional logic here that checks if the new
       // location is more accurate, etc.
       LocationTracker.this.setLocation(location, this);
     }
 
-    public void onProviderDisabled(String provider) {
+    @Override
+	public void onProviderDisabled(String provider) {
     }
 
-    public void onProviderEnabled(String provider) {
+    @Override
+	public void onProviderEnabled(String provider) {
     }
 
-    public void onStatusChanged(String provider, int status, Bundle extras) {
+    @Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
     }    
   }
 

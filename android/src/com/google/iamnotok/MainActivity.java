@@ -19,6 +19,7 @@ public class MainActivity extends Activity {
         
         Button changeApplicationSettingsButton = (Button) this.findViewById(R.id.ApplicationSettingsButton);
         changeApplicationSettingsButton.setOnClickListener(new OnClickListener() {			
+			@Override
 			public void onClick(View v) {
 				// Send of an intent to start off the EmergencyInfoActivity
 				Intent intent = new Intent(MainActivity.this, ApplicationSettingsActivity.class);
@@ -28,7 +29,8 @@ public class MainActivity extends Activity {
    
         Button contactPickerButton = (Button) this.findViewById(R.id.ContactPickerButton);
         contactPickerButton.setOnClickListener(new OnClickListener() {          
-            public void onClick(View v) {
+            @Override
+			public void onClick(View v) {
                 // Send of an intent to start off the ContactPickerActivity
                 Intent intent = new Intent(MainActivity.this, EmergencyContactsActivity.class);
                 MainActivity.this.startActivity(intent);
@@ -37,7 +39,8 @@ public class MainActivity extends Activity {
         
         Button IAmNotOKStartButton = (Button) this.findViewById(R.id.IAmNotOKStartButton);
         IAmNotOKStartButton.setOnClickListener(new OnClickListener() {          
-            public void onClick(View v) {
+            @Override
+			public void onClick(View v) {
                 // Send of an intent to start off the EmergencyInfoActivity
                 Intent intent = new Intent(MainActivity.this, EmergencyNotificationService.class);
                 MainActivity.this.startService(intent);

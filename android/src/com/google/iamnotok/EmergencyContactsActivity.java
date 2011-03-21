@@ -49,9 +49,11 @@ public class EmergencyContactsActivity extends ListActivity {
 	protected void setupListView() {
 		// Long click to remove contacts.
 		getListView().setOnItemLongClickListener(new OnItemLongClickListener() {
+			@Override
 			public boolean onItemLongClick(final AdapterView<?> av, View v, final int pos, long id) {
 				DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-				    public void onClick(DialogInterface dialog, int which) {
+				    @Override
+					public void onClick(DialogInterface dialog, int which) {
 				        switch (which){
 				        case DialogInterface.BUTTON_POSITIVE:
 				        	// Remove contact.
@@ -113,6 +115,7 @@ public class EmergencyContactsActivity extends ListActivity {
 		return aa;
 	}
 
+	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == RESULT_OK) {
 			switch (requestCode) {

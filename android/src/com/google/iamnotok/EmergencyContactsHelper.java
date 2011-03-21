@@ -169,6 +169,7 @@ public class EmergencyContactsHelper {
 			return email;
 		}
 		
+		@Override
 		public String toString() {
 			return id + ": " + name + " (" + phone + ") <" + email + ">";
 		}

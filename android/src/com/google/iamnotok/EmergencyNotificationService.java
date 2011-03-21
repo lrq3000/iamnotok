@@ -147,6 +147,7 @@ public class EmergencyNotificationService extends Service {
 	 **/
 	private void sendTextMessage(final String phoneNumber) {
 		Thread messageSender = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Log.d(mLogTag, "Sending sms to: " + phoneNumber);
 				String message = "";
@@ -406,6 +407,7 @@ public class EmergencyNotificationService extends Service {
 		// not be able to receive the intent for canceling the emergency
 		// response.
 		Thread waiterThread = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Thread.sleep(EmergencyNotificationService.this
