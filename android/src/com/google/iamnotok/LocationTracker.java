@@ -1,11 +1,5 @@
 package com.google.iamnotok;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-
-import com.google.android.maps.GeoPoint;
-
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
@@ -17,6 +11,10 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
 /**
  * @author vytautas@google.com (Vytautas Vaitukaitis)
  *
@@ -24,8 +22,8 @@ import android.util.Log;
 public class LocationTracker {
   private static final String mLogTag = "IAmNotOk! - LocationTracker";
   
-  private static final int MAX_LOCATION_TRIALS = 10;
-  private static final int GET_LOCATION_TIMEOUT = 1000;
+  private static final float MINIMUM_NOTIFIED_DISTANCE = 500;
+  private static final float MINIMUM_NOTIFIED_ACCURACY_CHANGE = 10;
   
   private Context mContext;
   private LocationManager mLocationManager;
@@ -43,6 +41,7 @@ public class LocationTracker {
   }
   
   public void startTracker() {
+	Log.i(mLogTag, "Location tracker started.");
     if (mGpsStatusListener != null) {
       return;
     }
@@ -69,6 +68,7 @@ public class LocationTracker {
     if (mCellLocationListener != null) {
       mLocationManager.removeUpdates(mCellLocationListener);
     }
+    Log.i(mLogTag, "Location tracker stopped.");
   }
   
   private synchronized void setLocation(Location location, LocationListener listener) {
@@ -91,13 +91,10 @@ public class LocationTracker {
     String address = "";
     Geocoder geoCoder = new Geocoder(
         mContext, Locale.getDefault());
-    GeoPoint point = new GeoPoint(
-            (int) (location.getLatitude() * 1E6), 
-            (int) (location.getLongitude() * 1E6));
     try {
       List<Address> addresses = geoCoder.getFromLocation(
-        point.getLatitudeE6()  / 1E6, 
-        point.getLongitudeE6() / 1E6, 1);
+    		  location.getLatitude(), 
+    		  location.getLongitude(), 1);
    
       if (addresses.size() > 0) {
         for (int index = 0; index < addresses.get(0).getMaxAddressLineIndex(); index++)
@@ -117,7 +114,7 @@ public class LocationTracker {
    * location.
    */
   public synchronized Location getLocation() {
-    for (int trials = 0; trials < MAX_LOCATION_TRIALS && mLocation == null; ++trials) {
+    /*for (int trials = 0; trials < MAX_LOCATION_TRIALS && mLocation == null; ++trials) {
       try {
         Log.d(mLogTag, "Waiting for location");
         this.wait(GET_LOCATION_TIMEOUT);
@@ -127,7 +124,7 @@ public class LocationTracker {
     }
     if (mLocation == null) {
       return null;
-    }
+    }*/
     
     // Construct a copy of the current location.
     mLastNotifiedLocation = mLocation;
@@ -135,25 +132,25 @@ public class LocationTracker {
   }
   
   public String getLocationAddress() {
-    // TODO: use the convertLocationToAddress function like this:
-    //       return convertLocationToAddress(getLocation());
-    // Currently, it hangs on use because of maps api.
+	if (mLocation != null) {
+	  return convertLocationToAddress(getLocation());
+	}
     return "<No Address>";
   }
   
   public synchronized boolean shouldSendAnotherUpdate() {
-    if (mLastNotifiedLocation == null)
+    if ((mLastNotifiedLocation == null) ||
+    	(mLocation.distanceTo(mLastNotifiedLocation) > MINIMUM_NOTIFIED_DISTANCE) ||
+    	((mLocation.getAccuracy() - mLastNotifiedLocation.getAccuracy()) > MINIMUM_NOTIFIED_ACCURACY_CHANGE)) {
       return true;
-    else {
-      // TODO(vytautas): check if the location has changed significantly or got
-      // more accurate.
-      return true;
-    }
+  	}
+  	return false;
   }
   
   private class GpsStatusListener implements GpsStatus.Listener {
 	@Override
 	public void onGpsStatusChanged(int event) {
+		Log.i(mLogTag, "GPS location has changed.");
       switch (event) {
       case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
     	if (mLastNotifiedLocation != null) {
