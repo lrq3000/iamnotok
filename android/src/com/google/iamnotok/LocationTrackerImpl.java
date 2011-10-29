@@ -3,11 +3,7 @@ package com.google.iamnotok;
 import java.io.IOException;
 import java.util.List;
 
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.location.*;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -51,8 +47,14 @@ public class LocationTrackerImpl implements LocationTracker {
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_INTERVAL_MS, 0, locationListener);
 		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, UPDATE_INTERVAL_MS, 0, locationListener);
 
-		updateLocation(locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER));
-		updateLocation(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
+		Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		if (networkLocation != null) {
+			updateLocation(networkLocation);
+		}
+		Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		if (gpsLocation != null) {
+			updateLocation(gpsLocation);
+		}
 	}
 
 	/**
