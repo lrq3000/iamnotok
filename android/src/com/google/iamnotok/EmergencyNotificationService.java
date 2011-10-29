@@ -57,7 +57,7 @@ public class EmergencyNotificationService extends Service {
 	private static int DEFAULT_WAIT_TO_CANCEL = 10000; // milliseconds
 
 	private int mNotificationID = 0;
-	private LocationTracker mLocationTracker;
+	private OldLocationTracker mLocationTracker;
 	private boolean mNotifyViaSMS = true;
 	private boolean mNotifyViaEmail = true;
 	private boolean mNotifyViaCall = false;
@@ -105,7 +105,7 @@ public class EmergencyNotificationService extends Service {
 
 			// Start location tracker from here since it takes some time to get
 			// the first GPS fix.
-			mLocationTracker = new LocationTracker(this);
+			mLocationTracker = new OldLocationTracker(this);
 
 			// Get instance of Vibrator from current Context
 			Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);

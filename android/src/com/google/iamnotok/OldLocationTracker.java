@@ -19,7 +19,7 @@ import java.util.Locale;
  * @author vytautas@google.com (Vytautas Vaitukaitis)
  *
  */
-public class LocationTracker {
+public class OldLocationTracker {
   private static final String mLogTag = "IAmNotOk! - LocationTracker";
   
   private static final float MINIMUM_NOTIFIED_DISTANCE = 500;
@@ -35,7 +35,7 @@ public class LocationTracker {
   private int mLastNotifiedLocationTime;
   private boolean mIsGpsConnected = false;
   
-  public LocationTracker(Context context) {
+  public OldLocationTracker(Context context) {
     mContext = context;
     mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
   }
@@ -172,7 +172,7 @@ public class LocationTracker {
       Log.d(mLogTag, "Location has changed");
       // TODO(vytautas): add some additional logic here that checks if the new
       // location is more accurate, etc.
-      LocationTracker.this.setLocation(location, this);
+      OldLocationTracker.this.setLocation(location, this);
     }
 
     @Override
