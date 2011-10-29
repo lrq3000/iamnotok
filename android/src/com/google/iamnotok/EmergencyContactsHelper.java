@@ -127,9 +127,14 @@ public class EmergencyContactsHelper {
 						Cursor pCur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
 										       null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
 										       new String[]{id}, null);
-						if (pCur.moveToNext()) {
-							this.phone = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-						} else {
+						while (pCur.moveToNext()) {
+							int phoneType = pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
+							if (phoneType == ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE){
+								this.phone = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+								break;
+							}
+						}
+						if (this.phone == null){ //we did not find a phone that is mobile phone
 							Log.w("ContactsHelper", "pCur.moveTONext failed");
 						}
 					}
