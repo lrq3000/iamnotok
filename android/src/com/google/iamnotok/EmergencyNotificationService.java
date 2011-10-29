@@ -93,14 +93,14 @@ public class EmergencyNotificationService extends Service {
 		}
 
 		contactHelper.contactIds();
-		
+
 		if (this.getState() == NORMAL_STATE) {
 			Log.d(mLogTag, "Starting the service");
 			changeState(WAITING_STATE);
 			boolean showNotification = true;
 			if (intent != null) {
 				showNotification = intent.getBooleanExtra(
-					SHOW_NOTIFICATION_WITH_DISABLE, false);
+						SHOW_NOTIFICATION_WITH_DISABLE, false);
 			}
 
 			// Start location tracker from here since it takes some time to get
@@ -109,7 +109,7 @@ public class EmergencyNotificationService extends Service {
 
 			// Get instance of Vibrator from current Context
 			Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-			 
+
 			// Vibrate for 300 milliseconds
 			v.vibrate(300);
 
@@ -127,9 +127,9 @@ public class EmergencyNotificationService extends Service {
 
 	private void sendTextNotifications() {
 		for (Contact contact : contactHelper.getAllContacts()) {
-		  if (contact.getPhone() != null) {
-		    sendTextMessage(contact.getPhone());
-		  }
+			if (contact.getPhone() != null) {
+				sendTextMessage(contact.getPhone());
+			}
 		}
 	}
 
@@ -157,7 +157,7 @@ public class EmergencyNotificationService extends Service {
 				} else {
 					Log.d(mLogTag, "Getting location");
 					Location loc = mLocationTracker.getLocation();
-          message = formatMessage(loc);
+					message = formatMessage(loc);
 				}
 
 				String SENT = "SMS_SENT";
@@ -235,17 +235,20 @@ public class EmergencyNotificationService extends Service {
 			}
 		}
 		if (number == null) {
-			Log.w(mLogTag, "Unable to find a contact with numnber, disabled emergency call");
+			Log.w(mLogTag,
+					"Unable to find a contact with numnber, disabled emergency call");
 			return;
 		}
-		Intent i = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number, null));
+		Intent i = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number,
+				null));
 		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(i);
 	}
 
 	private String getMapUrl(Location loc) {
 		String template = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=%f,%f&sll=%f,%f&sspn=0.005055,0.009645&ie=UTF8&z=16";
-		return String.format(template, loc.getLatitude(),loc.getLongitude(), loc.getLatitude(),loc.getLongitude());
+		return String.format(template, loc.getLatitude(), loc.getLongitude(),
+				loc.getLatitude(), loc.getLongitude());
 	}
 
 	/**
@@ -263,7 +266,7 @@ public class EmergencyNotificationService extends Service {
 			Location loc = mLocationTracker.getLocation();
 			message = formatMessage(loc);
 			if (loc != null) {
-			  message += " " + getMapUrl(loc);
+				message += " " + getMapUrl(loc);
 			}
 		}
 
@@ -271,57 +274,59 @@ public class EmergencyNotificationService extends Service {
 			GMailSender sender = new GMailSender(
 					"imnotokandroidapplication@gmail.com", "googlezurich");
 			sender.sendMail(getMailAddress(), subject, message,
-			    "imnotokapplication@gmail.com", to);
+					"imnotokapplication@gmail.com", to);
 		} catch (Exception e) {
 			Log.e("SendMail", e.getMessage(), e);
 		}
 	}
-	
+
 	private String formatMessage(Location loc) {
-	  String message = "I am not OK!";
-    if (loc == null) {
-      message += " No location information available!";
-    } else {
-      String address = mLocationTracker.getLocationAddress();
-      message += " My current location is: "
-        + "'" + address + "' ("
-        + "latitude: "
-        + loc.getLatitude() + ", longitude: "
-        + loc.getLongitude() + ")";
-      Log.d(mLogTag, "Sending the location - '" + message + "'");
-    }
-    return message;
+		String message = "I am not OK!";
+		if (loc == null) {
+			message += " No location information available!";
+		} else {
+			String address = mLocationTracker.getLocationAddress();
+			message += " My current location is: " + "'" + address + "' ("
+					+ "latitude: " + loc.getLatitude() + ", longitude: "
+					+ loc.getLongitude() + ")";
+			Log.d(mLogTag, "Sending the location - '" + message + "'");
+		}
+		return message;
 	}
 
 	private String getMailAddress() {
-	  Account[] accounts = AccountManager.get(this).getAccounts();
-	  if (accounts.length > 0) {
-	    for (int i = 0; i < accounts.length; i++) {
-        if (accounts[i].type.toLowerCase().contains("google")) {
-          return accounts[i].name;
-        }
-      }
-	  }
-	  return "";
+		Account[] accounts = AccountManager.get(this).getAccounts();
+		if (accounts.length > 0) {
+			for (int i = 0; i < accounts.length; i++) {
+				if (accounts[i].type.toLowerCase().contains("google")) {
+					return accounts[i].name;
+				}
+			}
+		}
+		return "";
 	}
-	
-	private String formatSubject() {
-	  String name = getMailAddress();
-	  if (name.equals("")) {
-	    name += " ";
-	  }
-    TelephonyManager telMgr = (TelephonyManager) getSystemService(
-        Context.TELEPHONY_SERVICE);
-    name += telMgr.getLine1Number();
-	  
-	  return "Emergency message from " + name;
-  }
 
-  private void invokeEmergencyResponse() {
+	private String formatSubject() {
+		String name = getMailAddress();
+		if (!name.equals("")) {
+			name += " ";
+		}
+		TelephonyManager telMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		String lineNumber = telMgr.getLine1Number();
+		if (lineNumber != null) {
+			name += lineNumber;
+		} else {
+			name += "Unidentified user";
+		}
+
+		return "Emergency message from " + name;
+	}
+
+	private void invokeEmergencyResponse() {
 		Log.d(mLogTag, "Invoking emergency response");
 
-    // Start the location tracker (nothing happens if called twice).
-    mLocationTracker.startTracker();
+		// Start the location tracker (nothing happens if called twice).
+		mLocationTracker.startTracker();
 
 		if (mNotifyViaCall) {
 			callEmergency();
@@ -346,7 +351,7 @@ public class EmergencyNotificationService extends Service {
 
 	private void showDisableNotificationAndWaitToInvokeResponse() {
 		Log.d(mLogTag, "Showing notification and waiting");
-		
+
 		// Start the location tracker.
 		mLocationTracker.startTracker();
 
@@ -359,15 +364,15 @@ public class EmergencyNotificationService extends Service {
 				disableEmergencyIntent, 0);
 
 		Notification notification = new Notification(
-				android.R.drawable.stat_sys_warning, this
-						.getString(R.string.emergency_response_starting),
+				android.R.drawable.stat_sys_warning,
+				this.getString(R.string.emergency_response_starting),
 				System.currentTimeMillis());
 		// Notification should be canceled when clicked
 		notification.flags |= Notification.FLAG_AUTO_CANCEL
 				| Notification.FLAG_ONGOING_EVENT;
-		notification.setLatestEventInfo(this, this
-				.getString(R.string.emergency_response_starting), this
-				.getString(R.string.click_to_disable), pendingIntent);
+		notification.setLatestEventInfo(this,
+				this.getString(R.string.emergency_response_starting),
+				this.getString(R.string.click_to_disable), pendingIntent);
 
 		notificationManager.notify(mNotificationID, notification);
 
@@ -377,9 +382,8 @@ public class EmergencyNotificationService extends Service {
 			public void onReceive(Context context, Intent intent) {
 				Log.d(mLogTag, "Received cancellation intent...");
 				if (EmergencyNotificationService.this.getState() == WAITING_STATE) {
-					Log
-							.d(mLogTag,
-									"Application in waiting state, cancelling the emergency");
+					Log.d(mLogTag,
+							"Application in waiting state, cancelling the emergency");
 					EmergencyNotificationService.this.changeState(NORMAL_STATE);
 				}
 			}
@@ -450,8 +454,8 @@ public class EmergencyNotificationService extends Service {
 
 		// Cancellation time:
 		String delay_time = prefs.getString(
-				getString(R.string.edittext_cancelation_delay), Integer
-						.toString(DEFAULT_WAIT_TO_CANCEL / 1000));
+				getString(R.string.edittext_cancelation_delay),
+				Integer.toString(DEFAULT_WAIT_TO_CANCEL / 1000));
 		Log.d(mLogTag, "Delay time received from preferences - " + delay_time);
 
 		int waitForMs;

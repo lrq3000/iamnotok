@@ -127,8 +127,11 @@ public class LocationTracker {
     }*/
     
     // Construct a copy of the current location.
-    mLastNotifiedLocation = mLocation;
-    return new Location(mLocation);
+//    mLastNotifiedLocation = mLocation;
+//    return new Location(mLocation);
+	  
+	  // TODO currently, if mLocation is null, there's a crash of the app
+	  return null;
   }
   
   public String getLocationAddress() {
