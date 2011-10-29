@@ -89,7 +89,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		sendEmergencyMessages();
+		sendEmergencyMessages(locationAddress);
 	}
 
 	@Override
@@ -199,18 +199,18 @@ public class EmergencyNotificationService extends Service {
 		return "Unidentified Phone Number";
 	}
 
-	private void sendTextNotifications() {
+	private void sendTextNotifications(LocationAddress locationAddress) {
 		for (Contact contact : contactHelper.getAllContacts()) {
 			if (contact.getPhone() != null) {
-				sendTextMessage(contact.getPhone());
+				sendTextMessage(contact.getPhone(), locationAddress);
 			}
 		}
 	}
 
-	private void sendEmailNotifications() {
+	private void sendEmailNotifications(LocationAddress locationAddress) {
 		List<String> emailList = getAllContactEmails();
 		if (emailList.size() > 0) {
-			sendEmailMessage(emailList);
+			sendEmailMessage(emailList, locationAddress);
 		}
 	}
 
@@ -227,7 +227,7 @@ public class EmergencyNotificationService extends Service {
 	/**
 	 * Sends an SMS to another device
 	 **/
-	private void sendTextMessage(final String phoneNumber) {
+	private void sendTextMessage(final String phoneNumber, final LocationAddress locationAddress) {
 		Thread messageSender = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -238,7 +238,7 @@ public class EmergencyNotificationService extends Service {
 					Log.d(mLogTag, "Sending the message " + message);
 				} else {
 					Log.d(mLogTag, "Getting location");
-					message = formatMessage(mLocationTracker.getLocationAddress());
+					message = formatMessage(locationAddress);
 				}
 
 				String SENT = "SMS_SENT";
@@ -336,7 +336,7 @@ public class EmergencyNotificationService extends Service {
 	/**
 	 * Sends an email
 	 */
-	private void sendEmailMessage(List<String> to) {
+	private void sendEmailMessage(List<String> to, LocationAddress locationAddress) {
 		String recipients = formatRecipients(to);
 		Log.d(mLogTag, "Sending email to: " + to);
 		String subject = formatSubject();
@@ -346,7 +346,6 @@ public class EmergencyNotificationService extends Service {
 			Log.d(mLogTag, "Sending the email " + message);
 		} else {
 			Log.d(mLogTag, "Getting location");
-			LocationAddress locationAddress = mLocationTracker.getLocationAddress();
 			message = formatMessage(locationAddress);
 			if (locationAddress != null) {
 				message += " " + getMapUrl(locationAddress);
@@ -373,14 +372,14 @@ public class EmergencyNotificationService extends Service {
 		return sb.toString();
 	}
 
-	private String formatMessage(LocationTracker.LocationAddress locAddr) {
+	private String formatMessage(LocationTracker.LocationAddress locationAddress) {
 		String message = "I am not OK!";
-		if (locAddr == null) {
+		if (locationAddress == null) {
 			message += " No location information available!";
 		} else {
-			message += " My current location is: " + "'" + mLocationUtils.formatAddress(mLocationTracker.getLocationAddress().address) + "' ("
-					+ "latitude: " + locAddr.location.getLatitude() + ", longitude: "
-					+ locAddr.location.getLongitude() + ")";
+			message += " My current location is: " + "'" + mLocationUtils.formatAddress(locationAddress.address) + "' ("
+					+ "latitude: " + locationAddress.location.getLatitude() + ", longitude: "
+					+ locationAddress.location.getLongitude() + ")";
 			Log.d(mLogTag, "Sending the location - '" + message + "'");
 		}
 		return message;
@@ -422,7 +421,7 @@ public class EmergencyNotificationService extends Service {
 
 		// TODO: change to TimerTask
 		while (this.getState() == EMERGENCY_STATE) {
-			sendEmergencyMessages();
+			sendEmergencyMessages(mLocationTracker.getLocationAddress());
 			try {
 				Thread.sleep(mWaitBetweenMessages);
 			} catch (InterruptedException exception) {
@@ -431,12 +430,12 @@ public class EmergencyNotificationService extends Service {
 		}
 	}
 
-	private void sendEmergencyMessages() {
+	private void sendEmergencyMessages(LocationAddress locationAddress) {
 		if (mNotifyViaSMS) {
-			sendTextNotifications();
+			sendTextNotifications(locationAddress);
 		}
 		if (mNotifyViaEmail) {
-			sendEmailNotifications();
+			sendEmailNotifications(locationAddress);
 		}
 	}
 
@@ -561,7 +560,7 @@ public class EmergencyNotificationService extends Service {
 	private void stopEmergency() {
 		Log.d(mLogTag, "Stopping emergency");
 		this.changeState(NORMAL_STATE);
-		sendEmergencyMessages();
+		sendEmergencyMessages(mLocationTracker.getLocationAddress());
 		mLocationTracker.deactivate();
 	}
 }
