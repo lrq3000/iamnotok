@@ -1,12 +1,11 @@
 package com.google.iamnotok;
 
+import java.util.Date;
 import java.util.Locale;
 
 import android.app.Activity;
 import android.content.Context;
-import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +14,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.iamnotok.LocationTracker.DistanceThresholdListener;
+import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.utils.LocationUtils;
 
 public class TestActivity extends Activity {
@@ -49,12 +50,19 @@ public class TestActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				Log.d(LOG_TAG, "reg Clicked");
-				lt.registerListenersForBetterLocation(new LocationTracker.DistanceThresholdListener() {
+				lt.setDistanceThresholdListener(new DistanceThresholdListener() {
 					@Override
-					public void notifyNewLocation(Location location, Address address) {
-						Log.d(LOG_TAG, "New location: " + location);
-						Log.d(LOG_TAG, "New address: " + address);
-						((TextView) findViewById(R.id.text)).setText(location + " : " + address);
+					public void notify(LocationAddress locationAddress) {
+						Log.d(LOG_TAG, "New location: " + locationAddress.location);
+						Log.d(LOG_TAG, "New address: " + locationAddress.address);
+						Date date = new Date();
+						((TextView) findViewById(R.id.time)).setText("notif: " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
+						((TextView) findViewById(R.id.loc)).setText(locationAddress.location.getLatitude() + ":" + locationAddress.location.getLongitude());
+						if (locationAddress.address == null) {
+							((TextView) findViewById(R.id.addr)).setText("No address :(");
+						} else {
+							((TextView) findViewById(R.id.addr)).setText(locationAddress.address.getAddressLine(0) + ", " + locationAddress.address.getLocality());;
+						}
 					}
 				});
 			}
@@ -64,7 +72,15 @@ public class TestActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				Log.d(LOG_TAG, "Get Clicked");
-				lt.notifyListeners();
+				Date date = new Date();
+				LocationAddress locationAddress = lt.getLocationAddress();
+				((TextView) findViewById(R.id.time)).setText("get: " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
+				((TextView) findViewById(R.id.loc)).setText(locationAddress.location.getLatitude() + ":" + locationAddress.location.getLongitude());
+				if (locationAddress.address == null) {
+					((TextView) findViewById(R.id.addr)).setText("No address :(");
+				} else {
+					((TextView) findViewById(R.id.addr)).setText(locationAddress.address.getAddressLine(0) + ", " + locationAddress.address.getLocality());;
+				}
 			}
 		});
 	}
