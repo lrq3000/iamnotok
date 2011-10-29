@@ -3,9 +3,14 @@ package com.google.iamnotok;
 import java.util.Vector;
 
 import android.app.AlertDialog;
+import android.app.IntentService;
 import android.app.ListActivity;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -14,9 +19,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListAdapter;
+import android.widget.RemoteViews;
 import android.widget.AdapterView.OnItemLongClickListener;
 
 /**
@@ -34,18 +42,76 @@ public class EmergencyContactsActivity extends ListActivity {
 		setContentView(R.layout.contacts_list);
 		contactsHelper = new EmergencyContactsHelper(getApplicationContext());
 		setListAdapter(createAdapter());
+		setupEmergencyButtonViews();
 		setupListView();
 		registerReceivers();
 	}
 	
 	private void registerReceivers() {
-	    // Register the Screen on/off receiver
+		// Register emergency notification service receiver.
+		BroadcastReceiver receiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				EmergencyContactsActivity.this.updateEmergencyButtonStatus();
+			}
+		};
+		IntentFilter filter = new IntentFilter(EmergencyNotificationService.SERVICE_I_AM_NOW_OK_INTENT);
+		registerReceiver(receiver, filter);
+		filter = new IntentFilter(EmergencyNotificationService.SERVICE_I_AM_NOT_OK_INTENT);
+		registerReceiver(receiver, filter);
+		
+	    // Register the Screen on/off receiver.
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		if (prefs.getBoolean(getString(R.string.quiet_mode_enable), true)) {
 			ScreenOnOffReceiver.register(getApplicationContext());
 		}
 		
 	}
+	
+	protected void setupEmergencyButtonViews() {
+		// Create intent to launch the EmergencyNotificationService and button.
+	    Button emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
+	    final Intent intent = new Intent(this, EmergencyNotificationService.class);
+	    intent.putExtra(EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE, true);
+	    emergencyButton.setOnClickListener(new OnClickListener() {
+	    	@Override
+			public void onClick(View v) {
+				startService(intent);
+			}
+		});
+	    
+	    // Create ImNowOk intent and button.
+	    Button okButton = (Button) findViewById(R.id.ContactListImNowOKButton);
+	    final Intent iAmNowOkIntent = new Intent(EmergencyNotificationService.I_AM_NOW_OK_INTENT);
+		okButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				EmergencyContactsActivity.this.sendBroadcast(iAmNowOkIntent);
+			}
+		});
+		
+		updateEmergencyButtonStatus();
+	}
+	
+	protected void updateEmergencyButtonStatus() {
+		Button emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
+	    Button okButton = (Button) findViewById(R.id.ContactListImNowOKButton);
+	    
+	    emergencyButton.setVisibility(View.GONE);
+		okButton.setVisibility(View.GONE);
+		switch (EmergencyNotificationService.mApplicationState) {
+	    case (EmergencyNotificationService.NORMAL_STATE): 
+	    	emergencyButton.setVisibility(View.VISIBLE);
+			break;
+	    case (EmergencyNotificationService.WAITING_STATE): 
+	    	emergencyButton.setVisibility(View.VISIBLE);
+			break;
+	    case (EmergencyNotificationService.EMERGENCY_STATE): 
+	    	okButton.setVisibility(View.VISIBLE);
+			break;
+	    }
+	}
+	
 	protected void setupListView() {
 		// Long click to remove contacts.
 		getListView().setOnItemLongClickListener(new OnItemLongClickListener() {

@@ -18,6 +18,8 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -45,8 +47,11 @@ public class EmergencyNotificationService extends Service {
 	 * 10 seconds.
 	 */
 	public final static String SHOW_NOTIFICATION_WITH_DISABLE = "showNotification";
-	private final static String STOP_EMERGENCY_INTENT = "com.google.imnotok.STOP_EMERGENCY";
+	public final static String I_AM_NOT_OK_INTENT = "com.google.imnotok.I_AM_NOT_OK";
+	public final static String STOP_EMERGENCY_INTENT = "com.google.imnotok.STOP_EMERGENCY";
 	public final static String I_AM_NOW_OK_INTENT = "com.google.imnotok.I_AM_NOW_OK";
+	public final static String SERVICE_I_AM_NOT_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOT_OK";
+	public final static String SERVICE_I_AM_NOW_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOW_OK";
 
 	public final static int NORMAL_STATE = 0;
 	public final static int WAITING_STATE = 1;
@@ -438,6 +443,9 @@ public class EmergencyNotificationService extends Service {
 
 	private void invokeEmergencyResponse() {
 		Log.d(mLogTag, "Invoking emergency response");
+		
+		Intent iAmNotOkIntent = new Intent(SERVICE_I_AM_NOT_OK_INTENT);
+		this.sendBroadcast(iAmNotOkIntent);
 
 		if (mNotifyViaCall) {
 			callEmergency();
@@ -546,6 +554,8 @@ public class EmergencyNotificationService extends Service {
 				R.layout.emergency_button_widget);
 		EmergencyButtonWidgetProvider.setupViews(this, views);
 		AppWidgetManager.getInstance(this).updateAppWidget(thisWidget, views);
+		
+		// Broadcast
 	}
 
 	private synchronized int getState() {
@@ -581,5 +591,8 @@ public class EmergencyNotificationService extends Service {
 		this.changeState(NORMAL_STATE);
 		sendEmergencyMessages(mLocationTracker.getLocationAddress());
 		mLocationTracker.deactivate();
+		
+		Intent iAmNowOkIntent = new Intent(SERVICE_I_AM_NOW_OK_INTENT);
+		this.sendBroadcast(iAmNowOkIntent);
 	}
 }
