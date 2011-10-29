@@ -1,5 +1,6 @@
 package com.google.iamnotok;
 
+import android.location.Address;
 import android.location.Location;
 
 public interface LocationTracker {
@@ -10,7 +11,7 @@ public interface LocationTracker {
 		 * @param location instance holding the full location information
 		 * @param address reverse geolocated address of the location above. Can be null.
 		 */
-		void notifyNewLocation(Location location, String address);
+		void notifyNewLocation(Location location, Address address);
 	}
 	public void activate();
 	public void deactivate();

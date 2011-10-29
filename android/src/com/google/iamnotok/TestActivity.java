@@ -1,7 +1,11 @@
 package com.google.iamnotok;
 
+import java.util.Locale;
+
 import android.app.Activity;
 import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -20,7 +24,10 @@ public class TestActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.test);
 
-		final LocationTracker lt = new LocationTrackerImpl((LocationManager) this.getSystemService(Context.LOCATION_SERVICE), new LocationUtils());
+		final LocationTracker lt = new LocationTrackerImpl(
+				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
+				new LocationUtils(),
+				new Geocoder(this, Locale.getDefault()));
 
 		((Button)findViewById(R.id.activate)).setOnClickListener(new OnClickListener() {
 			@Override
@@ -44,7 +51,7 @@ public class TestActivity extends Activity {
 				Log.d(LOG_TAG, "reg Clicked");
 				lt.registerListenersForBetterLocation(new LocationTracker.Listener() {
 					@Override
-					public void notifyNewLocation(Location location, String address) {
+					public void notifyNewLocation(Location location, Address address) {
 						Log.d(LOG_TAG, "New location: " + location);
 						Log.d(LOG_TAG, "New address: " + address);
 						((TextView) findViewById(R.id.text)).setText(location + " : " + address);
