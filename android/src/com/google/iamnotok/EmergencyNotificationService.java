@@ -155,7 +155,7 @@ public class EmergencyNotificationService extends Service {
 				getString(R.string.select_account_list), "");
 		Account[] accounts = AccountManager.get(this).getAccountsByType("com.google");
 		for (Account account : accounts) {
-			if (account.name == accountName) {
+			if (account.name != null && account.name.equals(accountName)) {
 				return account;
 			}
 		}
@@ -347,7 +347,7 @@ public class EmergencyNotificationService extends Service {
 		} else {
 			Log.d(mLogTag, "Getting location");
 			message = formatMessage(locationAddress);
-			if (locationAddress != null) {
+			if (locationAddress.location != null) {
 				message += " " + getMapUrl(locationAddress);
 			}
 		}
@@ -377,13 +377,19 @@ public class EmergencyNotificationService extends Service {
 		if (locationAddress == null) {
 			message += " No location information available!";
 		} else {
-			String location;
+			String address;
 			if (locationAddress.address != null) {
-				location = ": '" + mLocationUtils.formatAddress(locationAddress.address) + "'";
+				address = ": '" + mLocationUtils.formatAddress(locationAddress.address) + "'";
 			} else {
-				location = " Unknown";
+				address = " Unknown";
 			}
-			message += " My current location is" + location + " (" + "latitude: " + locationAddress.location.getLatitude() + ", longitude: " + locationAddress.location.getLongitude() + ")";
+			String location;
+			if (locationAddress.location != null) {				
+				location = " (" + "latitude: " + locationAddress.location.getLatitude() + ", longitude: " + locationAddress.location.getLongitude() + ")";
+			} else {
+				location = "";
+			}
+			message += " My current location is" + address + location;
 			Log.d(mLogTag, "Sending the location - '" + message + "'");
 		}
 		return message;
