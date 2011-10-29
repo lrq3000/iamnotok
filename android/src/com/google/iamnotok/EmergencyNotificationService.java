@@ -312,8 +312,8 @@ public class EmergencyNotificationService extends Service {
 		if (email.contains("@")) {
 			// in case we have a mail, lets try to resolve the username.
 			Uri uri = Uri.withAppendedPath(Email.CONTENT_LOOKUP_URI, Uri.encode(email));
-			Cursor cur = getContentResolver().query(uri, new String[]{Phone.DISPLAY_NAME}, null, null,
-					null);
+			Cursor cur = getContentResolver().query(
+					uri, new String[]{Phone.DISPLAY_NAME}, null, null, null);
 			if (cur.moveToFirst()) {
 				return cur.getString(cur.getColumnIndex(Phone.DISPLAY_NAME));
 			} else {
