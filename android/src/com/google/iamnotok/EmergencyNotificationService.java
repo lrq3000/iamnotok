@@ -420,19 +420,18 @@ public class EmergencyNotificationService extends Service {
 			callEmergency();
 		}
 
+		// TODO: change to TimerTask
 		while (this.getState() == EMERGENCY_STATE) {
-			if (true/*TODO: mLocationTracker.shouldSendAnotherUpdate()*/) {
-				if (mNotifyViaSMS) {
-					sendTextNotifications();
-				}
-				if (mNotifyViaEmail) {
-					sendEmailNotifications();
-				}
-				try {
-					Thread.sleep(mWaitBetweenMessages);
-				} catch (InterruptedException exception) {
-					exception.printStackTrace();
-				}
+			if (mNotifyViaSMS) {
+				sendTextNotifications();
+			}
+			if (mNotifyViaEmail) {
+				sendEmailNotifications();
+			}
+			try {
+				Thread.sleep(mWaitBetweenMessages);
+			} catch (InterruptedException exception) {
+				exception.printStackTrace();
 			}
 		}
 	}
