@@ -44,4 +44,6 @@
     <string name="account_phone_number_title">Your Phone Number</string>
     <string name="account_phone_number_desc">This phone number will appear in emergency notifications</string>
     <string name="notification_settings_cat">Notification Settings</string>
+    <string name="cancel_emergency_text">Cancel Emergency</string>
+    <string name="cancel_emergency">cancel_emergency</string>
 </resources>

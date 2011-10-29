@@ -62,6 +62,7 @@ public class EmergencyNotificationService extends Service {
 	public final static String I_AM_NOT_OK_INTENT = "com.google.imnotok.I_AM_NOT_OK";
 	public final static String STOP_EMERGENCY_INTENT = "com.google.imnotok.STOP_EMERGENCY";
 	public final static String I_AM_NOW_OK_INTENT = "com.google.imnotok.I_AM_NOW_OK";
+	
 	public final static String SERVICE_I_AM_NOT_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOT_OK";
 	public final static String SERVICE_I_AM_NOW_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOW_OK";
 

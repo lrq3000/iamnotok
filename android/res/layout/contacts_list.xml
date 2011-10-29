@@ -13,7 +13,16 @@
          android:text="@string/i_am_now_ok"
          android:textColor="#FFFFFFFF"
          android:textSize="14dip" />
-
+
+     <Button
+         android:id="@+id/ContactListCancelEmergencyButton"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:background="@drawable/btn_iamok"
+         android:text="@string/cancel_emergency_text"
+         android:textColor="#FFFFFFFF"
+         android:textSize="14dip" />
+     
      <Button
          android:id="@+id/ContactListEmergencyButton"
          android:layout_width="fill_parent"
