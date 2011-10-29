@@ -23,7 +23,7 @@ public class LocationTrackerImpl implements LocationTracker {
 	private final Geocoder geocoder;
 	private LocationListener locationListener;
 	private LocationAddress currentLocationAddress;
-	private Location lastNotifiedLocation;
+	private LocationAddress lastNotifiedLocationAddress;
 	private final LocationUtils locationUtils;
 	private DistanceThresholdListener listener;
 
@@ -73,8 +73,9 @@ public class LocationTrackerImpl implements LocationTracker {
 	 * Notifying only if last notified location is farther than METERS_THRESHOLD_FOR_NOTIFY from current.
 	 */
 	private boolean shouldNotify() {
-		return (this.lastNotifiedLocation == null) ||
-				(this.lastNotifiedLocation.distanceTo(this.currentLocationAddress.location) > METERS_THRESHOLD_FOR_NOTIFY);
+		return (this.lastNotifiedLocationAddress == null) ||
+				(this.lastNotifiedLocationAddress.location.distanceTo(
+						this.currentLocationAddress.location) > METERS_THRESHOLD_FOR_NOTIFY);
 	}
 
 	private void updateAddressAndNotify(final Location location) {
@@ -114,12 +115,13 @@ public class LocationTrackerImpl implements LocationTracker {
 	private synchronized void notifyListeners() {
 		if (listener != null)
 			listener.notify(currentLocationAddress);
-		this.lastNotifiedLocation = currentLocationAddress.location;
+		this.lastNotifiedLocationAddress = currentLocationAddress;
 		Log.i(LOG_TAG, "Done notifying all listeners with best location " + currentLocationAddress);
 	}
 
 	@Override
 	public LocationAddress getLocationAddress() {
+		lastNotifiedLocationAddress = currentLocationAddress;
 		return currentLocationAddress;
 	}
 }
