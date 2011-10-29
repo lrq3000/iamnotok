@@ -73,9 +73,10 @@ public class LocationTrackerImpl implements LocationTracker {
 
 	/**
 	 * Notifying only if last notified location is farther than METERS_THRESHOLD_FOR_NOTIFY from current.
+	 * On no previous notifications, we do NOT notify.
 	 */
 	private boolean shouldNotify() {
-		return (this.lastNotifiedLocationAddress == null) ||
+		return (this.lastNotifiedLocationAddress != null) &&
 				(this.lastNotifiedLocationAddress.location.distanceTo(
 						this.currentLocationAddress.location) > METERS_THRESHOLD_FOR_NOTIFY);
 	}

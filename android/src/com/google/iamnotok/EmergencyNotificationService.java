@@ -1,14 +1,28 @@
 package com.google.iamnotok;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.app.*;
+import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.appwidget.AppWidgetManager;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.location.*;
+import android.location.Geocoder;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.Vibrator;
@@ -18,8 +32,6 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -96,7 +108,13 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		this.notificationsTimer.cancel();
+		if (getState() != EMERGENCY_STATE) {
+			return;
+		}
+
+		if (this.notificationsTimer != null) {
+			this.notificationsTimer.cancel();
+		}
 		sendEmergencyMessages(locationAddress);
 		setNotificationTimer();
 	}
@@ -147,6 +165,7 @@ public class EmergencyNotificationService extends Service {
 			if (showNotification) {
 				this.showDisableNotificationAndWaitToInvokeResponse();
 			} else {
+				changeState(EMERGENCY_STATE);
 				this.invokeEmergencyResponse();
 			}
 			super.onStart(intent, startId);
@@ -443,7 +462,7 @@ public class EmergencyNotificationService extends Service {
 
 	private void invokeEmergencyResponse() {
 		Log.d(mLogTag, "Invoking emergency response");
-		
+
 		Intent iAmNotOkIntent = new Intent(SERVICE_I_AM_NOT_OK_INTENT);
 		this.sendBroadcast(iAmNotOkIntent);
 
@@ -496,7 +515,8 @@ public class EmergencyNotificationService extends Service {
 				if (EmergencyNotificationService.this.getState() == WAITING_STATE) {
 					Log.d(mLogTag,
 							"Application in waiting state, cancelling the emergency");
-					EmergencyNotificationService.this.changeState(NORMAL_STATE);
+					changeState(NORMAL_STATE);
+					mLocationTracker.deactivate();
 				}
 			}
 		};
@@ -508,40 +528,30 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(mLogTag, "Received I am now OK intent...");
-				if (EmergencyNotificationService.this.getState() == EMERGENCY_STATE) {
-					Log.d(mLogTag,
-							"Application in emergency state, I am now OK");
-					EmergencyNotificationService.this.stopEmergency();
+				if (getState() == EMERGENCY_STATE) {
+					Log.d(mLogTag, "Application in emergency state, I am now OK");
+					stopEmergency();
 				}
 			}
 		};
 		IntentFilter intentIamNowOKFilter = new IntentFilter(I_AM_NOW_OK_INTENT);
 		this.registerReceiver(imnowOKReceiver, intentIamNowOKFilter);
 
-		// Start the waiting in a separate thread since otherwise the service
-		// will
-		// not be able to receive the intent for canceling the emergency
-		// response.
-		Thread waiterThread = new Thread(new Runnable() {
+		Timer t = new Timer();
+		t.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				try {
-					Thread.sleep(EmergencyNotificationService.this
-							.getWaitingTime());
-					EmergencyNotificationService.this
-							.unregisterReceiver(cancellationReceiver);
+				unregisterReceiver(cancellationReceiver);
+				notificationManager.cancel(mNotificationID++);
+				if (getState() == WAITING_STATE) {
 					changeState(EMERGENCY_STATE);
-				} catch (InterruptedException exception) {
-					exception.printStackTrace();
-				} finally {
-					notificationManager.cancel(mNotificationID++);
-					if (EmergencyNotificationService.this.getState() == EMERGENCY_STATE) {
-						invokeEmergencyResponse();
-					}
+					invokeEmergencyResponse();
+				} else {
+					// TODO: Do this in the cancellation receiver.
+					unregisterReceiver(imnowOKReceiver);
 				}
 			}
-		});
-		waiterThread.start();
+		}, this.getWaitingTime());
 	}
 
 	private synchronized void changeState(int new_state) {
@@ -554,7 +564,7 @@ public class EmergencyNotificationService extends Service {
 				R.layout.emergency_button_widget);
 		EmergencyButtonWidgetProvider.setupViews(this, views);
 		AppWidgetManager.getInstance(this).updateAppWidget(thisWidget, views);
-		
+
 		// Broadcast
 	}
 
@@ -586,12 +596,14 @@ public class EmergencyNotificationService extends Service {
 
 	private void stopEmergency() {
 		Log.d(mLogTag, "Stopping emergency");
-		this.notificationsTimer.cancel();
-		this.notificationsTimer = null;
+		if (this.notificationsTimer != null) {
+			this.notificationsTimer.cancel();
+			this.notificationsTimer = null;
+		}
 		this.changeState(NORMAL_STATE);
 		sendEmergencyMessages(mLocationTracker.getLocationAddress());
 		mLocationTracker.deactivate();
-		
+
 		Intent iAmNowOkIntent = new Intent(SERVICE_I_AM_NOW_OK_INTENT);
 		this.sendBroadcast(iAmNowOkIntent);
 	}
