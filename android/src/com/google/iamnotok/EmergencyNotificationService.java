@@ -1,26 +1,14 @@
 package com.google.iamnotok;
 
-import java.util.Locale;
+import java.util.*;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
+import android.app.*;
 import android.appwidget.AppWidgetManager;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.database.Cursor;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationManager;
+import android.location.*;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.Vibrator;
@@ -164,19 +152,27 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void sendEmailNotifications() {
-		String emailList = "";
-		for (Contact contact : contactHelper.getAllContacts())
-			if (contact.getEmail() != null)
-				emailList += contact.getEmail() + ",";
-		if (emailList.length() > 0)
+		List<String> emailList = getAllContactEmails();
+		if (emailList.size() > 0) {
 			sendEmailMessage(emailList);
+		}
+	}
+
+	private List<String> getAllContactEmails() {
+		List<String> emails = new ArrayList<String>();
+		for (Contact contact : contactHelper.getAllContacts()) {
+			if (contact.getEmail() != null) {
+				emails.add(contact.getEmail());
+			}
+		}
+		return emails;
 	}
 	
 	private Location currentLocation;
 	private Address currentAddress;
 
 	/**
-	 * Sends a sms to another device
+	 * Sends an SMS to another device
 	 **/
 	private void sendTextMessage(final String phoneNumber) {
 		Thread messageSender = new Thread(new Runnable() {
@@ -185,7 +181,7 @@ public class EmergencyNotificationService extends Service {
 				Log.d(mLogTag, "Sending sms to: " + phoneNumber);
 				String message = "";
 				if (getState() == NORMAL_STATE) {
-					message = "I am now OK";
+					message = "I am OK now";
 					Log.d(mLogTag, "Sending the message " + message);
 				} else {
 					Log.d(mLogTag, "Getting location");
@@ -292,12 +288,13 @@ public class EmergencyNotificationService extends Service {
 	/**
 	 * Sends an email
 	 */
-	private void sendEmailMessage(String to) {
+	private void sendEmailMessage(List<String> to) {
+		String recipients = formatRecipients(to);
 		Log.d(mLogTag, "Sending email to: " + to);
 		String subject = formatSubject();
 		String message = "";
 		if (getState() == NORMAL_STATE) {
-			message = "I am now OK";
+			message = "I am OK now";
 			Log.d(mLogTag, "Sending the email " + message);
 		} else {
 			Log.d(mLogTag, "Getting location");
@@ -311,10 +308,21 @@ public class EmergencyNotificationService extends Service {
 		try {
 			GMailSender sender = new GMailSender("imnotokandroidapplication@gmail.com", "googlezurich");
 			String mailAddress = getMailAddress();
-			sender.sendMail(mailAddress, subject, message, "imnotokapplication@gmail.com", to);
+			sender.sendMail(mailAddress, subject, message, "imnotokapplication@gmail.com", recipients);
 		} catch (Exception e) {
 			Log.e("SendMail", e.getMessage(), e);
 		}
+	}
+
+	private String formatRecipients(List<String> to) {
+		if (to == null || to.isEmpty()) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder(to.get(0));
+		for (int i = 1; i < to.size(); i++) {
+			sb.append(",").append(to.get(i));
+		}
+		return sb.toString();
 	}
 
 	private String formatMessage(Location loc) {
