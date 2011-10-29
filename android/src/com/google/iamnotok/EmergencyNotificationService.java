@@ -62,7 +62,7 @@ public class EmergencyNotificationService extends Service {
 	private boolean mNotifyViaEmail = true;
 	private boolean mNotifyViaCall = false;
 	private int mWaitBetweenMessages = 5000;
-
+	
 	private EmergencyContactsHelper contactHelper;
 
 
@@ -100,7 +100,7 @@ public class EmergencyNotificationService extends Service {
 				getString(R.string.checkbox_email_notification), true);
 		mNotifyViaCall = prefs.getBoolean(
 				getString(R.string.checkbox_call_notification), false);
-
+		
 		if (contactHelper == null)
 			contactHelper = new EmergencyContactsHelper(getApplicationContext());
 
@@ -141,6 +141,58 @@ public class EmergencyNotificationService extends Service {
 			Log.d(mLogTag,
 					"Application already in either waiting or emergency mode.");
 		}
+	}
+	
+	private Account getSelectedAccount() {
+		// First try to get the selected account from the preferences.
+		SharedPreferences prefs =
+			PreferenceManager.getDefaultSharedPreferences(this);
+		String accountName = prefs.getString(
+				getString(R.string.select_account_list), "");
+		Account[] accounts = AccountManager.get(this).getAccountsByType("com.google");
+		for (Account account : accounts) {
+			if (account.name == accountName) {
+				return account;
+			}
+		}
+		
+		// If we got here, then we didn't find the account in the preferences.
+		// This probably means that the user removed the account after selecting it.
+		// In this case, we just return the first available account, if any.
+		// TODO: Should we notify the user here?
+		if (accounts.length > 0) {
+			return accounts[0];
+		}
+		
+		// If there are no google accounts, try looking for a non-google account.
+		// NOTE: This can only be used to get the name from.
+		accounts = AccountManager.get(this).getAccounts();
+		if (accounts.length > 0) {
+			return accounts[0];
+		}
+		
+		return new Account("Unidentified User", "com.dummy");
+	}
+	
+	private String getPhoneNumber() {
+		// First try to get the phone number from the preferences.
+		SharedPreferences prefs =
+			PreferenceManager.getDefaultSharedPreferences(this);
+		String phoneNumber = prefs.getString(
+				getString(R.string.account_phone_number), "");
+		if (phoneNumber != null && !phoneNumber.equals("")) {
+			return phoneNumber;
+		}
+		
+		// If we don't have a phone number in the preferences, try getting it
+		// from the weird function called getLine1Number.
+		TelephonyManager telMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		String lineNumber = telMgr.getLine1Number();
+		if (lineNumber != null && !lineNumber.equals("")) {
+			return lineNumber;
+		}
+		
+		return "Unidentified Phone Number";
 	}
 
 	private void sendTextNotifications() {
@@ -340,12 +392,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private String getMailAddress() {
-		Account[] accounts = AccountManager.get(this).getAccounts();
-		if (accounts.length > 0) {
-			// TODO: allow selecting the account to use as FROM in the configuration.
-			return accounts[0].name;
-		}
-		return "";
+		return getSelectedAccount().name;
 	}
 
 	private String getAccountName() {
@@ -366,15 +413,9 @@ public class EmergencyNotificationService extends Service {
 
 	private String formatSubject() {
 		String name = getAccountName();
-		TelephonyManager telMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-		String lineNumber = telMgr.getLine1Number();
-		if (lineNumber != null) {
-			name += " " +lineNumber;
-		} else if ("".equals(name)) {
-			name += " Unidentified user";
-		}
-
-		return "Emergency message from " + name;
+		String lineNumber = getPhoneNumber();
+		
+		return "Emergency message from " + name + " (" + lineNumber + ")";
 	}
 
 	private void invokeEmergencyResponse() {

@@ -36,4 +36,12 @@
     <string name="no_notification_defined">No notification methods defined</string>
 
     <string name="i_am_now_ok">I am NOW OK</string>
+    <string name="select_account_list">select_account_list</string>
+    <string name="select_account_list_title">Select Your Account</string>
+    <string name="select_account_list_desc">Select the account to use for sending emergency notifications from</string>
+    <string name="account_settings_cat">Account Settings</string>
+    <string name="account_phone_number">account_phone_number</string>
+    <string name="account_phone_number_title">Your Phone Number</string>
+    <string name="account_phone_number_desc">This phone number will appear in emergency notifications</string>
+    <string name="notification_settings_cat">Notification Settings</string>
 </resources>
