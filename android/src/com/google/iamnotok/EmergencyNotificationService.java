@@ -22,6 +22,7 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.google.iamnotok.EmergencyContactsHelper.Contact;
+import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.utils.LocationUtils;
 
 /**
@@ -79,13 +80,16 @@ public class EmergencyNotificationService extends Service {
 				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
 				mLocationUtils,
 				new Geocoder(this, Locale.getDefault()));
-		mLocationTracker.registerListenersForBetterLocation(new LocationTracker.Listener() {
+		mLocationTracker.setDistanceThresholdListener(new LocationTracker.DistanceThresholdListener() {
 			@Override
-			public void notifyNewLocation(Location location, Address address) {
-				currentLocation = location;
-				currentAddress = address;
+			public void notify(LocationTracker.LocationAddress locationAddress) {
+				onDistanceThresholdPassed(locationAddress);
 			}
 		});
+	}
+
+	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
+		// TODO: send mail
 	}
 
 	@Override
@@ -220,9 +224,6 @@ public class EmergencyNotificationService extends Service {
 		return emails;
 	}
 	
-	private Location currentLocation;
-	private Address currentAddress;
-
 	/**
 	 * Sends an SMS to another device
 	 **/
@@ -237,8 +238,7 @@ public class EmergencyNotificationService extends Service {
 					Log.d(mLogTag, "Sending the message " + message);
 				} else {
 					Log.d(mLogTag, "Getting location");
-					refreshLocation();
-					message = formatMessage(currentLocation);
+					message = formatMessage(mLocationTracker.getLocationAddress());
 				}
 
 				String SENT = "SMS_SENT";
@@ -308,10 +308,6 @@ public class EmergencyNotificationService extends Service {
 		messageSender.start();
 	}
 
-	private void refreshLocation() {
-		mLocationTracker.notifyListeners();
-	}
-
 	private void callEmergency() {
 		String number = null;
 		for (Contact contact : contactHelper.getAllContacts()) {
@@ -331,10 +327,10 @@ public class EmergencyNotificationService extends Service {
 		startActivity(i);
 	}
 
-	private String getMapUrl(Location loc) {
+	private String getMapUrl(LocationTracker.LocationAddress locAddr) {
 		String template = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=%f,%f&sll=%f,%f&sspn=0.005055,0.009645&ie=UTF8&z=16";
-		return String.format(template, loc.getLatitude(), loc.getLongitude(),
-				loc.getLatitude(), loc.getLongitude());
+		return String.format(template, locAddr.location.getLatitude(), locAddr.location.getLongitude(),
+				locAddr.location.getLatitude(), locAddr.location.getLongitude());
 	}
 
 	/**
@@ -350,10 +346,10 @@ public class EmergencyNotificationService extends Service {
 			Log.d(mLogTag, "Sending the email " + message);
 		} else {
 			Log.d(mLogTag, "Getting location");
-			refreshLocation();
-			message = formatMessage(currentLocation);
-			if (currentLocation != null) {
-				message += " " + getMapUrl(currentLocation);
+			LocationAddress locationAddress = mLocationTracker.getLocationAddress();
+			message = formatMessage(locationAddress);
+			if (locationAddress != null) {
+				message += " " + getMapUrl(locationAddress);
 			}
 		}
 
@@ -377,15 +373,14 @@ public class EmergencyNotificationService extends Service {
 		return sb.toString();
 	}
 
-	private String formatMessage(Location loc) {
+	private String formatMessage(LocationTracker.LocationAddress locAddr) {
 		String message = "I am not OK!";
-		if (loc == null) {
+		if (locAddr == null) {
 			message += " No location information available!";
 		} else {
-			refreshLocation();
-			message += " My current location is: " + "'" + mLocationUtils.formatAddress(currentAddress) + "' ("
-					+ "latitude: " + loc.getLatitude() + ", longitude: "
-					+ loc.getLongitude() + ")";
+			message += " My current location is: " + "'" + mLocationUtils.formatAddress(mLocationTracker.getLocationAddress().address) + "' ("
+					+ "latitude: " + locAddr.location.getLatitude() + ", longitude: "
+					+ locAddr.location.getLongitude() + ")";
 			Log.d(mLogTag, "Sending the location - '" + message + "'");
 		}
 		return message;

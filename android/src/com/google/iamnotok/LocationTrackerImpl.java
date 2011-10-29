@@ -1,7 +1,6 @@
 package com.google.iamnotok;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import android.location.Address;
@@ -23,11 +22,10 @@ public class LocationTrackerImpl implements LocationTracker {
 	private final LocationManager locationManager;
 	private final Geocoder geocoder;
 	private LocationListener locationListener;
-	private Location bestKnownLocation;
+	private LocationAddress currentLocationAddress;
 	private Location lastNotifiedLocation;
-	private Address address;
 	private final LocationUtils locationUtils;
-	private List<Listener> listeners = new ArrayList<Listener>();
+	private DistanceThresholdListener listener;
 
 	public LocationTrackerImpl(LocationManager locationManager, LocationUtils locationUtils, Geocoder geocoder) {
 		this.locationManager = locationManager;
@@ -63,10 +61,9 @@ public class LocationTrackerImpl implements LocationTracker {
 	private void updateLocation(Location newLocation) {
 		Log.i(LOG_TAG, "In updatLocation");
 
-		if (locationUtils.isBetterLocation(newLocation, this.bestKnownLocation)) {
-			this.address = null;
-			this.bestKnownLocation = newLocation;
-			updateAddressAndNotify(this.bestKnownLocation);
+		if (locationUtils.isBetterLocation(newLocation, this.currentLocationAddress.location)) {
+			this.currentLocationAddress = new LocationAddress(newLocation, null);
+			updateAddressAndNotify(this.currentLocationAddress.location);
 
 			Log.i(LOG_TAG,"Updatitng best location to "+newLocation);
 		}
@@ -77,17 +74,17 @@ public class LocationTrackerImpl implements LocationTracker {
 	 */
 	private boolean shouldNotify() {
 		return (this.lastNotifiedLocation == null) ||
-				(this.lastNotifiedLocation.distanceTo(this.bestKnownLocation) > METERS_THRESHOLD_FOR_NOTIFY);
+				(this.lastNotifiedLocation.distanceTo(this.currentLocationAddress.location) > METERS_THRESHOLD_FOR_NOTIFY);
 	}
 
 	private void updateAddressAndNotify(final Location location) {
 	    Thread thread = new Thread() {
 	        @Override public void run() {
-	            address = null;
 	            try {
 	                List<Address> list = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
 	                if (list != null && list.size() > 0) {
-	                    address = list.get(0);
+	                    Address address = list.get(0);
+	                	currentLocationAddress = new LocationAddress(location, address);
 	                }
 	            } catch (IOException e) {
 	                Log.e(LOG_TAG, "Impossible to connect to Geocoder", e);
@@ -109,16 +106,20 @@ public class LocationTrackerImpl implements LocationTracker {
 	}
 
 	@Override
-	public void registerListenersForBetterLocation(Listener listener) {
-		listeners.add(listener);
+	public void setDistanceThresholdListener(DistanceThresholdListener listener) {
+		this.listener = listener;
 	}
 
 	// Synchronized so 2 concurrent calls() won't confuse listeners
-	public synchronized void notifyListeners() {
-		for (Listener listener : listeners) {
-			listener.notifyNewLocation(this.bestKnownLocation, this.address);
-		}
-		this.lastNotifiedLocation = bestKnownLocation;
-		Log.i(LOG_TAG, "Done notifying all listeners with best location " + bestKnownLocation);
+	private synchronized void notifyListeners() {
+		if (listener != null)
+			listener.notify(currentLocationAddress);
+		this.lastNotifiedLocation = currentLocationAddress.location;
+		Log.i(LOG_TAG, "Done notifying all listeners with best location " + currentLocationAddress);
+	}
+
+	@Override
+	public LocationAddress getLocationAddress() {
+		return currentLocationAddress;
 	}
 }

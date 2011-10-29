@@ -4,27 +4,32 @@ import android.location.Address;
 import android.location.Location;
 
 public interface LocationTracker {
-	public interface Listener {
+	public class LocationAddress {
 		/**
-		 * Method called on new location update
-		 *
-		 * @param location instance holding the full location information
-		 * @param address reverse geolocated address of the location above. Can be null.
+		 * location instance holding the full location information
 		 */
-		void notifyNewLocation(Location location, Address address);
+		public final Location location;
+		
+		/**
+		 * address reverse geolocated address of the location above. Can be null.
+		 */
+		public final Address address;
+		public LocationAddress(Location location, Address address) {
+			this.location = location;
+			this.address = address;
+		}
 	}
+	
+	public LocationAddress getLocationAddress();
+	
+	/**
+	 * Will be called when location is updated by a substantial distance 
+	 */
+	public interface DistanceThresholdListener {
+		void notify(LocationAddress locationAddress);
+	}
+	public void setDistanceThresholdListener(DistanceThresholdListener listener);
+	
 	public void activate();
 	public void deactivate();
-
-	/**
-	 * Register a listener to be called when location is updated by a substantial distance or better accuracy
-	 */
-	public void registerListenersForBetterLocation(Listener listener);
-
-	/**
-	 * Calls the listeners with the currently best known location.
-	 *
-	 * This function calls the listeners with cached data - thus is immediate.
-	 */
-	public void notifyListeners();
 }

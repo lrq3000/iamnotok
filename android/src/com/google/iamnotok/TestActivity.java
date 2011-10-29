@@ -49,7 +49,7 @@ public class TestActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				Log.d(LOG_TAG, "reg Clicked");
-				lt.registerListenersForBetterLocation(new LocationTracker.Listener() {
+				lt.registerListenersForBetterLocation(new LocationTracker.DistanceThresholdListener() {
 					@Override
 					public void notifyNewLocation(Location location, Address address) {
 						Log.d(LOG_TAG, "New location: " + location);
