@@ -1,5 +1,6 @@
 package com.google.iamnotok.utils;
 
+import android.location.Address;
 import android.location.Location;
 
 public class LocationUtils {
@@ -58,4 +59,15 @@ public class LocationUtils {
 	      return provider2 == null;
 	    }
 	    return provider1.equals(provider2);
-	}}
+	}
+	
+	public String formatAddress(Address address) {
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+			if (i > 0)
+				result.append(" ");
+			result.append(address.getAddressLine(i));
+		}
+		return result.toString();
+	}
+}

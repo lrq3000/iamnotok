@@ -1,5 +1,7 @@
 package com.google.iamnotok;
 
+import java.util.Locale;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
@@ -15,7 +17,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.Vibrator;
@@ -29,6 +34,7 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.google.iamnotok.EmergencyContactsHelper.Contact;
+import com.google.iamnotok.utils.LocationUtils;
 
 /**
  * Puts the phone to the emergency state and notifies the contacts in the
@@ -62,7 +68,8 @@ public class EmergencyNotificationService extends Service {
 	private static int DEFAULT_WAIT_TO_CANCEL = 10000; // milliseconds
 
 	private int mNotificationID = 0;
-	private OldLocationTracker mLocationTracker;
+	private LocationTracker mLocationTracker;
+	private LocationUtils mLocationUtils;
 	private boolean mNotifyViaSMS = true;
 	private boolean mNotifyViaEmail = true;
 	private boolean mNotifyViaCall = false;
@@ -70,9 +77,27 @@ public class EmergencyNotificationService extends Service {
 
 	private EmergencyContactsHelper contactHelper;
 
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
+	}
+	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		mLocationUtils = new LocationUtils();
+		mLocationTracker = new LocationTrackerImpl(
+				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
+				mLocationUtils,
+				new Geocoder(this, Locale.getDefault()));
+		mLocationTracker.registerListenersForBetterLocation(new LocationTracker.Listener() {
+			@Override
+			public void notifyNewLocation(Location location, Address address) {
+				currentLocation = location;
+				currentAddress = address;
+			}
+		});
 	}
 
 	@Override
@@ -108,15 +133,15 @@ public class EmergencyNotificationService extends Service {
 						SHOW_NOTIFICATION_WITH_DISABLE, false);
 			}
 
-			// Start location tracker from here since it takes some time to get
-			// the first GPS fix.
-			mLocationTracker = new OldLocationTracker(this);
-
 			// Get instance of Vibrator from current Context
 			Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 			// Vibrate for 300 milliseconds
 			v.vibrate(300);
+
+			// Start the location tracker (nothing happens if called twice).
+			mLocationTracker.activate();
+
 
 			if (showNotification) {
 				this.showDisableNotificationAndWaitToInvokeResponse();
@@ -146,6 +171,9 @@ public class EmergencyNotificationService extends Service {
 		if (emailList.length() > 0)
 			sendEmailMessage(emailList);
 	}
+	
+	private Location currentLocation;
+	private Address currentAddress;
 
 	/**
 	 * Sends a sms to another device
@@ -161,8 +189,8 @@ public class EmergencyNotificationService extends Service {
 					Log.d(mLogTag, "Sending the message " + message);
 				} else {
 					Log.d(mLogTag, "Getting location");
-					Location loc = mLocationTracker.getLocation();
-					message = formatMessage(loc);
+					refreshLocation();
+					message = formatMessage(currentLocation);
 				}
 
 				String SENT = "SMS_SENT";
@@ -227,8 +255,13 @@ public class EmergencyNotificationService extends Service {
 						deliveredPI);
 
 			}
+
 		});
 		messageSender.start();
+	}
+
+	private void refreshLocation() {
+		mLocationTracker.notifyListeners();
 	}
 
 	private void callEmergency() {
@@ -268,10 +301,10 @@ public class EmergencyNotificationService extends Service {
 			Log.d(mLogTag, "Sending the email " + message);
 		} else {
 			Log.d(mLogTag, "Getting location");
-			Location loc = mLocationTracker.getLocation();
-			message = formatMessage(loc);
-			if (loc != null) {
-				message += " " + getMapUrl(loc);
+			refreshLocation();
+			message = formatMessage(currentLocation);
+			if (currentLocation != null) {
+				message += " " + getMapUrl(currentLocation);
 			}
 		}
 
@@ -289,8 +322,8 @@ public class EmergencyNotificationService extends Service {
 		if (loc == null) {
 			message += " No location information available!";
 		} else {
-			String address = mLocationTracker.getLocationAddress();
-			message += " My current location is: " + "'" + address + "' ("
+			refreshLocation();
+			message += " My current location is: " + "'" + mLocationUtils.formatAddress(currentAddress) + "' ("
 					+ "latitude: " + loc.getLatitude() + ", longitude: "
 					+ loc.getLongitude() + ")";
 			Log.d(mLogTag, "Sending the location - '" + message + "'");
@@ -339,15 +372,12 @@ public class EmergencyNotificationService extends Service {
 	private void invokeEmergencyResponse() {
 		Log.d(mLogTag, "Invoking emergency response");
 
-		// Start the location tracker (nothing happens if called twice).
-		mLocationTracker.startTracker();
-
 		if (mNotifyViaCall) {
 			callEmergency();
 		}
 
 		while (this.getState() == EMERGENCY_STATE) {
-			if (mLocationTracker.shouldSendAnotherUpdate()) {
+			if (true/*TODO: mLocationTracker.shouldSendAnotherUpdate()*/) {
 				if (mNotifyViaSMS) {
 					sendTextNotifications();
 				}
@@ -365,9 +395,6 @@ public class EmergencyNotificationService extends Service {
 
 	private void showDisableNotificationAndWaitToInvokeResponse() {
 		Log.d(mLogTag, "Showing notification and waiting");
-
-		// Start the location tracker.
-		mLocationTracker.startTracker();
 
 		// Show a notification.
 		final NotificationManager notificationManager = (NotificationManager) this
@@ -493,6 +520,6 @@ public class EmergencyNotificationService extends Service {
 		if (mNotifyViaEmail) {
 			sendEmailNotifications();
 		}
-		mLocationTracker.stopTracker();
+		mLocationTracker.deactivate();
 	}
 }
