@@ -52,17 +52,22 @@ public class TestActivity extends Activity {
 				Log.d(LOG_TAG, "reg Clicked");
 				lt.setDistanceThresholdListener(new DistanceThresholdListener() {
 					@Override
-					public void notify(LocationAddress locationAddress) {
+					public void notify(final LocationAddress locationAddress) {
 						Log.d(LOG_TAG, "New location: " + locationAddress.location);
 						Log.d(LOG_TAG, "New address: " + locationAddress.address);
-						Date date = new Date();
-						((TextView) findViewById(R.id.time)).setText("notif: " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
-						((TextView) findViewById(R.id.loc)).setText(locationAddress.location.getLatitude() + ":" + locationAddress.location.getLongitude());
-						if (locationAddress.address == null) {
-							((TextView) findViewById(R.id.addr)).setText("No address :(");
-						} else {
-							((TextView) findViewById(R.id.addr)).setText(locationAddress.address.getAddressLine(0) + ", " + locationAddress.address.getLocality());;
-						}
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								Date date = new Date();
+								((TextView) findViewById(R.id.time)).setText("notif: " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
+								((TextView) findViewById(R.id.loc)).setText(locationAddress.location.getLatitude() + ":" + locationAddress.location.getLongitude());
+								if (locationAddress.address == null) {
+									((TextView) findViewById(R.id.addr)).setText("No address :(");
+								} else {
+									((TextView) findViewById(R.id.addr)).setText(locationAddress.address.getAddressLine(0) + ", " + locationAddress.address.getLocality());;
+								}
+							}
+						});
 					}
 				});
 			}
