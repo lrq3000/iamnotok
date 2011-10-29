@@ -273,7 +273,7 @@ public class EmergencyNotificationService extends Service {
 		try {
 			GMailSender sender = new GMailSender(
 					"imnotokandroidapplication@gmail.com", "googlezurich");
-			sender.sendMail(getMailAddress(), subject, message,
+			sender.sendMail(getAccountName(), subject, message,
 					"imnotokapplication@gmail.com", to);
 		} catch (Exception e) {
 			Log.e("SendMail", e.getMessage(), e);
@@ -294,20 +294,22 @@ public class EmergencyNotificationService extends Service {
 		return message;
 	}
 
-	private String getMailAddress() {
+	private String getAccountName() {
+		String name = "";
 		Account[] accounts = AccountManager.get(this).getAccounts();
 		if (accounts.length > 0) {
-			for (int i = 0; i < accounts.length; i++) {
-				if (accounts[i].type.toLowerCase().contains("google")) {
-					return accounts[i].name;
-				}
+			// TODO: allow selecting the account to use as FROM in the configuration.
+			name = accounts[0].name;
+			if (name.contains("@")) {
+				// TODO: there has to be a better way to get the user name.
+				name = name.substring(0, name.indexOf('@'));
 			}
 		}
-		return "";
+		return name;
 	}
 
 	private String formatSubject() {
-		String name = getMailAddress();
+		String name = getAccountName();
 		if (!name.equals("")) {
 			name += " ";
 		}
