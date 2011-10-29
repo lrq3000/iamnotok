@@ -44,9 +44,10 @@ public class TestActivity extends Activity {
 				Log.d(LOG_TAG, "reg Clicked");
 				lt.registerListenersForBetterLocation(new LocationTracker.Listener() {
 					@Override
-					public void notifyNewLocation(Location location) {
+					public void notifyNewLocation(Location location, String address) {
 						Log.d(LOG_TAG, "New location: " + location);
-						((TextView) findViewById(R.id.text)).setText(location.toString());
+						Log.d(LOG_TAG, "New address: " + address);
+						((TextView) findViewById(R.id.text)).setText(location + " : " + address);
 					}
 				});
 			}

@@ -4,7 +4,13 @@ import android.location.Location;
 
 public interface LocationTracker {
 	public interface Listener {
-		void notifyNewLocation(Location location);
+		/**
+		 * Method called on new location update
+		 *
+		 * @param location instance holding the full location information
+		 * @param address reverse geolocated address of the location above. Can be null.
+		 */
+		void notifyNewLocation(Location location, String address);
 	}
 	public void activate();
 	public void deactivate();
@@ -14,5 +20,10 @@ public interface LocationTracker {
 	 */
 	public void registerListenersForBetterLocation(Listener listener);
 
+	/**
+	 * Calls the listeners with the currently best known location.
+	 *
+	 * This function calls the listeners with cached data - thus is immediate.
+	 */
 	public void notifyListeners();
 }

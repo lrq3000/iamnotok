@@ -21,6 +21,7 @@ public class LocationTrackerImpl implements LocationTracker {
 	private LocationListener locationListener;
 	private Location bestKnownLocation;
 	private Location lastNotifiedLocation;
+	private String address;
 	private final LocationUtils locationUtils;
 	private List<Listener> listeners = new ArrayList<Listener>();
 
@@ -58,10 +59,9 @@ public class LocationTrackerImpl implements LocationTracker {
 		Log.i(LOG_TAG, "In updatLocation");
 
 		if (locationUtils.isBetterLocation(newLocation, this.bestKnownLocation)) {
+			this.address = null;
 			this.bestKnownLocation = newLocation;
-			if (shouldNotify()) {
-				notifyListeners();
-			}
+			updateAddressAndNotify();
 
 			Log.i(LOG_TAG,"Updatitng best location to "+newLocation);
 		}
@@ -72,7 +72,14 @@ public class LocationTrackerImpl implements LocationTracker {
 	 */
 	private boolean shouldNotify() {
 		return (this.lastNotifiedLocation == null) ||
-			(this.lastNotifiedLocation.distanceTo(this.bestKnownLocation) > METERS_THRESHOLD_FOR_NOTIFY);
+				(this.lastNotifiedLocation.distanceTo(this.bestKnownLocation) > METERS_THRESHOLD_FOR_NOTIFY);
+	}
+
+	private void updateAddressAndNotify() {
+		// TODO - implement.
+		if (shouldNotify()) {
+			notifyListeners();
+		}
 	}
 
 	@Override
@@ -90,7 +97,7 @@ public class LocationTrackerImpl implements LocationTracker {
 	// Synchronized so 2 concurrent calls() won't confuse listeners
 	public synchronized void notifyListeners() {
 		for (Listener listener : listeners) {
-			listener.notifyNewLocation(bestKnownLocation);
+			listener.notifyNewLocation(bestKnownLocation, null);
 		}
 		this.lastNotifiedLocation = bestKnownLocation;
 		Log.i(LOG_TAG, "Done notifying all listeners with best location " + bestKnownLocation);
