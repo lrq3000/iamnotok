@@ -377,9 +377,13 @@ public class EmergencyNotificationService extends Service {
 		if (locationAddress == null) {
 			message += " No location information available!";
 		} else {
-			message += " My current location is: " + "'" + mLocationUtils.formatAddress(locationAddress.address) + "' ("
-					+ "latitude: " + locationAddress.location.getLatitude() + ", longitude: "
-					+ locationAddress.location.getLongitude() + ")";
+			String location;
+			if (locationAddress.address != null) {
+				location = ": '" + mLocationUtils.formatAddress(locationAddress.address) + "'";
+			} else {
+				location = " Unknown";
+			}
+			message += " My current location is" + location + " (" + "latitude: " + locationAddress.location.getLatitude() + ", longitude: " + locationAddress.location.getLongitude() + ")";
 			Log.d(mLogTag, "Sending the location - '" + message + "'");
 		}
 		return message;
