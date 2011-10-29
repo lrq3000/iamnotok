@@ -89,7 +89,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		// TODO: send mail
+		sendEmergencyMessages();
 	}
 
 	@Override
@@ -422,17 +422,21 @@ public class EmergencyNotificationService extends Service {
 
 		// TODO: change to TimerTask
 		while (this.getState() == EMERGENCY_STATE) {
-			if (mNotifyViaSMS) {
-				sendTextNotifications();
-			}
-			if (mNotifyViaEmail) {
-				sendEmailNotifications();
-			}
+			sendEmergencyMessages();
 			try {
 				Thread.sleep(mWaitBetweenMessages);
 			} catch (InterruptedException exception) {
 				exception.printStackTrace();
 			}
+		}
+	}
+
+	private void sendEmergencyMessages() {
+		if (mNotifyViaSMS) {
+			sendTextNotifications();
+		}
+		if (mNotifyViaEmail) {
+			sendEmailNotifications();
 		}
 	}
 
@@ -557,12 +561,7 @@ public class EmergencyNotificationService extends Service {
 	private void stopEmergency() {
 		Log.d(mLogTag, "Stopping emergency");
 		this.changeState(NORMAL_STATE);
-		if (mNotifyViaSMS) {
-			sendTextNotifications();
-		}
-		if (mNotifyViaEmail) {
-			sendEmailNotifications();
-		}
+		sendEmergencyMessages();
 		mLocationTracker.deactivate();
 	}
 }
