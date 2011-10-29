@@ -22,7 +22,7 @@ public class LocationTrackerImpl implements LocationTracker {
 	private final LocationManager locationManager;
 	private final Geocoder geocoder;
 	private LocationListener locationListener;
-	private LocationAddress currentLocationAddress;
+	private LocationAddress currentLocationAddress = new LocationAddress(null, null);
 	private LocationAddress lastNotifiedLocationAddress;
 	private final LocationUtils locationUtils;
 	private DistanceThresholdListener listener;
