@@ -315,7 +315,7 @@ public class EmergencyNotificationService extends Service {
 		String lineNumber = telMgr.getLine1Number();
 		if (lineNumber != null) {
 			name += lineNumber;
-		} else {
+		} else if ("".equals(name)) {
 			name += "Unidentified user";
 		}
 
