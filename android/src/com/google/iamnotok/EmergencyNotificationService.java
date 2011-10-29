@@ -14,11 +14,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -33,6 +36,8 @@ import com.google.iamnotok.EmergencyContactsHelper.Contact;
  * 
  * @author Vytautas
  * @author Raquel
+ * @author igalk
+ * @author nadir
  */
 public class EmergencyNotificationService extends Service {
 	private final static String mLogTag = "ImNotOk - EmergencyNotificationService";
@@ -271,10 +276,9 @@ public class EmergencyNotificationService extends Service {
 		}
 
 		try {
-			GMailSender sender = new GMailSender(
-					"imnotokandroidapplication@gmail.com", "googlezurich");
-			sender.sendMail(getAccountName(), subject, message,
-					"imnotokapplication@gmail.com", to);
+			GMailSender sender = new GMailSender("imnotokandroidapplication@gmail.com", "googlezurich");
+			String mailAddress = getMailAddress();
+			sender.sendMail(mailAddress, subject, message, "imnotokapplication@gmail.com", to);
 		} catch (Exception e) {
 			Log.e("SendMail", e.getMessage(), e);
 		}
@@ -294,31 +298,39 @@ public class EmergencyNotificationService extends Service {
 		return message;
 	}
 
-	private String getAccountName() {
-		String name = "";
+	private String getMailAddress() {
 		Account[] accounts = AccountManager.get(this).getAccounts();
 		if (accounts.length > 0) {
 			// TODO: allow selecting the account to use as FROM in the configuration.
-			name = accounts[0].name;
-			if (name.contains("@")) {
-				// TODO: there has to be a better way to get the user name.
-				name = name.substring(0, name.indexOf('@'));
+			return accounts[0].name;
+		}
+		return "";
+	}
+
+	private String getAccountName() {
+		String email = getMailAddress();
+		if (email.contains("@")) {
+			// in case we have a mail, lets try to resolve the username.
+			Uri uri = Uri.withAppendedPath(Email.CONTENT_LOOKUP_URI, Uri.encode(email));
+			Cursor cur = getContentResolver().query(uri, new String[]{Phone.DISPLAY_NAME}, null, null,
+					null);
+			if (cur.moveToFirst()) {
+				return cur.getString(cur.getColumnIndex(Phone.DISPLAY_NAME));
+			} else {
+				return email.substring(0, email.indexOf('@'));
 			}
 		}
-		return name;
+		return email;
 	}
 
 	private String formatSubject() {
 		String name = getAccountName();
-		if (!name.equals("")) {
-			name += " ";
-		}
 		TelephonyManager telMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 		String lineNumber = telMgr.getLine1Number();
 		if (lineNumber != null) {
-			name += lineNumber;
+			name += " " +lineNumber;
 		} else if ("".equals(name)) {
-			name += "Unidentified user";
+			name += " Unidentified user";
 		}
 
 		return "Emergency message from " + name;
