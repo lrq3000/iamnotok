@@ -19,18 +19,18 @@
 
     <!--  Preferences -->
     <string name="checkbox_sms_notification">sms_notification</string>
-    <string name="checkbox_sms_notification_title">SMS notification</string>
+    <string name="checkbox_sms_notification_title">SMS Notification</string>
     <string name="checkbox_sms_notification_desc">Allow notifications via SMS</string>
-    <string name="checkbox_email_notification_title">Email notification</string>
+    <string name="checkbox_email_notification_title">Email Notification</string>
     <string name="checkbox_email_notification">email_notification</string>
     <string name="checkbox_email_notification_desc">Allow notifications via email</string>
-    <string name="checkbox_call_notification_title">Call notification</string>
+    <string name="checkbox_call_notification_title">Call Notification</string>
     <string name="checkbox_call_notification">call_notification</string>
     <string name="checkbox_call_notification_desc">Call the first contact on case of emergency</string>
     <string name="edittext_cancelation_delay">cancelation_delay</string>
 
-    <string name="quiet_mode_cat">Quiet Mode settings</string>
-    <string name="quiet_mode_enable">Enable quiet mode</string>
+    <string name="quiet_mode_cat">Quiet Mode Settings</string>
+    <string name="quiet_mode_enable">Enable Quiet Mode</string>
     <string name="quiet_mode_num_clicks">Number of clicks to trigger emergency</string>
     <!-- Notification strings -->
     <string name="no_notification_defined">No notification methods defined</string>
@@ -46,4 +46,7 @@
     <string name="notification_settings_cat">Notification Settings</string>
     <string name="cancel_emergency_text">Cancel Emergency</string>
     <string name="cancel_emergency">cancel_emergency</string>
+    <string name="edittext_message_interval">edittext_message_interval</string>
+    <string name="edittext_message_interval_title">Notification Interval</string>
+    <string name="edittext_message_interval_desc">Seconds to wait between notifications</string>
 </resources>
