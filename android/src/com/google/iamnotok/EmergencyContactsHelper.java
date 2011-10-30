@@ -25,13 +25,6 @@ public class EmergencyContactsHelper {
 		populateContacts();
 	}
 
-	public void ResetContacts() {
-		SharedPreferences settings =  prefs();
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString(CONTACT_IDS_PROPERTY_NAME, "");
-		editor.commit();
-	}
-
 	public Collection<String> contactIds() {
 		return contacts.keySet();
 	}
