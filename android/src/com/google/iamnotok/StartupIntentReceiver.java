@@ -23,8 +23,7 @@ public class StartupIntentReceiver extends BroadcastReceiver {
 
 	private void registerReceivers(Context context) {
 	    // Register the Screen on/off receiver
-		SharedPreferences prefs = PreferenceManager
-		.getDefaultSharedPreferences(context);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		if (prefs.getBoolean(context.getString(R.string.quiet_mode_enable), true)) {
 			ScreenOnOffReceiver.register(context.getApplicationContext());
 		}
