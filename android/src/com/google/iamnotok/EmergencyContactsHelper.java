@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
+import com.google.iamnotok.utils.StringUtils;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -68,11 +70,8 @@ public class EmergencyContactsHelper {
 	}
 	
 	private boolean updateContactIdsInPrefs() {
-		StringBuilder builder = new StringBuilder();
-		for (String oldContactId : contacts.keySet()) {
-			builder.append(oldContactId + ",");
-		}
-		return prefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, builder.toString()).commit();		
+		String newValue = StringUtils.join(contacts.keySet(), ",");
+		return prefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, newValue).commit();
 	}
 
 	public boolean deleteContact(String contactId) {
