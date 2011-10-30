@@ -59,8 +59,9 @@ public class EmergencyNotificationService extends Service {
 	public static VigilanceState mApplicationState = VigilanceState.NORMAL_STATE;
 
 	/** Default time allowed for user to cancel the emergency response. */
-	private static int DEFAULT_WAIT_TO_CANCEL = 10000; // milliseconds
-	private static int DEFAULT_WAIT_BETWEEN_MESSAGES_SECONDS = 5 * 60;
+	private static long DEFAULT_WAIT_TO_CANCEL_MS = 10000;
+	private static final int DEFAULT_WAIT_BETWEEN_MESSAGES_MS = 5 * 60 * 1000;
+
 
 	private int mNotificationID = 0;
 	private LocationTracker mLocationTracker;
@@ -68,7 +69,7 @@ public class EmergencyNotificationService extends Service {
 	private boolean mNotifyViaSMS = true;
 	private boolean mNotifyViaEmail = true;
 	private boolean mNotifyViaCall = false;
-	private int mWaitBetweenMessagesMillis = DEFAULT_WAIT_BETWEEN_MESSAGES_SECONDS * 1000;
+	private long mWaitBetweenMessagesMs = DEFAULT_WAIT_BETWEEN_MESSAGES_MS;
 
 	private final AccountUtils accountUtils = new AccountUtils(this);
 	private final FormatUtils formatUtils = new FormatUtils();
@@ -114,6 +115,16 @@ public class EmergencyNotificationService extends Service {
 		sendEmergencyMessages(locationAddress);
 		setNotificationTimer();
 	}
+	
+	private long readWaitBetweenMessagesMs(SharedPreferences prefs) {
+		try {
+			String messageIntervalString = prefs.getString(getString(R.string.edittext_message_interval), null);
+			if (messageIntervalString != null)
+				return Integer.parseInt(messageIntervalString) * 1000; // Convert to milliseconds.
+		} catch (NumberFormatException e) {
+		}
+		return DEFAULT_WAIT_BETWEEN_MESSAGES_MS;
+	}
 
 	@Override
 	public void onStart(Intent intent, int startId) {
@@ -127,15 +138,7 @@ public class EmergencyNotificationService extends Service {
 				getString(R.string.checkbox_email_notification), true);
 		mNotifyViaCall = prefs.getBoolean(
 				getString(R.string.checkbox_call_notification), false);
-		try {
-			String messageIntervalString = prefs.getString(
-					getString(R.string.edittext_message_interval),
-					Integer.toString(DEFAULT_WAIT_BETWEEN_MESSAGES_SECONDS));
-			mWaitBetweenMessagesMillis =
-				Integer.parseInt(messageIntervalString) * 1000; // Convert to milliseconds.
-		} catch (ClassCastException e) {
-			mWaitBetweenMessagesMillis = DEFAULT_WAIT_BETWEEN_MESSAGES_SECONDS * 1000;
-		}
+		mWaitBetweenMessagesMs = readWaitBetweenMessagesMs(prefs);
 
 		if (contactHelper == null)
 			contactHelper = new EmergencyContactsHelper(getApplicationContext());
@@ -187,7 +190,7 @@ public class EmergencyNotificationService extends Service {
 			public void run() {
 				sendEmergencyMessages(mLocationTracker.getLocationAddress());
 			}
-		}, mWaitBetweenMessagesMillis, mWaitBetweenMessagesMillis);
+		}, mWaitBetweenMessagesMs, mWaitBetweenMessagesMs);
 	}
 
 	private void invokeEmergencyResponse() {
@@ -302,23 +305,23 @@ public class EmergencyNotificationService extends Service {
 		return mApplicationState;
 	}
 
-	private int getWaitingTime() {
+	private long getWaitingTime() {
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(this);
 
 		// Cancellation time:
 		String delay_time = prefs.getString(
 				getString(R.string.edittext_cancelation_delay),
-				Integer.toString(DEFAULT_WAIT_TO_CANCEL / 1000));
+				Long.toString(DEFAULT_WAIT_TO_CANCEL_MS / 1000));
 		Log.d(mLogTag, "Delay time received from preferences - " + delay_time);
 
-		int waitForMs;
+		long waitForMs;
 		try {
 			int waitForSecs = Integer.parseInt(delay_time);
 			waitForMs = waitForSecs * 1000;
 		} catch (NumberFormatException e) {
 			Log.e("delay_time", "Delay time ill-formated");
-			waitForMs = DEFAULT_WAIT_TO_CANCEL;
+			waitForMs = DEFAULT_WAIT_TO_CANCEL_MS;
 		}
 		Log.d(mLogTag, "Waiting " + waitForMs + " milliseconds.");
 		return waitForMs;
