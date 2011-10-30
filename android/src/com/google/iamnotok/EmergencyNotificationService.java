@@ -105,7 +105,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		if (getState() != VigilanceState.EMERGENCY_STATE) {
+		if (mApplicationState != VigilanceState.EMERGENCY_STATE) {
 			return;
 		}
 
@@ -151,7 +151,7 @@ public class EmergencyNotificationService extends Service {
 
 		contactHelper.contactIds();
 
-		if (this.getState() == VigilanceState.NORMAL_STATE) {
+		if (mApplicationState == VigilanceState.NORMAL_STATE) {
 			Log.d(mLogTag, "Starting the service");
 			changeState(VigilanceState.WAITING_STATE);
 			boolean showNotification = true;
@@ -209,10 +209,10 @@ public class EmergencyNotificationService extends Service {
 
 	private void sendEmergencyMessages(LocationAddress locationAddress) {
 		if (mNotifyViaSMS) {
-			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, getState());
+			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, mApplicationState);
 		}
 		if (mNotifyViaEmail) {
-			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, getState());
+			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, mApplicationState);
 		}
 	}
 
@@ -245,7 +245,7 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(mLogTag, "Received cancellation intent...");
-				if (EmergencyNotificationService.this.getState() == VigilanceState.WAITING_STATE) {
+				if (EmergencyNotificationService.mApplicationState == VigilanceState.WAITING_STATE) {
 					Log.d(mLogTag,
 							"Application in waiting state, cancelling the emergency");
 					changeState(VigilanceState.NORMAL_STATE);
@@ -261,7 +261,7 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(mLogTag, "Received I am now OK intent...");
-				if (getState() == VigilanceState.EMERGENCY_STATE) {
+				if (mApplicationState == VigilanceState.EMERGENCY_STATE) {
 					Log.d(mLogTag, "Application in emergency state, I am now OK");
 					stopEmergency();
 				}
@@ -276,7 +276,7 @@ public class EmergencyNotificationService extends Service {
 			public void run() {
 				unregisterReceiver(cancellationReceiver);
 				notificationManager.cancel(mNotificationID++);
-				if (getState() == VigilanceState.WAITING_STATE) {
+				if (mApplicationState == VigilanceState.WAITING_STATE) {
 					changeState(VigilanceState.EMERGENCY_STATE);
 					invokeEmergencyResponse();
 				} else {
@@ -299,10 +299,6 @@ public class EmergencyNotificationService extends Service {
 		AppWidgetManager.getInstance(this).updateAppWidget(thisWidget, views);
 
 		// Broadcast
-	}
-
-	private synchronized VigilanceState getState() {
-		return mApplicationState;
 	}
 
 	private long getWaitingTime() {
