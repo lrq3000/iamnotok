@@ -3,9 +3,7 @@ package com.google.iamnotok;
 import java.util.Vector;
 
 import android.app.AlertDialog;
-import android.app.IntentService;
 import android.app.ListActivity;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,42 +19,41 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListAdapter;
-import android.widget.RemoteViews;
-import android.widget.AdapterView.OnItemLongClickListener;
 
 /**
  * A simple list of contacts: list/add/remove.
- * 
+ *
  * @author Ahmed Abdelkader (ahmadabdolkader@gmail.com)
  */
 public class EmergencyContactsActivity extends ListActivity {
 	private static final int CONTACT_PICKER_RESULT = 1001;
 	private EmergencyContactsHelper contactsHelper;
-	
+
 	private Button emergencyButton = null;
 	private Button cancelButton = null;
-	private Button okButton = null; 
-	
+	private Button okButton = null;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.contacts_list);
-		
+
 		contactsHelper = new EmergencyContactsHelper(getApplicationContext());
 		setListAdapter(createAdapter());
-		
+
 		emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
 		cancelButton = (Button) findViewById(R.id.ContactListCancelEmergencyButton);
 		okButton = (Button) findViewById(R.id.ContactListImNowOKButton);
-		
+
 		setupEmergencyButtonViews();
 		setupListView();
 		registerReceivers();
 	}
-	
+
 	private void registerReceivers() {
 		// Register emergency notification service receiver.
 		BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -71,15 +68,15 @@ public class EmergencyContactsActivity extends ListActivity {
 		registerReceiver(receiver, filter);
 		filter = new IntentFilter(EmergencyNotificationService.SERVICE_I_AM_NOT_OK_INTENT);
 		registerReceiver(receiver, filter);
-		
+
 	    // Register the Screen on/off receiver.
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		if (prefs.getBoolean(getString(R.string.quiet_mode_enable), true)) {
 			ScreenOnOffReceiver.register(getApplicationContext());
 		}
-		
+
 	}
-	
+
 	protected void setupEmergencyButtonViews() {
 		// Create intent to launch the EmergencyNotificationService and button.
 	    final Intent intent = new Intent(this, EmergencyNotificationService.class);
@@ -90,7 +87,7 @@ public class EmergencyContactsActivity extends ListActivity {
 				startService(intent);
 				emergencyButton.setVisibility(View.GONE);
 				cancelButton.setVisibility(View.VISIBLE);
-				
+
 			}
 		});
 
@@ -114,10 +111,10 @@ public class EmergencyContactsActivity extends ListActivity {
 				EmergencyContactsActivity.this.sendBroadcast(iAmNowOkIntent);
 			}
 		});
-		
+
 		updateEmergencyButtonStatus();
 	}
-	
+
 	protected void updateEmergencyButtonStatus() {
 		emergencyButton.setVisibility(View.GONE);
 	    cancelButton.setVisibility(View.GONE);
@@ -126,15 +123,15 @@ public class EmergencyContactsActivity extends ListActivity {
 	    case (EmergencyNotificationService.NORMAL_STATE):
 	    	emergencyButton.setVisibility(View.VISIBLE);
 			break;
-	    case (EmergencyNotificationService.WAITING_STATE): 
+	    case (EmergencyNotificationService.WAITING_STATE):
 	    	cancelButton.setVisibility(View.VISIBLE);
 			break;
-	    case (EmergencyNotificationService.EMERGENCY_STATE): 
+	    case (EmergencyNotificationService.EMERGENCY_STATE):
 	    	okButton.setVisibility(View.VISIBLE);
 			break;
 	    }
 	}
-	
+
 	protected void setupListView() {
 		// Long click to remove contacts.
 		getListView().setOnItemLongClickListener(new OnItemLongClickListener() {
@@ -169,14 +166,14 @@ public class EmergencyContactsActivity extends ListActivity {
 			}
 		});
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.contacts_menu, menu);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		if (item.getItemId() == R.id.add_contact) {
@@ -192,7 +189,7 @@ public class EmergencyContactsActivity extends ListActivity {
 		}
 		return super.onMenuItemSelected(featureId, item);
 	}
-	
+
 	protected ListAdapter createAdapter() {
 		Vector<String> a = new Vector<String>();
 		ArrayAdapter<String> aa =

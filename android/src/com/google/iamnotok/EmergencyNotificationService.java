@@ -6,8 +6,6 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -20,23 +18,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.location.Geocoder;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.provider.ContactsContract.CommonDataKinds.Email;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.SmsManager;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.google.iamnotok.EmergencyContactsHelper.Contact;
 import com.google.iamnotok.LocationTracker.LocationAddress;
+import com.google.iamnotok.utils.AccountUtils;
+import com.google.iamnotok.utils.FormatUtils;
 import com.google.iamnotok.utils.LocationUtils;
 
 /**
@@ -62,7 +58,7 @@ public class EmergencyNotificationService extends Service {
 	public final static String I_AM_NOT_OK_INTENT = "com.google.imnotok.I_AM_NOT_OK";
 	public final static String STOP_EMERGENCY_INTENT = "com.google.imnotok.STOP_EMERGENCY";
 	public final static String I_AM_NOW_OK_INTENT = "com.google.imnotok.I_AM_NOW_OK";
-	
+
 	public final static String SERVICE_I_AM_NOT_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOT_OK";
 	public final static String SERVICE_I_AM_NOW_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOW_OK";
 
@@ -82,6 +78,9 @@ public class EmergencyNotificationService extends Service {
 	private boolean mNotifyViaEmail = true;
 	private boolean mNotifyViaCall = false;
 	private int mWaitBetweenMessagesMillis = DEFAULT_WAIT_BETWEEN_MESSAGES;
+
+	private final AccountUtils accountUtils = new AccountUtils(this);
+	private final FormatUtils formatUtils = new FormatUtils();
 
 	private EmergencyContactsHelper contactHelper;
 
@@ -180,58 +179,6 @@ public class EmergencyNotificationService extends Service {
 		}
 	}
 
-	private Account getSelectedAccount() {
-		// First try to get the selected account from the preferences.
-		SharedPreferences prefs =
-			PreferenceManager.getDefaultSharedPreferences(this);
-		String accountName = prefs.getString(
-				getString(R.string.select_account_list), "");
-		Account[] accounts = AccountManager.get(this).getAccountsByType("com.google");
-		for (Account account : accounts) {
-			if (account.name != null && account.name.equals(accountName)) {
-				return account;
-			}
-		}
-
-		// If we got here, then we didn'notificationsTimer find the account in the preferences.
-		// This probably means that the user removed the account after selecting it.
-		// In this case, we just return the first available account, if any.
-		// TODO: Should we notify the user here?
-		if (accounts.length > 0) {
-			return accounts[0];
-		}
-
-		// If there are no google accounts, try looking for a non-google account.
-		// NOTE: This can only be used to get the name from.
-		accounts = AccountManager.get(this).getAccounts();
-		if (accounts.length > 0) {
-			return accounts[0];
-		}
-
-		return new Account("Unidentified User", "com.dummy");
-	}
-
-	private String getPhoneNumber() {
-		// First try to get the phone number from the preferences.
-		SharedPreferences prefs =
-			PreferenceManager.getDefaultSharedPreferences(this);
-		String phoneNumber = prefs.getString(
-				getString(R.string.account_phone_number), "");
-		if (phoneNumber != null && !phoneNumber.equals("")) {
-			return phoneNumber;
-		}
-
-		// If we don'notificationsTimer have a phone number in the preferences, try getting it
-		// from the weird function called getLine1Number.
-		TelephonyManager telMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-		String lineNumber = telMgr.getLine1Number();
-		if (lineNumber != null && !lineNumber.equals("")) {
-			return lineNumber;
-		}
-
-		return "Unidentified Phone Number";
-	}
-
 	private void sendTextNotifications(LocationAddress locationAddress) {
 		for (Contact contact : contactHelper.getAllContacts()) {
 			if (contact.getPhone() != null) {
@@ -271,7 +218,7 @@ public class EmergencyNotificationService extends Service {
 					Log.d(mLogTag, "Sending the message " + message);
 				} else {
 					Log.d(mLogTag, "Getting location");
-					message = formatMessage(locationAddress);
+					message = formatUtils.formatMessage(locationAddress);
 				}
 
 				String SENT = "SMS_SENT";
@@ -370,16 +317,16 @@ public class EmergencyNotificationService extends Service {
 	 * Sends an email
 	 */
 	private void sendEmailMessage(List<String> to, LocationAddress locationAddress) {
-		String recipients = formatRecipients(to);
+		String recipients = formatUtils.formatRecipients(to);
 		Log.d(mLogTag, "Sending email to: " + to);
-		String subject = formatSubject();
+		String subject = formatUtils.formatSubject(accountUtils.getAccountName(), accountUtils.getPhoneNumber());
 		String message = "";
 		if (getState() == NORMAL_STATE) {
 			message = "I am OK now";
 			Log.d(mLogTag, "Sending the email " + message);
 		} else {
 			Log.d(mLogTag, "Getting location");
-			message = formatMessage(locationAddress);
+			message = formatUtils.formatMessage(locationAddress);
 			if (locationAddress.location != null) {
 				message += " " + getMapUrl(locationAddress);
 			}
@@ -387,73 +334,13 @@ public class EmergencyNotificationService extends Service {
 
 		try {
 			GMailSender sender = new GMailSender("imnotokandroidapplication@gmail.com", "googlezurich");
-			String mailAddress = getMailAddress();
+			String mailAddress = accountUtils.getMailAddress();
 			sender.sendMail(mailAddress, subject, message, "imnotokapplication@gmail.com", recipients);
 		} catch (Exception e) {
 			Log.e("SendMail", e.getMessage(), e);
 		}
 	}
 
-	private String formatRecipients(List<String> to) {
-		if (to == null || to.isEmpty()) {
-			return "";
-		}
-		StringBuilder sb = new StringBuilder(to.get(0));
-		for (int i = 1; i < to.size(); i++) {
-			sb.append(",").append(to.get(i));
-		}
-		return sb.toString();
-	}
-
-	private String formatMessage(LocationTracker.LocationAddress locationAddress) {
-		String message = "I am not OK!";
-		if (locationAddress == null) {
-			message += " No location information available!";
-		} else {
-			String address;
-			if (locationAddress.address != null) {
-				address = ": '" + mLocationUtils.formatAddress(locationAddress.address) + "'";
-			} else {
-				address = " Unknown";
-			}
-			String location;
-			if (locationAddress.location != null) {
-				location = " (" + "latitude: " + locationAddress.location.getLatitude() + ", longitude: " + locationAddress.location.getLongitude() + ")";
-			} else {
-				location = "";
-			}
-			message += " My current location is" + address + location;
-			Log.d(mLogTag, "Sending the location - '" + message + "'");
-		}
-		return message;
-	}
-
-	private String getMailAddress() {
-		return getSelectedAccount().name;
-	}
-
-	private String getAccountName() {
-		String email = getMailAddress();
-		if (email.contains("@")) {
-			// in case we have a mail, lets try to resolve the username.
-			Uri uri = Uri.withAppendedPath(Email.CONTENT_LOOKUP_URI, Uri.encode(email));
-			Cursor cur = getContentResolver().query(
-					uri, new String[]{Phone.DISPLAY_NAME}, null, null, null);
-			if (cur.moveToFirst()) {
-				return cur.getString(cur.getColumnIndex(Phone.DISPLAY_NAME));
-			} else {
-				return email.substring(0, email.indexOf('@'));
-			}
-		}
-		return email;
-	}
-
-	private String formatSubject() {
-		String name = getAccountName();
-		String lineNumber = getPhoneNumber();
-
-		return "Emergency message from " + name + " (" + lineNumber + ")";
-	}
 
 	private void setNotificationTimer() {
 		this.notificationsTimer = new Timer();
