@@ -24,6 +24,7 @@ public class EmergencyContactsHelper {
 
 	public EmergencyContactsHelper(Context context) {
 		this.context = context;
+		populateContacts();
 	}
 
 	public void ResetContacts() {
@@ -34,7 +35,10 @@ public class EmergencyContactsHelper {
 	}
 
 	public Collection<String> contactIds() {
-		if (contactIds != null) return contactIds;
+		return contactIds;
+	}
+
+	private void populateContacts() {
 		contactIds = new TreeSet<String>();
 		contacts = new HashMap<String, EmergencyContactsHelper.Contact>();
 		SharedPreferences settings =  context.getSharedPreferences(PREFS_NAME, 0);
@@ -45,7 +49,6 @@ public class EmergencyContactsHelper {
 			contactIds.add(contactId);
 			contacts.put(contactId, contact);
 		}
-		return contactIds;
 	}
 
 	public Collection<Contact> getAllContacts() {
