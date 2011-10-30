@@ -2,6 +2,7 @@ package com.google.iamnotok;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -30,7 +31,7 @@ public class EmergencyContactsHelper {
 	}
 
 	private void populateContacts() {
-		contacts = new HashMap<String, EmergencyContactsHelper.Contact>();
+		contacts = new LinkedHashMap<String, EmergencyContactsHelper.Contact>();
 		SharedPreferences settings =  prefs();
 		String list = settings.getString(CONTACT_IDS_PROPERTY_NAME, "");
 		for (String contactId : list.split(",")) {
