@@ -105,9 +105,12 @@ public class EmergencyNotificationService extends Service {
 
 		Log.d("iamnotok", "onDistanceThresholdPassed");
 
-		cancelNotificationsTimer();
-		sendEmergencyMessages(locationAddress);
+		sendMessageAndResetTimer(locationAddress);
+	}
+	
+	private void sendMessageAndResetTimer(LocationAddress locationAddress) {
 		setNotificationTimer();
+		sendEmergencyMessages(locationAddress);
 	}
 
 	private long readWaitBetweenMessagesMs(SharedPreferences prefs) {
@@ -185,8 +188,7 @@ public class EmergencyNotificationService extends Service {
 			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
 		}
 
-		setNotificationTimer();
-		sendEmergencyMessages(getLocationAddress());
+		sendMessageAndResetTimer(getLocationAddress());
 	}
 
 	private void sendEmergencyMessages(LocationAddress locationAddress) {
