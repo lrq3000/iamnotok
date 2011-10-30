@@ -138,22 +138,14 @@ public class EmergencyNotificationService extends Service {
 		if (applicationState == VigilanceState.NORMAL_STATE) {
 			Log.d(LOG_TAG, "Starting the service");
 			changeState(VigilanceState.WAITING_STATE);
-			boolean showNotification = true;
-			if (intent != null) {
-				showNotification = intent.getBooleanExtra(
-						SHOW_NOTIFICATION_WITH_DISABLE, false);
-			}
-
-			// Get instance of Vibrator from current Context
-			Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 			// Vibrate for 300 milliseconds
-			v.vibrate(300);
+			((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(300);
 
-			// Start the location tracker (nothing happens if called twice).
+			// Make sure the location tracker is active
 			locationTracker.activate();
 
-
+			boolean showNotification = intent == null ? true : intent.getBooleanExtra(SHOW_NOTIFICATION_WITH_DISABLE, false);
 			if (showNotification) {
 				this.showDisableNotificationAndWaitToInvokeResponse();
 			} else {
@@ -168,25 +160,19 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void readPreferences() {
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		notifyViaSMS = prefs.getBoolean(
-				getString(R.string.checkbox_sms_notification), true);
-		notifyViaEmail = prefs.getBoolean(
-				getString(R.string.checkbox_email_notification), true);
-		notifyViaCall = prefs.getBoolean(
-				getString(R.string.checkbox_call_notification), false);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		notifyViaSMS = prefs.getBoolean(getString(R.string.checkbox_sms_notification), true);
+		notifyViaEmail = prefs.getBoolean(getString(R.string.checkbox_email_notification), true);
+		notifyViaCall = prefs.getBoolean(getString(R.string.checkbox_call_notification), false);
 		waitBetweenMessagesMs = readWaitBetweenMessagesMs(prefs);
 	}
 
 	private synchronized void setNotificationTimer() {
 		if (this.notificationsTimer != null) {
 			this.notificationsTimer.cancel();
-			Log.d(LOG_TAG, "setNotificationTimer: notificationTimer = null");
-			this.notificationsTimer = null;
 		}
 		this.notificationsTimer = new Timer();
-		Log.d(LOG_TAG, "Setting notification for the first time");
+		Log.d(LOG_TAG, "Setting notification");
 		this.notificationsTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -199,8 +185,7 @@ public class EmergencyNotificationService extends Service {
 	private void invokeEmergencyResponse() {
 		Log.d(LOG_TAG, "Invoking emergency response");
 
-		Intent iAmNotOkIntent = new Intent(SERVICE_I_AM_NOT_OK_INTENT);
-		this.sendBroadcast(iAmNotOkIntent);
+		this.sendBroadcast(new Intent(SERVICE_I_AM_NOT_OK_INTENT));
 
 		if (notifyViaCall) {
 			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
@@ -256,8 +241,7 @@ public class EmergencyNotificationService extends Service {
 				}
 			}
 		};
-		IntentFilter intentFilter = new IntentFilter(STOP_EMERGENCY_INTENT);
-		this.registerReceiver(cancellationReceiver, intentFilter);
+		this.registerReceiver(cancellationReceiver, new IntentFilter(STOP_EMERGENCY_INTENT));
 
 		// Register a receiver that can receive the I am now OK intents.
 		final BroadcastReceiver imnowOKReceiver = new BroadcastReceiver() {
@@ -270,11 +254,9 @@ public class EmergencyNotificationService extends Service {
 				}
 			}
 		};
-		IntentFilter intentIamNowOKFilter = new IntentFilter(I_AM_NOW_OK_INTENT);
-		this.registerReceiver(imnowOKReceiver, intentIamNowOKFilter);
+		this.registerReceiver(imnowOKReceiver, new IntentFilter(I_AM_NOW_OK_INTENT));
 
-		Timer t = new Timer();
-		t.schedule(new TimerTask() {
+		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
 				unregisterReceiver(cancellationReceiver);
