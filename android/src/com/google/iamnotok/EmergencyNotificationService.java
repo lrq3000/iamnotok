@@ -34,7 +34,7 @@ import com.google.iamnotok.utils.LocationUtils;
  * emergency contacts' list about the situation.
  */
 public class EmergencyNotificationService extends Service {
-	private final static String mLogTag = "ImNotOk - EmergencyNotificationService";
+	private final static String LOG_TAG = "ImNotOk - EmergencyNotificationService";
 
 	/**
 	 * Field name for the boolean that should be passed with the intent to start
@@ -54,7 +54,7 @@ public class EmergencyNotificationService extends Service {
 	public enum VigilanceState {
 		NORMAL_STATE,
 		WAITING_STATE,
-		EMERGENCY_STATE
+		EMERGENCY_STATE,
 	}
 	public static VigilanceState mApplicationState = VigilanceState.NORMAL_STATE;
 
@@ -62,8 +62,7 @@ public class EmergencyNotificationService extends Service {
 	private static long DEFAULT_WAIT_TO_CANCEL_MS = 10000;
 	private static final long DEFAULT_WAIT_BETWEEN_MESSAGES_MS = 5 * 60 * 1000;
 
-
-	private int mNotificationID = 0;
+	private int notificationID = 0;
 	private LocationTracker mLocationTracker;
 	private LocationUtils mLocationUtils;
 	private boolean mNotifyViaSMS = true;
@@ -128,7 +127,7 @@ public class EmergencyNotificationService extends Service {
 
 	@Override
 	public void onStart(Intent intent, int startId) {
-		Log.d(mLogTag, "onStart() called");
+		Log.d(LOG_TAG, "onStart() called");
 
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(this);
@@ -152,7 +151,7 @@ public class EmergencyNotificationService extends Service {
 		contactHelper.contactIds();
 
 		if (mApplicationState == VigilanceState.NORMAL_STATE) {
-			Log.d(mLogTag, "Starting the service");
+			Log.d(LOG_TAG, "Starting the service");
 			changeState(VigilanceState.WAITING_STATE);
 			boolean showNotification = true;
 			if (intent != null) {
@@ -178,7 +177,7 @@ public class EmergencyNotificationService extends Service {
 			}
 			super.onStart(intent, startId);
 		} else {
-			Log.d(mLogTag,
+			Log.d(LOG_TAG,
 					"Application already in either waiting or emergency mode.");
 		}
 	}
@@ -194,7 +193,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void invokeEmergencyResponse() {
-		Log.d(mLogTag, "Invoking emergency response");
+		Log.d(LOG_TAG, "Invoking emergency response");
 
 		Intent iAmNotOkIntent = new Intent(SERVICE_I_AM_NOT_OK_INTENT);
 		this.sendBroadcast(iAmNotOkIntent);
@@ -217,7 +216,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void showDisableNotificationAndWaitToInvokeResponse() {
-		Log.d(mLogTag, "Showing notification and waiting");
+		Log.d(LOG_TAG, "Showing notification and waiting");
 
 		// Show a notification.
 		final NotificationManager notificationManager = (NotificationManager) this
@@ -238,15 +237,15 @@ public class EmergencyNotificationService extends Service {
 				this.getString(R.string.emergency_response_starting),
 				this.getString(R.string.click_to_disable), pendingIntent);
 
-		notificationManager.notify(mNotificationID, notification);
+		notificationManager.notify(notificationID, notification);
 
 		// Register a receiver that can receive the cancellation intents.
 		final BroadcastReceiver cancellationReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				Log.d(mLogTag, "Received cancellation intent...");
+				Log.d(LOG_TAG, "Received cancellation intent...");
 				if (EmergencyNotificationService.mApplicationState == VigilanceState.WAITING_STATE) {
-					Log.d(mLogTag,
+					Log.d(LOG_TAG,
 							"Application in waiting state, cancelling the emergency");
 					changeState(VigilanceState.NORMAL_STATE);
 					mLocationTracker.deactivate();
@@ -260,9 +259,9 @@ public class EmergencyNotificationService extends Service {
 		final BroadcastReceiver imnowOKReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				Log.d(mLogTag, "Received I am now OK intent...");
+				Log.d(LOG_TAG, "Received I am now OK intent...");
 				if (mApplicationState == VigilanceState.EMERGENCY_STATE) {
-					Log.d(mLogTag, "Application in emergency state, I am now OK");
+					Log.d(LOG_TAG, "Application in emergency state, I am now OK");
 					stopEmergency();
 				}
 			}
@@ -275,7 +274,7 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void run() {
 				unregisterReceiver(cancellationReceiver);
-				notificationManager.cancel(mNotificationID++);
+				notificationManager.cancel(notificationID++);
 				if (mApplicationState == VigilanceState.WAITING_STATE) {
 					changeState(VigilanceState.EMERGENCY_STATE);
 					invokeEmergencyResponse();
@@ -306,7 +305,7 @@ public class EmergencyNotificationService extends Service {
 
 		String prefName = getString(R.string.edittext_cancelation_delay);
 		String prefVal = prefs.getString(prefName, null);
-		Log.d(mLogTag, String.format("from prefs: %s=%s", prefName, prefVal));
+		Log.d(LOG_TAG, String.format("from prefs: %s=%s", prefName, prefVal));
 
 		try {
 			return prefVal == null ? DEFAULT_WAIT_TO_CANCEL_MS : Integer.parseInt(prefVal) * 1000;
@@ -317,7 +316,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void stopEmergency() {
-		Log.d(mLogTag, "Stopping emergency");
+		Log.d(LOG_TAG, "Stopping emergency");
 		if (this.notificationsTimer != null) {
 			this.notificationsTimer.cancel();
 			this.notificationsTimer = null;
