@@ -70,21 +70,21 @@ public class EmergencyContactsHelper {
 			return false;
 		}
 		contacts.put(contactId, contact);
-		SharedPreferences settings =  prefs();
-		String list = settings.getString(CONTACT_IDS_PROPERTY_NAME, "");
-		Log.d("ContactsHelper", "list = " + list);
-		list += contactId + ",";
-		return settings.edit().putString(CONTACT_IDS_PROPERTY_NAME, list).commit();
+		return updateContactIdsInPrefs();
+	}
+	
+	private boolean updateContactIdsInPrefs() {
+		StringBuilder builder = new StringBuilder();
+		for (String oldContactId : contacts.keySet()) {
+			builder.append(oldContactId + ",");
+		}
+		return prefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, builder.toString()).commit();		
 	}
 
 	public boolean deleteContact(String contactId) {
 		if (!hasContact(contactId)) return false;
 		contacts.remove(contactId);
-		String list = "";
-		for (String oldContactId : contacts.keySet()) {
-			list += oldContactId + ",";
-		}
-		return prefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, list).commit();
+		return updateContactIdsInPrefs();
 	}
 
 	private SharedPreferences prefs() {
