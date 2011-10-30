@@ -1,10 +1,13 @@
 package com.google.iamnotok;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.google.iamnotok.utils.StringUtils;
 
@@ -16,71 +19,71 @@ public class EmergencyContactsHelper {
 	private static final String CONTACT_IDS_PROPERTY_NAME = "contact_ids";
 
 	private Context context;
-	private HashMap<String, Contact> contacts;
 
 	public EmergencyContactsHelper(Context context) {
 		this.context = context;
-		populateContacts();
 	}
-
-	public Collection<String> contactIds() {
-		return contacts.keySet();
-	}
-
-	private void populateContacts() {
-		contacts = new LinkedHashMap<String, Contact>();
-		SharedPreferences settings =  prefs();
-		String list = settings.getString(CONTACT_IDS_PROPERTY_NAME, "");
-		for (String contactId : list.split(",")) {
-			Contact contact = new Contact(context, contactId);
-			if (!contact.lookup()) continue;
-			contacts.put(contactId, contact);
-		}
+	
+	private Set<String> getIds() {
+		return new LinkedHashSet<String>(Arrays.asList(prefs().getString(CONTACT_IDS_PROPERTY_NAME, "").split(",")));
 	}
 
 	public Collection<Contact> getAllContacts() {
-		return contacts.values();
+		Collection<Contact> result = new ArrayList<Contact>();
+		for (String id : getIds()) {
+			Contact contact = lookupContact(id);
+			if (contact != null)
+				result.add(contact);
+		}
+		return result;
 	}
 
-	public Contact getContactWithId(String contactId) {
-		return contacts.get(contactId);
+	public Contact getContactWithId(String id) {
+		return getIds().contains(id) ? lookupContact(id) : null;
+	}
+	
+	private Contact lookupContact(String id) {
+		Contact result = new Contact(context, id);
+		if (!result.lookup())
+			return null;
+		return result;
 	}
 
 	public Contact getContactWithName(String contactName) {
-		for (Contact contact : contacts.values())
-			if (contact.getName().equals(contactName))
-				return contact;
+		for (String id : getIds()) {
+			Contact c = lookupContact(id);
+			if (c != null && c.getName().equals(contactName))
+				return c;
+		}
 		return null;
 	}
 
-	public boolean addContact(String contactId) {
-		if (hasContact(contactId)) return false;
-		Contact contact = new Contact(context, contactId);
-		if (!contact.lookup()) {
-			Log.e("ContactsHelper", "Lookup failed for: " + contactId);
+	public boolean addContact(String id) {
+		Set<String> updatedIds = getIds();
+		if (!updatedIds.add(id)) // fail if already in set
 			return false;
-		}
-		contacts.put(contactId, contact);
-		return updateContactIdsInPrefs();
+		if (lookupContact(id) == null)
+			return false;
+		return updateContactIdsInPrefs(updatedIds);
 	}
 	
-	private boolean updateContactIdsInPrefs() {
-		String newValue = StringUtils.join(contacts.keySet(), ",");
+	private boolean updateContactIdsInPrefs(Collection<String> ids) {
+		String newValue = StringUtils.join(ids, ",");
 		return prefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, newValue).commit();
 	}
 
-	public boolean deleteContact(String contactId) {
-		if (!hasContact(contactId)) return false;
-		contacts.remove(contactId);
-		return updateContactIdsInPrefs();
+	public boolean deleteContact(String id) {
+		Set<String> updatedIds = getIds();
+		if (!updatedIds.remove(id)) // fail if not in set
+			return false;
+		return updateContactIdsInPrefs(updatedIds);
 	}
 
 	private SharedPreferences prefs() {
 		return context.getSharedPreferences(PREFS_NAME, 0);
 	}
 
-	public boolean hasContact(String contactId) {
-		return contacts.containsKey(contactId);
+	private boolean hasContact(String id) {
+		return getIds().contains(id) && lookupContact(id) != null;
 	}
-
 }
