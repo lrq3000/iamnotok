@@ -90,6 +90,7 @@ public class EmergencyNotificationService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		contactHelper = new EmergencyContactsHelper(this);
 		locationUtils = new LocationUtils();
 		locationTracker = new LocationTrackerImpl(
 				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
@@ -127,22 +128,10 @@ public class EmergencyNotificationService extends Service {
 	public void onStart(Intent intent, int startId) {
 		Log.d(LOG_TAG, "onStart() called");
 
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		notifyViaSMS = prefs.getBoolean(
-				getString(R.string.checkbox_sms_notification), true);
-		notifyViaEmail = prefs.getBoolean(
-				getString(R.string.checkbox_email_notification), true);
-		notifyViaCall = prefs.getBoolean(
-				getString(R.string.checkbox_call_notification), false);
-		waitBetweenMessagesMs = readWaitBetweenMessagesMs(prefs);
-
-		if (contactHelper == null)
-			contactHelper = new EmergencyContactsHelper(getApplicationContext());
+		readPreferences();
 
 		if (!(notifyViaCall || notifyViaEmail || notifyViaSMS)) {
-			Toast.makeText(getApplicationContext(),
-					R.string.no_notification_defined, Toast.LENGTH_LONG).show();
+			Toast.makeText(this, R.string.no_notification_defined, Toast.LENGTH_LONG).show();
 			return;
 		}
 
@@ -178,6 +167,18 @@ public class EmergencyNotificationService extends Service {
 			Log.d(LOG_TAG,
 					"Application already in either waiting or emergency mode.");
 		}
+	}
+
+	private void readPreferences() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		notifyViaSMS = prefs.getBoolean(
+				getString(R.string.checkbox_sms_notification), true);
+		notifyViaEmail = prefs.getBoolean(
+				getString(R.string.checkbox_email_notification), true);
+		notifyViaCall = prefs.getBoolean(
+				getString(R.string.checkbox_call_notification), false);
+		waitBetweenMessagesMs = readWaitBetweenMessagesMs(prefs);
 	}
 
 	private synchronized void setNotificationTimer() {
