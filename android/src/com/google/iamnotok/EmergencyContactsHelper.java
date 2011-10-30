@@ -71,16 +71,10 @@ public class EmergencyContactsHelper {
 		}
 		contacts.put(contactId, contact);
 		SharedPreferences settings =  prefs();
-		SharedPreferences.Editor editor = settings.edit();
 		String list = settings.getString(CONTACT_IDS_PROPERTY_NAME, "");
 		Log.d("ContactsHelper", "list = " + list);
 		list += contactId + ",";
-		editor.putString(CONTACT_IDS_PROPERTY_NAME, list);
-		if (!editor.commit()) {
-			Log.e("ContactsHelper", "Commit failed for: " + contactId);
-			return false;
-		}
-		return true;
+		return settings.edit().putString(CONTACT_IDS_PROPERTY_NAME, list).commit();
 	}
 
 	public boolean deleteContact(String contactId) {
