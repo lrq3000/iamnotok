@@ -1,9 +1,7 @@
 package com.google.iamnotok;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.TreeSet;
 
 import android.content.ContentResolver;
@@ -180,15 +178,5 @@ public class EmergencyContactsHelper {
 		public String toString() {
 			return id + ": " + name + " (" + phone + ") <" + email + ">";
 		}
-	}
-
-	public List<String> getAllContactEmails() {
-		List<String> emails = new ArrayList<String>();
-		for (Contact contact : getAllContacts()) {
-			if (contact.getEmail() != null) {
-				emails.add(contact.getEmail());
-			}
-		}
-		return emails;
 	}
 }

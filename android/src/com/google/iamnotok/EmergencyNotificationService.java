@@ -1,11 +1,9 @@
 package com.google.iamnotok;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -23,7 +21,6 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.telephony.SmsManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -61,10 +58,12 @@ public class EmergencyNotificationService extends Service {
 	public final static String SERVICE_I_AM_NOT_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOT_OK";
 	public final static String SERVICE_I_AM_NOW_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOW_OK";
 
-	public final static int NORMAL_STATE = 0;
-	public final static int WAITING_STATE = 1;
-	public final static int EMERGENCY_STATE = 2;
-	public static int mApplicationState = NORMAL_STATE;
+	public enum VigilanceState {
+		NORMAL_STATE,
+		WAITING_STATE,
+		EMERGENCY_STATE
+	}
+	public static VigilanceState mApplicationState = VigilanceState.NORMAL_STATE;
 
 	/** Default time allowed for user to cancel the emergency response. */
 	private static int DEFAULT_WAIT_TO_CANCEL = 10000; // milliseconds
@@ -80,6 +79,9 @@ public class EmergencyNotificationService extends Service {
 
 	private final AccountUtils accountUtils = new AccountUtils(this);
 	private final FormatUtils formatUtils = new FormatUtils();
+
+	private final NotificationSender emailNotificationSender = new EmailNotificationSender(formatUtils, accountUtils);
+	private final NotificationSender smsNotificationSender = new SmsNotificationSender(formatUtils, getBaseContext());
 
 	private EmergencyContactsHelper contactHelper;
 
@@ -108,7 +110,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		if (getState() != EMERGENCY_STATE) {
+		if (getState() != VigilanceState.EMERGENCY_STATE) {
 			return;
 		}
 
@@ -146,9 +148,9 @@ public class EmergencyNotificationService extends Service {
 
 		contactHelper.contactIds();
 
-		if (this.getState() == NORMAL_STATE) {
+		if (this.getState() == VigilanceState.NORMAL_STATE) {
 			Log.d(mLogTag, "Starting the service");
-			changeState(WAITING_STATE);
+			changeState(VigilanceState.WAITING_STATE);
 			boolean showNotification = true;
 			if (intent != null) {
 				showNotification = intent.getBooleanExtra(
@@ -168,7 +170,7 @@ public class EmergencyNotificationService extends Service {
 			if (showNotification) {
 				this.showDisableNotificationAndWaitToInvokeResponse();
 			} else {
-				changeState(EMERGENCY_STATE);
+				changeState(VigilanceState.EMERGENCY_STATE);
 				this.invokeEmergencyResponse();
 			}
 			super.onStart(intent, startId);
@@ -176,105 +178,6 @@ public class EmergencyNotificationService extends Service {
 			Log.d(mLogTag,
 					"Application already in either waiting or emergency mode.");
 		}
-	}
-
-	private void sendTextNotifications(LocationAddress locationAddress) {
-		for (Contact contact : contactHelper.getAllContacts()) {
-			if (contact.getPhone() != null) {
-				sendTextMessage(contact.getPhone(), locationAddress);
-			}
-		}
-	}
-
-	private void sendEmailNotifications(LocationAddress locationAddress) {
-		List<String> emailList = contactHelper.getAllContactEmails();
-		if (emailList.size() > 0) {
-			sendEmailMessage(emailList, locationAddress);
-		}
-	}
-
-	/**
-	 * Sends an SMS to another device
-	 **/
-	private void sendTextMessage(final String phoneNumber, final LocationAddress locationAddress) {
-		Thread messageSender = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Log.d(mLogTag, "Sending sms to: " + phoneNumber);
-				String message = "";
-				if (getState() == NORMAL_STATE) {
-					message = "I am OK now";
-					Log.d(mLogTag, "Sending the message " + message);
-				} else {
-					Log.d(mLogTag, "Getting location");
-					message = formatUtils.formatMessage(locationAddress);
-				}
-
-				String SENT = "SMS_SENT";
-				String DELIVERED = "SMS_DELIVERED";
-
-				PendingIntent sentPI = PendingIntent.getBroadcast(
-						EmergencyNotificationService.this, 0, new Intent(SENT),
-						0);
-				PendingIntent deliveredPI = PendingIntent.getBroadcast(
-						EmergencyNotificationService.this, 0, new Intent(
-								DELIVERED), 0);
-
-				// ---when the SMS has been sent---
-				registerReceiver(new BroadcastReceiver() {
-					@Override
-					public void onReceive(Context arg0, Intent arg1) {
-						switch (getResultCode()) {
-						case Activity.RESULT_OK:
-							Toast.makeText(getBaseContext(), "SMS sent",
-									Toast.LENGTH_SHORT).show();
-							break;
-						case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-							Toast.makeText(getBaseContext(), "Generic failure",
-									Toast.LENGTH_SHORT).show();
-							break;
-						case SmsManager.RESULT_ERROR_NO_SERVICE:
-							Toast.makeText(getBaseContext(), "No service",
-									Toast.LENGTH_SHORT).show();
-							break;
-						case SmsManager.RESULT_ERROR_NULL_PDU:
-							Toast.makeText(getBaseContext(), "Null PDU",
-									Toast.LENGTH_SHORT).show();
-							break;
-						case SmsManager.RESULT_ERROR_RADIO_OFF:
-							Toast.makeText(getBaseContext(), "Radio off",
-									Toast.LENGTH_SHORT).show();
-							break;
-						}
-					}
-				}, new IntentFilter(SENT));
-
-				// ---when the SMS has been delivered---
-				registerReceiver(new BroadcastReceiver() {
-					@Override
-					public void onReceive(Context arg0, Intent arg1) {
-						switch (getResultCode()) {
-						case Activity.RESULT_OK:
-							Toast.makeText(getBaseContext(), "SMS delivered",
-									Toast.LENGTH_SHORT).show();
-							break;
-						case Activity.RESULT_CANCELED:
-							Toast.makeText(getBaseContext(),
-									"SMS not delivered", Toast.LENGTH_SHORT)
-									.show();
-							break;
-						}
-					}
-				}, new IntentFilter(DELIVERED));
-
-				SmsManager sms = SmsManager.getDefault();
-				sms.sendTextMessage(phoneNumber, null, message, sentPI,
-						deliveredPI);
-
-			}
-
-		});
-		messageSender.start();
 	}
 
 	private void callEmergency() {
@@ -287,7 +190,8 @@ public class EmergencyNotificationService extends Service {
 		}
 		if (number == null) {
 			Log.w(mLogTag,
-					"Unable to find a contact with numnber, disabled emergency call");
+					"Unable to find a contact with number, disabled emergency call");
+			// TODO: Actually disable emergency call.
 			return;
 		}
 		Intent i = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number,
@@ -295,41 +199,6 @@ public class EmergencyNotificationService extends Service {
 		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(i);
 	}
-
-	private String getMapUrl(LocationTracker.LocationAddress locAddr) {
-		String template = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=%f,%f&sll=%f,%f&sspn=0.005055,0.009645&ie=UTF8&z=16";
-		return String.format(template, locAddr.location.getLatitude(), locAddr.location.getLongitude(),
-				locAddr.location.getLatitude(), locAddr.location.getLongitude());
-	}
-
-	/**
-	 * Sends an email
-	 */
-	private void sendEmailMessage(List<String> to, LocationAddress locationAddress) {
-		String recipients = formatUtils.formatRecipients(to);
-		Log.d(mLogTag, "Sending email to: " + to);
-		String subject = formatUtils.formatSubject(accountUtils.getAccountName(), accountUtils.getPhoneNumber());
-		String message = "";
-		if (getState() == NORMAL_STATE) {
-			message = "I am OK now";
-			Log.d(mLogTag, "Sending the email " + message);
-		} else {
-			Log.d(mLogTag, "Getting location");
-			message = formatUtils.formatMessage(locationAddress);
-			if (locationAddress.location != null) {
-				message += " " + getMapUrl(locationAddress);
-			}
-		}
-
-		try {
-			GMailSender sender = new GMailSender("imnotokandroidapplication@gmail.com", "googlezurich");
-			String mailAddress = accountUtils.getMailAddress();
-			sender.sendMail(mailAddress, subject, message, "imnotokapplication@gmail.com", recipients);
-		} catch (Exception e) {
-			Log.e("SendMail", e.getMessage(), e);
-		}
-	}
-
 
 	private void setNotificationTimer() {
 		this.notificationsTimer = new Timer();
@@ -357,10 +226,10 @@ public class EmergencyNotificationService extends Service {
 
 	private void sendEmergencyMessages(LocationAddress locationAddress) {
 		if (mNotifyViaSMS) {
-			sendTextNotifications(locationAddress);
+			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, getState());
 		}
 		if (mNotifyViaEmail) {
-			sendEmailNotifications(locationAddress);
+			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, getState());
 		}
 	}
 
@@ -393,10 +262,10 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(mLogTag, "Received cancellation intent...");
-				if (EmergencyNotificationService.this.getState() == WAITING_STATE) {
+				if (EmergencyNotificationService.this.getState() == VigilanceState.WAITING_STATE) {
 					Log.d(mLogTag,
 							"Application in waiting state, cancelling the emergency");
-					changeState(NORMAL_STATE);
+					changeState(VigilanceState.NORMAL_STATE);
 					mLocationTracker.deactivate();
 				}
 			}
@@ -409,7 +278,7 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(mLogTag, "Received I am now OK intent...");
-				if (getState() == EMERGENCY_STATE) {
+				if (getState() == VigilanceState.EMERGENCY_STATE) {
 					Log.d(mLogTag, "Application in emergency state, I am now OK");
 					stopEmergency();
 				}
@@ -424,8 +293,8 @@ public class EmergencyNotificationService extends Service {
 			public void run() {
 				unregisterReceiver(cancellationReceiver);
 				notificationManager.cancel(mNotificationID++);
-				if (getState() == WAITING_STATE) {
-					changeState(EMERGENCY_STATE);
+				if (getState() == VigilanceState.WAITING_STATE) {
+					changeState(VigilanceState.EMERGENCY_STATE);
 					invokeEmergencyResponse();
 				} else {
 					// TODO: Do this in the cancellation receiver.
@@ -435,7 +304,7 @@ public class EmergencyNotificationService extends Service {
 		}, this.getWaitingTime());
 	}
 
-	private synchronized void changeState(int new_state) {
+	private synchronized void changeState(VigilanceState new_state) {
 		mApplicationState = new_state;
 
 		// Push the updates to the widget.
@@ -449,7 +318,7 @@ public class EmergencyNotificationService extends Service {
 		// Broadcast
 	}
 
-	private synchronized int getState() {
+	private synchronized VigilanceState getState() {
 		return mApplicationState;
 	}
 
@@ -481,7 +350,7 @@ public class EmergencyNotificationService extends Service {
 			this.notificationsTimer.cancel();
 			this.notificationsTimer = null;
 		}
-		this.changeState(NORMAL_STATE);
+		this.changeState(VigilanceState.NORMAL_STATE);
 		sendEmergencyMessages(mLocationTracker.getLocationAddress());
 		mLocationTracker.deactivate();
 
