@@ -47,7 +47,8 @@ public class EmailNotificationSender implements NotificationSender {
 	/**
 	 * Sends an email
 	 */
-	private void sendEmailMessage(List<String> to, LocationAddress locationAddress, VigilanceState state) {
+	private void sendEmailMessage(
+			List<String> to, LocationAddress locationAddress, VigilanceState state) {
 	  String recipients = formatUtils.formatRecipients(to);
 	  Log.d(LOG_TAG, "Sending email to: " + to);
 	  String subject = formatUtils.formatSubject(accountUtils.getAccountName(), accountUtils.getPhoneNumber());
@@ -57,7 +58,7 @@ public class EmailNotificationSender implements NotificationSender {
 	    Log.d(LOG_TAG, "Sending the email " + message);
 	  } else {
 	    Log.d(LOG_TAG, "Getting location");
-	    message = formatUtils.formatMessage(locationAddress);
+	    message = formatUtils.formatMessage(locationAddress, accountUtils.getCustomMessage());
 	    if (locationAddress.location != null) {
 	      message += " " + getMapUrl(locationAddress);
 	    }

@@ -49,4 +49,7 @@
     <string name="edittext_message_interval">edittext_message_interval</string>
     <string name="edittext_message_interval_title">Notification Interval</string>
     <string name="edittext_message_interval_desc">Seconds to wait between notifications</string>
+    <string name="edittext_custom_message">edittext_custom_message</string>
+    <string name="edittext_custom_message_title">Custom Distress Message</string>
+    <string name="edittext_custom_message_desc">Optionally send a custom distress message along with the automated one</string>
 </resources>

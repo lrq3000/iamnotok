@@ -90,4 +90,10 @@ public class AccountUtils {
 
 		return "Unidentified Phone Number";
 	}
+	
+	public String getCustomMessage() {
+		SharedPreferences prefs =
+			PreferenceManager.getDefaultSharedPreferences(context);
+		return prefs.getString(context.getString(R.string.edittext_custom_message), "");
+	}
 }

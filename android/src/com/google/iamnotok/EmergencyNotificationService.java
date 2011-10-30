@@ -69,12 +69,13 @@ public class EmergencyNotificationService extends Service {
 	private boolean notifyViaEmail = true;
 	private boolean notifyViaCall = false;
 	private long waitBetweenMessagesMs = DEFAULT_WAIT_BETWEEN_MESSAGES_MS;
+	private String customMessage;
 
 	private final AccountUtils accountUtils = new AccountUtils(this);
 	private final FormatUtils formatUtils = new FormatUtils();
 
 	private final NotificationSender emailNotificationSender = new EmailNotificationSender(formatUtils, accountUtils);
-	private final NotificationSender smsNotificationSender = new SmsNotificationSender(this, formatUtils);
+	private final NotificationSender smsNotificationSender = new SmsNotificationSender(this, formatUtils, accountUtils);
 	private final EmergencyCaller emergencyCaller = new EmergencyCaller(getBaseContext());
 
 	private EmergencyContactsHelper contactHelper;
@@ -278,10 +279,8 @@ public class EmergencyNotificationService extends Service {
 				R.layout.emergency_button_widget);
 		EmergencyButtonWidgetProvider.setupViews(this, views);
 		AppWidgetManager.getInstance(this).updateAppWidget(thisWidget, views);
-
-		// Broadcast
 	}
-
+	
 	private long getWaitingTime() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 

@@ -9,17 +9,20 @@ import android.telephony.SmsManager;
 import com.google.iamnotok.EmergencyContactsHelper.Contact;
 import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
 import com.google.iamnotok.LocationTracker.LocationAddress;
+import com.google.iamnotok.utils.AccountUtils;
 import com.google.iamnotok.utils.FormatUtils;
 import com.google.iamnotok.utils.IamNotOKLogger;
 
 public class SmsNotificationSender implements NotificationSender {
 
+	private final AccountUtils accountUtils;
 	private final FormatUtils formatUtils;
 	private final SmsManager smsManager = SmsManager.getDefault();
 
 	private final Context context;
 
-	public SmsNotificationSender(Context context, FormatUtils formatUtils) {
+	public SmsNotificationSender(Context context, FormatUtils formatUtils, AccountUtils accountUtils) {
+		this.accountUtils = accountUtils;
 		this.formatUtils = formatUtils;
 		this.context = context;
 	}
@@ -48,7 +51,8 @@ public class SmsNotificationSender implements NotificationSender {
 				if (state == VigilanceState.NORMAL_STATE) {
 					message = "I am OK now";
 				} else {
-					message = formatUtils.formatMessage(locationAddress);
+					message = formatUtils.formatMessage(
+							locationAddress, accountUtils.getCustomMessage());
 				}
 
 				IamNotOKLogger.Log(context, "SmsSender", "Sending SMS to "

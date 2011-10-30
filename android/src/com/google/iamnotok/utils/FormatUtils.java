@@ -18,8 +18,12 @@ public class FormatUtils {
 		return sb.toString();
 	}
 
-	public String formatMessage(LocationTracker.LocationAddress locationAddress) {
+	public String formatMessage(
+			LocationTracker.LocationAddress locationAddress, String customMessage) {
 		String message = "I am not OK!";
+		if (customMessage != null && !"".equals(message)) {
+			message += " " + customMessage;
+		}
 		if (locationAddress == null) {
 			message += " No location information available!";
 		} else {
