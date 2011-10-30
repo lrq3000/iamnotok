@@ -7,38 +7,74 @@ import android.util.Log;
 
 public class IamNotOKLogger {
 
-	private static final String LOG_FILE_NAME = "/data/data/com.google.iamnotok/log.txt";
-	
-	private static String DEBUG_LOG_LEVEL = "DEBUG";
-	private static String INFO_LOG_LEVEL = "INFO";
+	private static final String LOG_FILE_NAME = "log.txt";
 
-	private static String LOG_LEVEL = DEBUG_LOG_LEVEL;
-	
-	public static void Log(Context context, String tag, String msg){
-		if (LOG_LEVEL.equals(DEBUG_LOG_LEVEL)){
-			Log.d(tag, msg);
-		} else if (LOG_LEVEL.equals(INFO_LOG_LEVEL)){
-			Log.i(tag, msg);
-		}
-		
-		writeToFile(context, tag, msg);
-	}
-	
-	public static void Log(String tag, String msg,Throwable e){
-		if (LOG_LEVEL.equals(DEBUG_LOG_LEVEL)){
-			Log.d(tag, msg, e);
-		} else if (LOG_LEVEL.equals(INFO_LOG_LEVEL)){
-			Log.i(tag, msg, e);
+	private static int DEBUG_LOG_LEVEL = 3;
+
+	private static final String LOG_TAG = "IAMNOTOK";
+
+	public static void Log(Context context, String tag, String msg) {
+		log(DEBUG_LOG_LEVEL, msg);
+
+		if (context != null) {
+			writeToFile(context, tag, msg);
 		}
 	}
-	
-	private static void writeToFile (Context context, String tag, String msg){
+
+	public static void Log(String msg, Throwable e) {
+		log(DEBUG_LOG_LEVEL, msg, e);
+	}
+
+	private static void writeToFile(Context context, String tag, String msg) {
 		try {
-			  OutputStreamWriter out = new OutputStreamWriter(context.openFileOutput(LOG_FILE_NAME,Context.MODE_APPEND));
-			  out.write(tag+":"+msg);
-			  out.close();
-			} catch (java.io.IOException e) {
-			 Log.e("IamNotOKLogger","unable to write to file ",e);
-			}
+			OutputStreamWriter out = new OutputStreamWriter(
+					context.openFileOutput(LOG_FILE_NAME, Context.MODE_APPEND));
+			out.write(tag + ":" + msg);
+			out.close();
+		} catch (java.io.IOException e) {
+			Log.e("IamNotOKLogger", "unable to write to file ", e);
+		}
 	}
+
+	public static void log(int level, String str) {
+		switch (level) {
+		case 0:
+			Log.e(LOG_TAG, str);
+			break;
+		case 1:
+			Log.w(LOG_TAG, str);
+			break;
+		case 2:
+			Log.i(LOG_TAG, str);
+			break;
+		case 3:
+			Log.d(LOG_TAG, str);
+			break;
+		default:
+			Log.v(LOG_TAG, str);
+			break;
+		}
+	}
+
+	public static void log(int level, String str, Throwable e) {
+		switch (level) {
+		case 0:
+			Log.e(LOG_TAG, str, e);
+			break;
+		case 1:
+			Log.w(LOG_TAG, str, e);
+			break;
+		case 2:
+			Log.i(LOG_TAG, str, e);
+			break;
+		case 3:
+			Log.d(LOG_TAG, str, e);
+			break;
+		default:
+			Log.v(LOG_TAG, str, e);
+			break;
+		}
+
+	}
+
 }

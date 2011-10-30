@@ -1,27 +1,32 @@
 package com.google.iamnotok;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
+import android.content.Context;
 import android.telephony.SmsManager;
-import android.util.Log;
 
 import com.google.iamnotok.EmergencyContactsHelper.Contact;
 import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.utils.FormatUtils;
+import com.google.iamnotok.utils.IamNotOKLogger;
 
 public class SmsNotificationSender implements NotificationSender {
-	private static final String LOG_TAG = "IAMNOTOK - smser";
 
 	private final FormatUtils formatUtils;
+	private final SmsManager smsManager = SmsManager.getDefault();
 
-	public SmsNotificationSender(FormatUtils formatUtils) {
+	private final Context context;
+
+	public SmsNotificationSender(Context context, FormatUtils formatUtils) {
 		this.formatUtils = formatUtils;
+		this.context = context;
 	}
 
 	@Override
-	public boolean sendNotifications(
-			Collection<Contact> contacts, LocationAddress locationAddress, VigilanceState state) {
+	public boolean sendNotifications(Collection<Contact> contacts,
+			LocationAddress locationAddress, VigilanceState state) {
 		for (Contact contact : contacts) {
 			if (contact.getPhone() != null) {
 				sendTextMessage(contact.getPhone(), locationAddress, state);
@@ -34,22 +39,23 @@ public class SmsNotificationSender implements NotificationSender {
 	/**
 	 * Sends an SMS to another device
 	 **/
-	private void sendTextMessage(final String phoneNumber, final LocationAddress locationAddress, final VigilanceState state) {
+	private void sendTextMessage(final String phoneNumber,
+			final LocationAddress locationAddress, final VigilanceState state) {
 		Thread messageSender = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				Log.d(LOG_TAG, "Sending sms to: " + phoneNumber);
 				String message = "";
 				if (state == VigilanceState.NORMAL_STATE) {
 					message = "I am OK now";
-					Log.d(LOG_TAG, "Sending the message " + message);
 				} else {
-					Log.d(LOG_TAG, "Getting location");
 					message = formatUtils.formatMessage(locationAddress);
 				}
 
-				SmsManager sms = SmsManager.getDefault();
-				sms.sendTextMessage(phoneNumber, null, message, null, null);
+				IamNotOKLogger.Log(context, "SmsSender", "Sending SMS to "
+						+ phoneNumber + " : " + message);
+				ArrayList<String> parts = smsManager.divideMessage(message);
+				smsManager.sendMultipartTextMessage(phoneNumber, null, parts,
+						null, null);
 
 			}
 
