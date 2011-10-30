@@ -1,6 +1,5 @@
 package com.google.iamnotok;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
@@ -188,20 +187,10 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void sendEmailNotifications(LocationAddress locationAddress) {
-		List<String> emailList = getAllContactEmails();
+		List<String> emailList = contactHelper.getAllContactEmails();
 		if (emailList.size() > 0) {
 			sendEmailMessage(emailList, locationAddress);
 		}
-	}
-
-	private List<String> getAllContactEmails() {
-		List<String> emails = new ArrayList<String>();
-		for (Contact contact : contactHelper.getAllContacts()) {
-			if (contact.getEmail() != null) {
-				emails.add(contact.getEmail());
-			}
-		}
-		return emails;
 	}
 
 	/**

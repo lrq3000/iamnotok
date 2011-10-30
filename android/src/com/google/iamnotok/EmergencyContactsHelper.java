@@ -1,7 +1,9 @@
 package com.google.iamnotok;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeSet;
 
 import android.content.ContentResolver;
@@ -13,7 +15,7 @@ import android.util.Log;
 
 /**
  * Maintains a list of contact ids. Quite crude but should do the job for now.
- * 
+ *
  * @author Ahmed Abdelkader (ahmadabdolkader@gmail.com)
  */
 public class EmergencyContactsHelper {
@@ -23,13 +25,13 @@ public class EmergencyContactsHelper {
 	private Context context;
 	private TreeSet<String> contactIds;
 	private HashMap<String, Contact> contacts;
-	
+
 	public EmergencyContactsHelper(Context context) {
 		this.context = context;
 		// ResetContacts();
 		contactIds();
 	}
-	
+
 	public void ResetContacts() {
 		SharedPreferences settings =  context.getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = settings.edit();
@@ -51,22 +53,22 @@ public class EmergencyContactsHelper {
 		}
 		return contactIds();
 	}
-	
+
 	public Collection<Contact> getAllContacts() {
 		return contacts.values();
 	}
-	
+
 	public Contact getContactWithId(String contactId) {
 		return contacts.get(contactId);
 	}
-	
+
 	public Contact getContactWithName(String contactName) {
 		for (Contact contact : contacts.values())
 			if (contact.getName().equals(contactName))
 				return contact;
 		return null;
 	}
-	
+
 	public boolean addContact(String contactId) {
 		if (hasContact(contactId)) return false;
 		Contact contact = new Contact(contactId);
@@ -88,7 +90,7 @@ public class EmergencyContactsHelper {
 		}
 		return true;
 	}
-	
+
 	public boolean deleteContact(String contactId) {
 		if (!hasContact(contactId)) return false;
 		contactIds.remove(contactId);
@@ -100,21 +102,21 @@ public class EmergencyContactsHelper {
 		editor.putString(CONTACT_IDS_PROPERTY_NAME, list);
 		return editor.commit();
 	}
-	
+
 	public boolean hasContact(String contactId) {
 		return contactIds.contains(contactId);
 	}
-	
+
 	public class Contact {
 		private String id;
 		private String name;
 		private String phone;
 		private String email;
-		
+
 		public Contact(String id) {
 			this.id = id;
 		}
-		
+
 		public boolean lookup() {
 			try {
 				ContentResolver cr = context.getContentResolver();
@@ -169,14 +171,24 @@ public class EmergencyContactsHelper {
 		public String getPhone() {
 			return phone;
 		}
-		
+
 		public String getEmail() {
 			return email;
 		}
-		
+
 		@Override
 		public String toString() {
 			return id + ": " + name + " (" + phone + ") <" + email + ">";
 		}
+	}
+
+	public List<String> getAllContactEmails() {
+		List<String> emails = new ArrayList<String>();
+		for (Contact contact : getAllContacts()) {
+			if (contact.getEmail() != null) {
+				emails.add(contact.getEmail());
+			}
+		}
+		return emails;
 	}
 }
