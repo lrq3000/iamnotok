@@ -59,7 +59,7 @@ public class EmergencyNotificationService extends Service {
 	public static VigilanceState applicationState = VigilanceState.NORMAL_STATE;
 
 	/** Default time allowed for user to cancel the emergency response. */
-	private static long DEFAULT_WAIT_TO_CANCEL_MS = 10000;
+	private static final long DEFAULT_WAIT_TO_CANCEL_MS = 10000;
 	private static final long DEFAULT_WAIT_BETWEEN_MESSAGES_MS = 5 * 60 * 1000;
 
 	private int notificationID = 0;
