@@ -60,7 +60,7 @@ public class EmergencyNotificationService extends Service {
 
 	/** Default time allowed for user to cancel the emergency response. */
 	private static int DEFAULT_WAIT_TO_CANCEL = 10000; // milliseconds
-	private static int DEFAULT_WAIT_BETWEEN_MESSAGES = 5 * 1000 * 60; // milliseconds
+	private static int DEFAULT_WAIT_BETWEEN_MESSAGES = 5; // milliseconds
 
 	private int mNotificationID = 0;
 	private LocationTracker mLocationTracker;
@@ -127,9 +127,13 @@ public class EmergencyNotificationService extends Service {
 				getString(R.string.checkbox_email_notification), true);
 		mNotifyViaCall = prefs.getBoolean(
 				getString(R.string.checkbox_call_notification), false);
-		mWaitBetweenMessagesMillis = (int) prefs.getLong(
-				getString(R.string.edittext_message_interval),
-				DEFAULT_WAIT_BETWEEN_MESSAGES) * 1000; // Convert to milliseconds.
+		try {
+			mWaitBetweenMessagesMillis = (int) prefs.getLong(
+					getString(R.string.edittext_message_interval),
+					DEFAULT_WAIT_BETWEEN_MESSAGES) * 1000; // Convert to milliseconds.
+		} catch (ClassCastException e) {
+			mWaitBetweenMessagesMillis = DEFAULT_WAIT_BETWEEN_MESSAGES;
+		}
 
 		if (contactHelper == null)
 			contactHelper = new EmergencyContactsHelper(getApplicationContext());
