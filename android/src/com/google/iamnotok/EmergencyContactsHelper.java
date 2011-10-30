@@ -13,8 +13,6 @@ import android.util.Log;
 
 /**
  * Maintains a list of contact ids. Quite crude but should do the job for now.
- *
- * @author Ahmed Abdelkader (ahmadabdolkader@gmail.com)
  */
 public class EmergencyContactsHelper {
 	private static final String PREFS_NAME = "MyPrefsFile";

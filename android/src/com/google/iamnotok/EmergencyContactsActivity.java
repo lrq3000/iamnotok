@@ -26,8 +26,6 @@ import android.widget.ListAdapter;
 
 /**
  * A simple list of contacts: list/add/remove.
- *
- * @author Ahmed Abdelkader (ahmadabdolkader@gmail.com)
  */
 public class EmergencyContactsActivity extends ListActivity {
 	private static final int CONTACT_PICKER_RESULT = 1001;

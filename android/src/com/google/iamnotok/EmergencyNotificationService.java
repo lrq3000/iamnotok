@@ -32,11 +32,6 @@ import com.google.iamnotok.utils.LocationUtils;
 /**
  * Puts the phone to the emergency state and notifies the contacts in the
  * emergency contacts' list about the situation.
- *
- * @author Vytautas
- * @author Raquel
- * @author igalk
- * @author nadir
  */
 public class EmergencyNotificationService extends Service {
 	private final static String mLogTag = "ImNotOk - EmergencyNotificationService";

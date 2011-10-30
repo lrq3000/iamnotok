@@ -18,8 +18,6 @@ import javax.mail.internet.MimeMessage;
 
 /**
  * Email sender provider
- * 
- * @author Raquel
  */
 
 public class GMailSender extends javax.mail.Authenticator {
