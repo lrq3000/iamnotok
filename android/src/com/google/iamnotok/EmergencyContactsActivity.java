@@ -5,31 +5,14 @@ import java.util.List;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.widget.*;
 import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.ListAdapter;
-import android.widget.TextView;
-
-import com.google.iamnotok.EmergencyContactsHelper.Contact;
 
 /**
  * A simple list of contacts: list/add/remove.
@@ -151,7 +134,7 @@ public class EmergencyContactsActivity extends ListActivity {
 							@SuppressWarnings("unchecked")
 							ArrayAdapter<String> adapter = (ArrayAdapter<String>) getListAdapter();
 							String contactName = adapter.getItem(pos);
-							EmergencyContactsHelper.Contact contact = contactsHelper.getContactWithName(contactName);
+							Contact contact = contactsHelper.getContactWithName(contactName);
 							contactsHelper.deleteContact(contact.getId());
 							adapter.remove(adapter.getItem(pos));
 				            break;
@@ -215,7 +198,7 @@ public class EmergencyContactsActivity extends ListActivity {
 				}
 				@SuppressWarnings("unchecked")
 				ArrayAdapter<String> adapter = (ArrayAdapter<String>) getListAdapter();
-				EmergencyContactsHelper.Contact contact = contactsHelper.getContactWithId(contactId);
+				Contact contact = contactsHelper.getContactWithId(contactId);
 				Log.d("Hello", "Got: " + contact);
 				if (contact == null) break;
 				adapter.add(contact.getName());

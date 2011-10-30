@@ -1,12 +1,9 @@
 package com.google.iamnotok;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import android.util.Log;
 
-import com.google.iamnotok.EmergencyContactsHelper.Contact;
 import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.utils.AccountUtils;

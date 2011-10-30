@@ -7,8 +7,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
-import com.google.iamnotok.EmergencyContactsHelper.Contact;
-
 public class EmergencyCaller {
 	private static final String LOG_TAG = "IamNotOk - caller";
 

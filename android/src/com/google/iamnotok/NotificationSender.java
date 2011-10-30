@@ -2,7 +2,6 @@ package com.google.iamnotok;
 
 import java.util.Collection;
 
-import com.google.iamnotok.EmergencyContactsHelper.Contact;
 import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 
