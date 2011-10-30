@@ -189,10 +189,11 @@ public class EmergencyNotificationService extends Service {
 	private synchronized void setNotificationTimer() {
 		if (this.notificationsTimer != null) {
 			this.notificationsTimer.cancel();
-			Log.d("iamnotok", "setNotificationTimer: notificationTimer = null");
+			Log.d(LOG_TAG, "setNotificationTimer: notificationTimer = null");
 			this.notificationsTimer = null;
 		}
 		this.notificationsTimer = new Timer();
+		Log.d(LOG_TAG, "Setting notification for the first time");
 		this.notificationsTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -212,8 +213,8 @@ public class EmergencyNotificationService extends Service {
 			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
 		}
 
-		sendEmergencyMessages(locationTracker.getLocationAddress());
 		setNotificationTimer();
+		sendEmergencyMessages(locationTracker.getLocationAddress());
 	}
 
 	private void sendEmergencyMessages(LocationAddress locationAddress) {
