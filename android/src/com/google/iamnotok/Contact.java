@@ -3,84 +3,92 @@ package com.google.iamnotok;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.ContactsContract;
-import android.util.Log;
+import android.provider.ContactsContract.CommonDataKinds;
+import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.Data;
 
 public class Contact {
-		
-		private Context context;
-		
-		private String id;
-		private String name;
-		private String phone;
-		private String email;
 
-		public Contact(Context context, String id) {
-			this.id = id;
-			this.context = context;
-		}
+	private static final String[] PROJECTION = new String[] { Data._ID,
+			Data.IS_SUPER_PRIMARY, Data.DISPLAY_NAME, Phone.TYPE,
+			Phone.NUMBER, Email.DATA, Data.MIMETYPE };
 
-		public boolean lookup() {
+	private static final int COL_NAME = 2;
+	private static final int COL_PHONE_TYPE = 3;
+	private static final int COL_PHONE_NUMBER = 4;
+	private static final int COL_EMAIL = 5;
+	
+	
+	
+	private static final String WHERE_CLAUSE = Data.CONTACT_ID + " = ? AND ("
+			+ Data.MIMETYPE + " =? OR " + Data.MIMETYPE + " =?)";
+
+	private Context context;
+
+	private String id;
+	private String name;
+	private String phone;
+	private String email;
+
+	public Contact(Context context, String id) {
+		this.id = id;
+		this.context = context;
+	}
+
+	public boolean lookup() {
+		ContentResolver cr = context.getContentResolver();
+		final String[] whereArgs = new String[] { id,
+				CommonDataKinds.Email.CONTENT_ITEM_TYPE,
+				CommonDataKinds.Phone.CONTENT_ITEM_TYPE };
+
+		Cursor cur = cr.query(Data.CONTENT_URI, PROJECTION, WHERE_CLAUSE,
+				whereArgs, Data.IS_SUPER_PRIMARY + " DESC ");
+		if (cur != null) {
 			try {
-				ContentResolver cr = context.getContentResolver();
-				Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
-									  null, ContactsContract.Contacts._ID + " = ?",
-									  new String[]{id}, null);
-				if (cur.moveToFirst()) {
-					this.name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-					if (cur.getInt(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-						Cursor pCur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-										       null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-										       new String[]{id}, null);
-						while (pCur.moveToNext()) {
-							int phoneType = pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
-							if (phoneType == ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE){
-								this.phone = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-								break;
-							}
+				final int mimetypeCol = cur.getColumnIndex(Data.MIMETYPE);
+				while (cur.moveToNext()) {
+					if (name == null) {
+						name = cur.getString(COL_NAME);
+					}
+					final String mimetype = cur.getString(mimetypeCol);
+					if (mimetype.equals(Phone.CONTENT_ITEM_TYPE)) {
+						if (phone == null || cur.getInt(COL_PHONE_TYPE) == Phone.TYPE_MOBILE) {
+							phone = cur.getString(COL_PHONE_NUMBER);
 						}
-						if (this.phone == null){ //we did not find a phone that is mobile phone
-							Log.w("ContactsHelper", "pCur.moveTONext failed");
+					} else if (mimetype.equals(Email.CONTENT_ITEM_TYPE)) {
+						if (email == null) {
+							email = cur.getString(COL_EMAIL);
 						}
 					}
-					Cursor eCur = cr.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
-										   null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
-										   new String[]{id}, null);
-					if (eCur.moveToNext()) {
-						this.email = eCur.getString(eCur.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
-					} else {
-						Log.w("ContactsHelper", "eCur.moveTONext failed");
-					}
-					Log.d("ContactsHelper", toString());
-					return true;
-				} else {
-					Log.w("ContactsHelper", "cur.moveToFirst() is false");
-					return false;
+
 				}
-			} catch(Exception e) {
-				Log.e("ContactsHelper", e.toString());
-				return false;
+				return true;
+			} finally {
+				cur.close();
 			}
 		}
-
-		public String getId() {
-			return id;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public String getPhone() {
-			return phone;
-		}
-
-		public String getEmail() {
-			return email;
-		}
-
-		@Override
-		public String toString() {
-			return id + ": " + name + " (" + phone + ") <" + email + ">";
-		}
+		return false;
 	}
+
+	public String getId() {
+		return id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	@Override
+	public String toString() {
+		return id + ": " + name + " (" + phone + ") <" + email + ">";
+	}
+}
