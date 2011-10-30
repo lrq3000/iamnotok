@@ -37,7 +37,7 @@ public class EmergencyContactsHelper {
 		SharedPreferences settings =  prefs();
 		String list = settings.getString(CONTACT_IDS_PROPERTY_NAME, "");
 		for (String contactId : list.split(",")) {
-			Contact contact = new Contact(contactId);
+			Contact contact = new Contact(context, contactId);
 			if (!contact.lookup()) continue;
 			contacts.put(contactId, contact);
 		}
@@ -60,7 +60,7 @@ public class EmergencyContactsHelper {
 
 	public boolean addContact(String contactId) {
 		if (hasContact(contactId)) return false;
-		Contact contact = new Contact(contactId);
+		Contact contact = new Contact(context, contactId);
 		if (!contact.lookup()) {
 			Log.e("ContactsHelper", "Lookup failed for: " + contactId);
 			return false;
@@ -88,14 +88,18 @@ public class EmergencyContactsHelper {
 		return contacts.containsKey(contactId);
 	}
 
-	public class Contact {
+	public static class Contact {
+		
+		private Context context;
+		
 		private String id;
 		private String name;
 		private String phone;
 		private String email;
 
-		public Contact(String id) {
+		public Contact(Context context, String id) {
 			this.id = id;
+			this.context = context;
 		}
 
 		public boolean lookup() {

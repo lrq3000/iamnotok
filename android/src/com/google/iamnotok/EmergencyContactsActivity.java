@@ -1,6 +1,7 @@
 package com.google.iamnotok;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -13,16 +14,22 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListAdapter;
+import android.widget.TextView;
+
+import com.google.iamnotok.EmergencyContactsHelper.Contact;
 
 /**
  * A simple list of contacts: list/add/remove.
@@ -189,14 +196,8 @@ public class EmergencyContactsActivity extends ListActivity {
 	}
 
 	protected ListAdapter createAdapter() {
-		Vector<String> a = new Vector<String>();
-		ArrayAdapter<String> aa =
-			new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, a);
-		// Init with stored contacts, if any.
-		for (String contactId : contactsHelper.contactIds()) {
-			aa.add(contactsHelper.getContactWithId(contactId).getName());
-		}
-		return aa;
+		List<Contact> list = new ArrayList<Contact>(contactsHelper.getAllContacts());
+		return new ContactAdapter(this, list);
 	}
 
 	@Override
@@ -224,4 +225,61 @@ public class EmergencyContactsActivity extends ListActivity {
 			Log.w("Hello", "Activity result not ok");
 		}
 	}
+
+	private static class ContactAdapter extends BaseAdapter {
+
+		private List<Contact> list;
+		private LayoutInflater mInflater;
+
+		private ContactAdapter(Context context, List<Contact> list) {
+			this.list = list;
+			mInflater = LayoutInflater.from(context);
+		}
+		
+		@Override
+		public int getCount() {
+			return list.size();
+		}
+
+		@Override
+		public Object getItem(int pos) {
+			return list.get(pos);
+		}
+
+		@Override
+		public long getItemId(int pos) {
+			return Long.parseLong(list.get(pos).getId());
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			Contact friend = list.get(position);
+
+			View v = null;
+			if (convertView != null) {
+				v = convertView;
+			} else {
+				v = mInflater.inflate(R.layout.contact_line, null);
+			}
+			TextView textView = (TextView) v.findViewById(R.id.name);
+			textView.setText(friend.getName());
+
+			String phone = friend.getPhone();
+			v.findViewById(R.id.phone).setVisibility(phone==null? View.GONE : View.VISIBLE );
+			TextView phoneView = (TextView) v.findViewById(R.id.phone_value);
+			if (phone!=null) {
+				phoneView.setText(phone);
+			}
+			
+			String email = friend.getEmail();
+			v.findViewById(R.id.email).setVisibility(email==null? View.GONE : View.VISIBLE );
+			if (email!=null) {
+				TextView emailView = (TextView) v.findViewById(R.id.email_value);
+				emailView.setText(email);
+			}
+			return v;
+		}
+
+	}
+
 }

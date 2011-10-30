@@ -13,8 +13,7 @@
          android:text="@string/i_am_now_ok"
          android:textColor="#FFFFFFFF"
          android:textSize="14dip" />
-
-     <Button
+     <Button
          android:id="@+id/ContactListCancelEmergencyButton"
          android:layout_width="fill_parent"
          android:layout_height="wrap_content"
