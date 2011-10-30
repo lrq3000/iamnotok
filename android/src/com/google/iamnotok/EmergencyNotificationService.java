@@ -108,13 +108,17 @@ public class EmergencyNotificationService extends Service {
 			return;
 		}
 
-		if (this.notificationsTimer != null) {
-			this.notificationsTimer.cancel();
+		synchronized(this) {
+			if (this.notificationsTimer != null) {
+				this.notificationsTimer.cancel();
+				Log.d("iamnotok", "onDistanceThresholdPassed: notificationTimer = null");
+				this.notificationsTimer = null;
+			}
 		}
 		sendEmergencyMessages(locationAddress);
 		setNotificationTimer();
 	}
-	
+
 	private long readWaitBetweenMessagesMs(SharedPreferences prefs) {
 		try {
 			String messageIntervalString = prefs.getString(getString(R.string.edittext_message_interval), null);
@@ -182,11 +186,17 @@ public class EmergencyNotificationService extends Service {
 		}
 	}
 
-	private void setNotificationTimer() {
+	private synchronized void setNotificationTimer() {
+		if (this.notificationsTimer != null) {
+			this.notificationsTimer.cancel();
+			Log.d("iamnotok", "setNotificationTimer: notificationTimer = null");
+			this.notificationsTimer = null;
+		}
 		this.notificationsTimer = new Timer();
 		this.notificationsTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
+				Log.d(LOG_TAG, "Sending timed notification");
 				sendEmergencyMessages(locationTracker.getLocationAddress());
 			}
 		}, waitBetweenMessagesMs, waitBetweenMessagesMs);
@@ -317,9 +327,12 @@ public class EmergencyNotificationService extends Service {
 
 	private void stopEmergency() {
 		Log.d(LOG_TAG, "Stopping emergency");
-		if (this.notificationsTimer != null) {
-			this.notificationsTimer.cancel();
-			this.notificationsTimer = null;
+		synchronized(this) {
+			if (this.notificationsTimer != null) {
+				Log.d(LOG_TAG, "Canceling notification timer");
+				this.notificationsTimer.cancel();
+				this.notificationsTimer = null;
+			}
 		}
 		this.changeState(VigilanceState.NORMAL_STATE);
 		sendEmergencyMessages(locationTracker.getLocationAddress());
