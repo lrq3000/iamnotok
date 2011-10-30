@@ -43,7 +43,7 @@ public class EmergencyButtonWidgetProvider extends AppWidgetProvider {
 
     views.setViewVisibility(R.id.ImNowOKButton, View.INVISIBLE);
     views.setViewVisibility(R.id.EmergencyButton, View.INVISIBLE);
-    switch (EmergencyNotificationService.mApplicationState) {
+    switch (EmergencyNotificationService.applicationState) {
       case NORMAL_STATE:
         views.setViewVisibility(R.id.EmergencyButton, View.VISIBLE);
         break;

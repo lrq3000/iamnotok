@@ -56,19 +56,19 @@ public class EmergencyNotificationService extends Service {
 		WAITING_STATE,
 		EMERGENCY_STATE,
 	}
-	public static VigilanceState mApplicationState = VigilanceState.NORMAL_STATE;
+	public static VigilanceState applicationState = VigilanceState.NORMAL_STATE;
 
 	/** Default time allowed for user to cancel the emergency response. */
 	private static long DEFAULT_WAIT_TO_CANCEL_MS = 10000;
 	private static final long DEFAULT_WAIT_BETWEEN_MESSAGES_MS = 5 * 60 * 1000;
 
 	private int notificationID = 0;
-	private LocationTracker mLocationTracker;
-	private LocationUtils mLocationUtils;
-	private boolean mNotifyViaSMS = true;
-	private boolean mNotifyViaEmail = true;
-	private boolean mNotifyViaCall = false;
-	private long mWaitBetweenMessagesMs = DEFAULT_WAIT_BETWEEN_MESSAGES_MS;
+	private LocationTracker locationTracker;
+	private LocationUtils locationUtils;
+	private boolean notifyViaSMS = true;
+	private boolean notifyViaEmail = true;
+	private boolean notifyViaCall = false;
+	private long waitBetweenMessagesMs = DEFAULT_WAIT_BETWEEN_MESSAGES_MS;
 
 	private final AccountUtils accountUtils = new AccountUtils(this);
 	private final FormatUtils formatUtils = new FormatUtils();
@@ -90,12 +90,12 @@ public class EmergencyNotificationService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		mLocationUtils = new LocationUtils();
-		mLocationTracker = new LocationTrackerImpl(
+		locationUtils = new LocationUtils();
+		locationTracker = new LocationTrackerImpl(
 				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
-				mLocationUtils,
+				locationUtils,
 				new Geocoder(this, Locale.getDefault()));
-		mLocationTracker.setDistanceThresholdListener(new LocationTracker.DistanceThresholdListener() {
+		locationTracker.setDistanceThresholdListener(new LocationTracker.DistanceThresholdListener() {
 			@Override
 			public void notify(LocationTracker.LocationAddress locationAddress) {
 				onDistanceThresholdPassed(locationAddress);
@@ -104,7 +104,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		if (mApplicationState != VigilanceState.EMERGENCY_STATE) {
+		if (applicationState != VigilanceState.EMERGENCY_STATE) {
 			return;
 		}
 
@@ -131,18 +131,18 @@ public class EmergencyNotificationService extends Service {
 
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(this);
-		mNotifyViaSMS = prefs.getBoolean(
+		notifyViaSMS = prefs.getBoolean(
 				getString(R.string.checkbox_sms_notification), true);
-		mNotifyViaEmail = prefs.getBoolean(
+		notifyViaEmail = prefs.getBoolean(
 				getString(R.string.checkbox_email_notification), true);
-		mNotifyViaCall = prefs.getBoolean(
+		notifyViaCall = prefs.getBoolean(
 				getString(R.string.checkbox_call_notification), false);
-		mWaitBetweenMessagesMs = readWaitBetweenMessagesMs(prefs);
+		waitBetweenMessagesMs = readWaitBetweenMessagesMs(prefs);
 
 		if (contactHelper == null)
 			contactHelper = new EmergencyContactsHelper(getApplicationContext());
 
-		if (!(mNotifyViaCall || mNotifyViaEmail || mNotifyViaSMS)) {
+		if (!(notifyViaCall || notifyViaEmail || notifyViaSMS)) {
 			Toast.makeText(getApplicationContext(),
 					R.string.no_notification_defined, Toast.LENGTH_LONG).show();
 			return;
@@ -150,7 +150,7 @@ public class EmergencyNotificationService extends Service {
 
 		contactHelper.contactIds();
 
-		if (mApplicationState == VigilanceState.NORMAL_STATE) {
+		if (applicationState == VigilanceState.NORMAL_STATE) {
 			Log.d(LOG_TAG, "Starting the service");
 			changeState(VigilanceState.WAITING_STATE);
 			boolean showNotification = true;
@@ -166,7 +166,7 @@ public class EmergencyNotificationService extends Service {
 			v.vibrate(300);
 
 			// Start the location tracker (nothing happens if called twice).
-			mLocationTracker.activate();
+			locationTracker.activate();
 
 
 			if (showNotification) {
@@ -187,9 +187,9 @@ public class EmergencyNotificationService extends Service {
 		this.notificationsTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				sendEmergencyMessages(mLocationTracker.getLocationAddress());
+				sendEmergencyMessages(locationTracker.getLocationAddress());
 			}
-		}, mWaitBetweenMessagesMs, mWaitBetweenMessagesMs);
+		}, waitBetweenMessagesMs, waitBetweenMessagesMs);
 	}
 
 	private void invokeEmergencyResponse() {
@@ -198,20 +198,20 @@ public class EmergencyNotificationService extends Service {
 		Intent iAmNotOkIntent = new Intent(SERVICE_I_AM_NOT_OK_INTENT);
 		this.sendBroadcast(iAmNotOkIntent);
 
-		if (mNotifyViaCall) {
+		if (notifyViaCall) {
 			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
 		}
 
-		sendEmergencyMessages(mLocationTracker.getLocationAddress());
+		sendEmergencyMessages(locationTracker.getLocationAddress());
 		setNotificationTimer();
 	}
 
 	private void sendEmergencyMessages(LocationAddress locationAddress) {
-		if (mNotifyViaSMS) {
-			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, mApplicationState);
+		if (notifyViaSMS) {
+			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, applicationState);
 		}
-		if (mNotifyViaEmail) {
-			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, mApplicationState);
+		if (notifyViaEmail) {
+			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, applicationState);
 		}
 	}
 
@@ -244,11 +244,11 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(LOG_TAG, "Received cancellation intent...");
-				if (EmergencyNotificationService.mApplicationState == VigilanceState.WAITING_STATE) {
+				if (EmergencyNotificationService.applicationState == VigilanceState.WAITING_STATE) {
 					Log.d(LOG_TAG,
 							"Application in waiting state, cancelling the emergency");
 					changeState(VigilanceState.NORMAL_STATE);
-					mLocationTracker.deactivate();
+					locationTracker.deactivate();
 				}
 			}
 		};
@@ -260,7 +260,7 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(LOG_TAG, "Received I am now OK intent...");
-				if (mApplicationState == VigilanceState.EMERGENCY_STATE) {
+				if (applicationState == VigilanceState.EMERGENCY_STATE) {
 					Log.d(LOG_TAG, "Application in emergency state, I am now OK");
 					stopEmergency();
 				}
@@ -275,7 +275,7 @@ public class EmergencyNotificationService extends Service {
 			public void run() {
 				unregisterReceiver(cancellationReceiver);
 				notificationManager.cancel(notificationID++);
-				if (mApplicationState == VigilanceState.WAITING_STATE) {
+				if (applicationState == VigilanceState.WAITING_STATE) {
 					changeState(VigilanceState.EMERGENCY_STATE);
 					invokeEmergencyResponse();
 				} else {
@@ -287,7 +287,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private synchronized void changeState(VigilanceState new_state) {
-		mApplicationState = new_state;
+		applicationState = new_state;
 
 		// Push the updates to the widget.
 		ComponentName thisWidget = new ComponentName(this,
@@ -322,8 +322,8 @@ public class EmergencyNotificationService extends Service {
 			this.notificationsTimer = null;
 		}
 		this.changeState(VigilanceState.NORMAL_STATE);
-		sendEmergencyMessages(mLocationTracker.getLocationAddress());
-		mLocationTracker.deactivate();
+		sendEmergencyMessages(locationTracker.getLocationAddress());
+		locationTracker.deactivate();
 
 		Intent iAmNowOkIntent = new Intent(SERVICE_I_AM_NOW_OK_INTENT);
 		this.sendBroadcast(iAmNowOkIntent);

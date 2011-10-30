@@ -117,7 +117,7 @@ public class EmergencyContactsActivity extends ListActivity {
 		emergencyButton.setVisibility(View.GONE);
 	    cancelButton.setVisibility(View.GONE);
 		okButton.setVisibility(View.GONE);
-		switch (EmergencyNotificationService.mApplicationState) {
+		switch (EmergencyNotificationService.applicationState) {
 	    case NORMAL_STATE:
 	    	emergencyButton.setVisibility(View.VISIBLE);
 			break;
