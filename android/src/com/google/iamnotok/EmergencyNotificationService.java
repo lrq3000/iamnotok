@@ -103,13 +103,9 @@ public class EmergencyNotificationService extends Service {
 			return;
 		}
 
-		synchronized(this) {
-			if (this.notificationsTimer != null) {
-				this.notificationsTimer.cancel();
-				Log.d("iamnotok", "onDistanceThresholdPassed: notificationTimer = null");
-				this.notificationsTimer = null;
-			}
-		}
+		Log.d("iamnotok", "onDistanceThresholdPassed");
+
+		cancelNotificationsTimer();
 		sendEmergencyMessages(locationAddress);
 		setNotificationTimer();
 	}
@@ -168,11 +164,9 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private synchronized void setNotificationTimer() {
-		if (this.notificationsTimer != null) {
-			this.notificationsTimer.cancel();
-		}
-		this.notificationsTimer = new Timer();
+		cancelNotificationsTimer();
 		Log.d(LOG_TAG, "Setting notification");
+		this.notificationsTimer = new Timer();
 		this.notificationsTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -303,19 +297,21 @@ public class EmergencyNotificationService extends Service {
 
 	private void stopEmergency() {
 		Log.d(LOG_TAG, "Stopping emergency");
-		synchronized(this) {
-			if (this.notificationsTimer != null) {
-				Log.d(LOG_TAG, "Canceling notification timer");
-				this.notificationsTimer.cancel();
-				this.notificationsTimer = null;
-			}
-		}
+		cancelNotificationsTimer();
 		this.changeState(VigilanceState.NORMAL_STATE);
 		sendEmergencyMessages(getLocationAddress());
 		locationTracker.deactivate();
 
 		Intent iAmNowOkIntent = new Intent(SERVICE_I_AM_NOW_OK_INTENT);
 		this.sendBroadcast(iAmNowOkIntent);
+	}
+
+	private synchronized void cancelNotificationsTimer() {
+		if (this.notificationsTimer != null) {
+			Log.d(LOG_TAG, "Canceling notification timer");
+			this.notificationsTimer.cancel();
+			this.notificationsTimer = null;
+		}
 	}
 
 	/**
