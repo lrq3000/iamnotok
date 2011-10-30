@@ -60,7 +60,7 @@ public class EmergencyNotificationService extends Service {
 
 	/** Default time allowed for user to cancel the emergency response. */
 	private static int DEFAULT_WAIT_TO_CANCEL = 10000; // milliseconds
-	private static int DEFAULT_WAIT_BETWEEN_MESSAGES = 5; // milliseconds
+	private static int DEFAULT_WAIT_BETWEEN_MESSAGES_SECONDS = 5 * 60;
 
 	private int mNotificationID = 0;
 	private LocationTracker mLocationTracker;
@@ -68,7 +68,7 @@ public class EmergencyNotificationService extends Service {
 	private boolean mNotifyViaSMS = true;
 	private boolean mNotifyViaEmail = true;
 	private boolean mNotifyViaCall = false;
-	private int mWaitBetweenMessagesMillis = DEFAULT_WAIT_BETWEEN_MESSAGES;
+	private int mWaitBetweenMessagesMillis = DEFAULT_WAIT_BETWEEN_MESSAGES_SECONDS * 1000;
 
 	private final AccountUtils accountUtils = new AccountUtils(this);
 	private final FormatUtils formatUtils = new FormatUtils();
@@ -128,11 +128,13 @@ public class EmergencyNotificationService extends Service {
 		mNotifyViaCall = prefs.getBoolean(
 				getString(R.string.checkbox_call_notification), false);
 		try {
-			mWaitBetweenMessagesMillis = (int) prefs.getLong(
+			String messageIntervalString = prefs.getString(
 					getString(R.string.edittext_message_interval),
-					DEFAULT_WAIT_BETWEEN_MESSAGES) * 1000; // Convert to milliseconds.
+					Integer.toString(DEFAULT_WAIT_BETWEEN_MESSAGES_SECONDS));
+			mWaitBetweenMessagesMillis =
+				Integer.parseInt(messageIntervalString) * 1000; // Convert to milliseconds.
 		} catch (ClassCastException e) {
-			mWaitBetweenMessagesMillis = DEFAULT_WAIT_BETWEEN_MESSAGES;
+			mWaitBetweenMessagesMillis = DEFAULT_WAIT_BETWEEN_MESSAGES_SECONDS * 1000;
 		}
 
 		if (contactHelper == null)
