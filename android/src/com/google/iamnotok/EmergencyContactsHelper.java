@@ -2,7 +2,6 @@ package com.google.iamnotok;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.TreeSet;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -19,7 +18,6 @@ public class EmergencyContactsHelper {
 	private static final String CONTACT_IDS_PROPERTY_NAME = "contact_ids";
 
 	private Context context;
-	private TreeSet<String> contactIds;
 	private HashMap<String, Contact> contacts;
 
 	public EmergencyContactsHelper(Context context) {
@@ -28,25 +26,23 @@ public class EmergencyContactsHelper {
 	}
 
 	public void ResetContacts() {
-		SharedPreferences settings =  context.getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences settings =  prefs();
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putString(CONTACT_IDS_PROPERTY_NAME, "");
 		editor.commit();
 	}
 
 	public Collection<String> contactIds() {
-		return contactIds;
+		return contacts.keySet();
 	}
 
 	private void populateContacts() {
-		contactIds = new TreeSet<String>();
 		contacts = new HashMap<String, EmergencyContactsHelper.Contact>();
-		SharedPreferences settings =  context.getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences settings =  prefs();
 		String list = settings.getString(CONTACT_IDS_PROPERTY_NAME, "");
 		for (String contactId : list.split(",")) {
 			Contact contact = new Contact(contactId);
 			if (!contact.lookup()) continue;
-			contactIds.add(contactId);
 			contacts.put(contactId, contact);
 		}
 	}
@@ -73,9 +69,8 @@ public class EmergencyContactsHelper {
 			Log.e("ContactsHelper", "Lookup failed for: " + contactId);
 			return false;
 		}
-		contactIds.add(contactId);
 		contacts.put(contactId, contact);
-		SharedPreferences settings =  context.getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences settings =  prefs();
 		SharedPreferences.Editor editor = settings.edit();
 		String list = settings.getString(CONTACT_IDS_PROPERTY_NAME, "");
 		Log.d("ContactsHelper", "list = " + list);
@@ -90,18 +85,20 @@ public class EmergencyContactsHelper {
 
 	public boolean deleteContact(String contactId) {
 		if (!hasContact(contactId)) return false;
-		contactIds.remove(contactId);
-		SharedPreferences settings =  context.getSharedPreferences(PREFS_NAME, 0);
-		SharedPreferences.Editor editor = settings.edit();
+		contacts.remove(contactId);
 		String list = "";
-		for (String oldContactId : contactIds)
+		for (String oldContactId : contacts.keySet()) {
 			list += oldContactId + ",";
-		editor.putString(CONTACT_IDS_PROPERTY_NAME, list);
-		return editor.commit();
+		}
+		return prefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, list).commit();
+	}
+
+	private SharedPreferences prefs() {
+		return context.getSharedPreferences(PREFS_NAME, 0);
 	}
 
 	public boolean hasContact(String contactId) {
-		return contactIds.contains(contactId);
+		return contacts.containsKey(contactId);
 	}
 
 	public class Contact {
