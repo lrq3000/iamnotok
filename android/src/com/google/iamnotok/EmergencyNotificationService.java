@@ -302,25 +302,18 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private long getWaitingTime() {
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(this);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-		// Cancellation time:
-		String delay_time = prefs.getString(
-				getString(R.string.edittext_cancelation_delay),
-				Long.toString(DEFAULT_WAIT_TO_CANCEL_MS / 1000));
-		Log.d(mLogTag, "Delay time received from preferences - " + delay_time);
+		String prefName = getString(R.string.edittext_cancelation_delay);
+		String prefVal = prefs.getString(prefName, null);
+		Log.d(mLogTag, String.format("from prefs: %s=%s", prefName, prefVal));
 
-		long waitForMs;
 		try {
-			int waitForSecs = Integer.parseInt(delay_time);
-			waitForMs = waitForSecs * 1000;
+			return prefVal == null ? DEFAULT_WAIT_TO_CANCEL_MS : Integer.parseInt(prefVal) * 1000;
 		} catch (NumberFormatException e) {
-			Log.e("delay_time", "Delay time ill-formated");
-			waitForMs = DEFAULT_WAIT_TO_CANCEL_MS;
+			Log.e("delay_time", String.format("Badly formatted pref: %s=%s", prefName, prefVal));
+			return DEFAULT_WAIT_TO_CANCEL_MS;
 		}
-		Log.d(mLogTag, "Waiting " + waitForMs + " milliseconds.");
-		return waitForMs;
 	}
 
 	private void stopEmergency() {
