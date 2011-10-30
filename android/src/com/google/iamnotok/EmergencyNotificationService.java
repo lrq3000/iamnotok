@@ -135,8 +135,6 @@ public class EmergencyNotificationService extends Service {
 			return;
 		}
 
-		contactHelper.contactIds();
-
 		if (applicationState == VigilanceState.NORMAL_STATE) {
 			Log.d(LOG_TAG, "Starting the service");
 			changeState(VigilanceState.WAITING_STATE);

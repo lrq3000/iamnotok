@@ -24,8 +24,6 @@ public class EmergencyContactsHelper {
 
 	public EmergencyContactsHelper(Context context) {
 		this.context = context;
-		// ResetContacts();
-		contactIds();
 	}
 
 	public void ResetContacts() {
@@ -47,7 +45,7 @@ public class EmergencyContactsHelper {
 			contactIds.add(contactId);
 			contacts.put(contactId, contact);
 		}
-		return contactIds();
+		return contactIds;
 	}
 
 	public Collection<Contact> getAllContacts() {
