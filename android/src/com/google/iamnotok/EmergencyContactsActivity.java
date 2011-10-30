@@ -47,18 +47,21 @@ public class EmergencyContactsActivity extends ListActivity {
 		BroadcastReceiver receiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				Log.d("EmergencyContactActivity.BroadcastReceiver",
-				      "Action: " + intent.getAction());
+				Log.d("EmergencyContactActivity.BroadcastReceiver", "Action: "
+						+ intent.getAction());
 				EmergencyContactsActivity.this.updateEmergencyButtonStatus();
 			}
 		};
-		IntentFilter filter = new IntentFilter(EmergencyNotificationService.SERVICE_I_AM_NOW_OK_INTENT);
+		IntentFilter filter = new IntentFilter(
+				EmergencyNotificationService.SERVICE_I_AM_NOW_OK_INTENT);
 		registerReceiver(receiver, filter);
-		filter = new IntentFilter(EmergencyNotificationService.SERVICE_I_AM_NOT_OK_INTENT);
+		filter = new IntentFilter(
+				EmergencyNotificationService.SERVICE_I_AM_NOT_OK_INTENT);
 		registerReceiver(receiver, filter);
 
-	    // Register the Screen on/off receiver.
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		// Register the Screen on/off receiver.
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(this);
 		if (prefs.getBoolean(getString(R.string.quiet_mode_enable), true)) {
 			ScreenOnOffReceiver.register(getApplicationContext());
 		}
@@ -67,10 +70,13 @@ public class EmergencyContactsActivity extends ListActivity {
 
 	protected void setupEmergencyButtonViews() {
 		// Create intent to launch the EmergencyNotificationService and button.
-	    final Intent intent = new Intent(this, EmergencyNotificationService.class);
-	    intent.putExtra(EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE, true);
-	    emergencyButton.setOnClickListener(new OnClickListener() {
-	    	@Override
+		final Intent intent = new Intent(this,
+				EmergencyNotificationService.class);
+		intent.putExtra(
+				EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE,
+				true);
+		emergencyButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				startService(intent);
 				emergencyButton.setVisibility(View.GONE);
@@ -79,20 +85,22 @@ public class EmergencyContactsActivity extends ListActivity {
 			}
 		});
 
-	    // Create CancelEmergency intent and button.
-	    final Intent cancelEmergencyIntent = new Intent(
-	    		EmergencyNotificationService.STOP_EMERGENCY_INTENT);
+		// Create CancelEmergency intent and button.
+		final Intent cancelEmergencyIntent = new Intent(
+				EmergencyNotificationService.STOP_EMERGENCY_INTENT);
 		cancelButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				EmergencyContactsActivity.this.sendBroadcast(cancelEmergencyIntent);
+				EmergencyContactsActivity.this
+						.sendBroadcast(cancelEmergencyIntent);
 				cancelButton.setVisibility(View.GONE);
 				emergencyButton.setVisibility(View.VISIBLE);
 			}
 		});
 
-	    // Create ImNowOk intent and button.
-	    final Intent iAmNowOkIntent = new Intent(EmergencyNotificationService.I_AM_NOW_OK_INTENT);
+		// Create ImNowOk intent and button.
+		final Intent iAmNowOkIntent = new Intent(
+				EmergencyNotificationService.I_AM_NOW_OK_INTENT);
 		okButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -105,54 +113,70 @@ public class EmergencyContactsActivity extends ListActivity {
 
 	protected void updateEmergencyButtonStatus() {
 		emergencyButton.setVisibility(View.GONE);
-	    cancelButton.setVisibility(View.GONE);
+		cancelButton.setVisibility(View.GONE);
 		okButton.setVisibility(View.GONE);
 		switch (EmergencyNotificationService.applicationState) {
-	    case NORMAL_STATE:
-	    	emergencyButton.setVisibility(View.VISIBLE);
+		case NORMAL_STATE:
+			emergencyButton.setVisibility(View.VISIBLE);
 			break;
-	    case WAITING_STATE:
-	    	cancelButton.setVisibility(View.VISIBLE);
+		case WAITING_STATE:
+			cancelButton.setVisibility(View.VISIBLE);
 			break;
-	    case EMERGENCY_STATE:
-	    	okButton.setVisibility(View.VISIBLE);
+		case EMERGENCY_STATE:
+			okButton.setVisibility(View.VISIBLE);
 			break;
-	    }
+		}
 	}
 
 	protected void setupListView() {
 		// Long click to remove contacts.
 		getListView().setOnItemLongClickListener(new OnItemLongClickListener() {
 			@Override
-			public boolean onItemLongClick(final AdapterView<?> av, View v, final int pos, long id) {
+			public boolean onItemLongClick(final AdapterView<?> av, View v,
+					final int pos, long id) {
 				DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-				    @Override
+					@Override
 					public void onClick(DialogInterface dialog, int which) {
-				        switch (which){
-				        case DialogInterface.BUTTON_POSITIVE:
-				        	// Remove contact.
+						switch (which) {
+						case DialogInterface.BUTTON_POSITIVE:
+							// Remove contact.
 							@SuppressWarnings("unchecked")
-							ArrayAdapter<String> adapter = (ArrayAdapter<String>) getListAdapter();
-							String contactName = adapter.getItem(pos);
-							Contact contact = contactsHelper.getContactWithName(contactName);
+							ContactAdapter adapter = (ContactAdapter) getListAdapter();
+							Contact contact = (Contact) adapter.getItem(pos);
 							contactsHelper.deleteContact(contact.getId());
-							adapter.remove(adapter.getItem(pos));
-				            break;
-				        case DialogInterface.BUTTON_NEGATIVE:
-				            break;
-				        }
-				    }
+							adapter.setList(new ArrayList<Contact>(
+									contactsHelper.getAllContacts()));
+							adapter.notifyDataSetChanged();
+							break;
+						case DialogInterface.BUTTON_NEGATIVE:
+							break;
+						}
+					}
 				};
-				AlertDialog.Builder builder = new AlertDialog.Builder(EmergencyContactsActivity.this);
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						EmergencyContactsActivity.this);
 				builder.setTitle("Delete contact");
 				builder.setIcon(android.R.drawable.ic_dialog_alert);
 				builder.setMessage("Are you sure?")
-				       .setPositiveButton("Yes", dialogClickListener)
-				       .setNegativeButton("No", dialogClickListener)
-				       .show();
+						.setPositiveButton("Yes", dialogClickListener)
+						.setNegativeButton("No", dialogClickListener).show();
 				return false;
 			}
 		});
+		getListView().setOnItemClickListener(
+				new AdapterView.OnItemClickListener() {
+
+					@Override
+					public void onItemClick(AdapterView<?> av, View v, int pos,
+							long id) {
+						Intent intent = new Intent(
+								EmergencyContactsActivity.this,
+								ContactDetailChooserActivity.class);
+						intent.putExtra(ContactDetailChooserActivity.EXTRA_ID, id);
+						startActivity(intent);
+					}
+
+				});
 	}
 
 	@Override
@@ -170,16 +194,17 @@ public class EmergencyContactsActivity extends ListActivity {
 					android.provider.ContactsContract.Contacts.CONTENT_URI);
 			startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
 		} else if (item.getItemId() == R.id.preferences) {
-          // Send of an intent to start off the ApplicationSettingsActivity
-          Intent intent = new Intent(EmergencyContactsActivity.this,
-              ApplicationSettingsActivity.class);
-          EmergencyContactsActivity.this.startActivity(intent);
+			// Send of an intent to start off the ApplicationSettingsActivity
+			Intent intent = new Intent(EmergencyContactsActivity.this,
+					ApplicationSettingsActivity.class);
+			EmergencyContactsActivity.this.startActivity(intent);
 		}
 		return super.onMenuItemSelected(featureId, item);
 	}
 
 	protected ListAdapter createAdapter() {
-		List<Contact> list = new ArrayList<Contact>(contactsHelper.getAllContacts());
+		List<Contact> list = new ArrayList<Contact>(
+				contactsHelper.getAllContacts());
 		return new ContactAdapter(this, list);
 	}
 
@@ -196,12 +221,9 @@ public class EmergencyContactsActivity extends ListActivity {
 					Log.e("Hello", "Add failed.");
 					break;
 				}
-				@SuppressWarnings("unchecked")
-				ArrayAdapter<String> adapter = (ArrayAdapter<String>) getListAdapter();
-				Contact contact = contactsHelper.getContactWithId(contactId);
-				Log.d("Hello", "Got: " + contact);
-				if (contact == null) break;
-				adapter.add(contact.getName());
+				ContactAdapter adapter = (ContactAdapter) getListAdapter();
+				adapter.setList(new ArrayList<Contact>(contactsHelper.getAllContacts()));
+				adapter.notifyDataSetChanged();
 				break;
 			}
 		} else {
@@ -219,6 +241,10 @@ public class EmergencyContactsActivity extends ListActivity {
 			mInflater = LayoutInflater.from(context);
 		}
 		
+		public void setList(List<Contact> newList) {
+			this.list = newList;
+		}
+
 		@Override
 		public int getCount() {
 			return list.size();
@@ -248,16 +274,19 @@ public class EmergencyContactsActivity extends ListActivity {
 			textView.setText(friend.getName());
 
 			String phone = friend.getPhone();
-			v.findViewById(R.id.phone).setVisibility(phone==null? View.GONE : View.VISIBLE );
+			v.findViewById(R.id.phone).setVisibility(
+					phone == null ? View.GONE : View.VISIBLE);
 			TextView phoneView = (TextView) v.findViewById(R.id.phone_value);
-			if (phone!=null) {
+			if (phone != null) {
 				phoneView.setText(phone);
 			}
-			
+
 			String email = friend.getEmail();
-			v.findViewById(R.id.email).setVisibility(email==null? View.GONE : View.VISIBLE );
-			if (email!=null) {
-				TextView emailView = (TextView) v.findViewById(R.id.email_value);
+			v.findViewById(R.id.email).setVisibility(
+					email == null ? View.GONE : View.VISIBLE);
+			if (email != null) {
+				TextView emailView = (TextView) v
+						.findViewById(R.id.email_value);
 				emailView.setText(email);
 			}
 			return v;

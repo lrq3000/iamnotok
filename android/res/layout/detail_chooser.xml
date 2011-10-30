@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+
+	<ListView
+		android:id="@android:id/list"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:layout_weight="1" >
+	    <!-- Preview: listitem=@layout/detail_line -->
+	</ListView>
+	<TextView
+		android:id="@android:id/empty"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:textSize="20sp"
+		android:textColor="?android:attr/textColorSecondary"
+		android:paddingLeft="10dip"
+		android:paddingRight="10dip"
+		android:paddingTop="10dip"
+		android:lineSpacingMultiplier="0.92" />
+	<Button
+		android:text="@android:string/ok"
+		android:id="@+id/button1"
+		android:layout_width="60dip"
+		android:layout_height="wrap_content" android:layout_gravity="center_horizontal"></Button>
+
+</LinearLayout>

@@ -44,10 +44,12 @@ public class Contact {
 
 		Cursor cur = cr.query(Data.CONTENT_URI, PROJECTION, WHERE_CLAUSE,
 				whereArgs, Data.IS_SUPER_PRIMARY + " DESC ");
+		boolean info = false;
 		if (cur != null) {
 			try {
 				final int mimetypeCol = cur.getColumnIndex(Data.MIMETYPE);
 				while (cur.moveToNext()) {
+					info = true;
 					if (name == null) {
 						name = cur.getString(COL_NAME);
 					}
@@ -63,7 +65,7 @@ public class Contact {
 					}
 
 				}
-				return true;
+				return info;
 			} finally {
 				cur.close();
 			}

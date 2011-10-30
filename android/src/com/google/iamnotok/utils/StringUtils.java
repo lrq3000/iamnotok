@@ -9,8 +9,8 @@ public class StringUtils {
 		for(T x : collection) {
 			if (!first) {
 				builder.append(separator);
-				first = false;
 			}
+			first = false;
 			builder.append(x);
 		}
 		return builder.toString();
