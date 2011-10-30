@@ -12,9 +12,7 @@
 		</activity>
 
 		<service android:name=".EmergencyNotificationService"></service>
-		<service android:name=".PatternTrackingService"></service>
 
-		<!-- <activity android:name=".MainActivity"></activity> -->
 		<activity android:name=".ApplicationSettingsActivity"></activity>
 		<receiver android:name=".StartupIntentReceiver">
 			<intent-filter>
@@ -29,8 +27,6 @@
 			<meta-data android:name="android.appwidget.provider"
 				android:resource="@xml/emergency_widget_info" />
 		</receiver>
-		<activity android:name=".TestActivity">
-		</activity>
 	</application>
 	<uses-sdk android:minSdkVersion="7" />
 	<uses-permission android:name="android.permission.SEND_SMS" />

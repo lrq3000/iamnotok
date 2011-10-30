@@ -17,13 +17,10 @@ public class StartupIntentReceiver extends BroadcastReceiver {
     Log.d(
         mLogTag,
         "Received BOOT_COMPLETED intent, starting up PatternTrackingService.");
-    Intent patternTrackingServiceIntent =
-      new Intent(context, PatternTrackingService.class);
-    context.startService(patternTrackingServiceIntent);
-    
+
     registerReceivers(context.getApplicationContext());
   }
-  
+
 	private void registerReceivers(Context context) {
 	    // Register the Screen on/off receiver
 		SharedPreferences prefs = PreferenceManager
