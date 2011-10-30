@@ -95,12 +95,6 @@ public class EmergencyNotificationService extends Service {
 				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
 				locationUtils,
 				new Geocoder(this, Locale.getDefault()));
-		locationTracker.setDistanceThresholdListener(new LocationTracker.DistanceThresholdListener() {
-			@Override
-			public void notify(LocationTracker.LocationAddress locationAddress) {
-				onDistanceThresholdPassed(locationAddress);
-			}
-		});
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
@@ -198,7 +192,7 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void run() {
 				Log.d(LOG_TAG, "Sending timed notification");
-				sendEmergencyMessages(locationTracker.getLocationAddress());
+				sendEmergencyMessages(getLocationAddress());
 			}
 		}, waitBetweenMessagesMs, waitBetweenMessagesMs);
 	}
@@ -214,7 +208,7 @@ public class EmergencyNotificationService extends Service {
 		}
 
 		setNotificationTimer();
-		sendEmergencyMessages(locationTracker.getLocationAddress());
+		sendEmergencyMessages(getLocationAddress());
 	}
 
 	private void sendEmergencyMessages(LocationAddress locationAddress) {
@@ -336,10 +330,31 @@ public class EmergencyNotificationService extends Service {
 			}
 		}
 		this.changeState(VigilanceState.NORMAL_STATE);
-		sendEmergencyMessages(locationTracker.getLocationAddress());
+		sendEmergencyMessages(getLocationAddress());
 		locationTracker.deactivate();
 
 		Intent iAmNowOkIntent = new Intent(SERVICE_I_AM_NOW_OK_INTENT);
 		this.sendBroadcast(iAmNowOkIntent);
+	}
+	
+	/**
+	 * Returns location address, and registers the distance threshold listener on first invocation
+	 */
+	private LocationAddress getLocationAddress() {
+		registerDistanceThresholdListener();
+		return locationTracker.getLocationAddress();
+	}
+
+	private boolean registeredDistanceThresholdListener = false;
+	private void registerDistanceThresholdListener() {
+		if (registeredDistanceThresholdListener)
+			return;
+		registeredDistanceThresholdListener = true;
+		locationTracker.setDistanceThresholdListener(new LocationTracker.DistanceThresholdListener() {
+			@Override
+			public void notify(LocationTracker.LocationAddress locationAddress) {
+				onDistanceThresholdPassed(locationAddress);
+			}
+		});
 	}
 }
