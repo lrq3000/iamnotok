@@ -336,7 +336,7 @@ public class EmergencyNotificationService extends Service {
 		Intent iAmNowOkIntent = new Intent(SERVICE_I_AM_NOW_OK_INTENT);
 		this.sendBroadcast(iAmNowOkIntent);
 	}
-	
+
 	/**
 	 * Returns location address, and registers the distance threshold listener on first invocation
 	 */

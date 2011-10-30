@@ -73,6 +73,7 @@ public class GMailSender extends javax.mail.Authenticator {
         message.setRecipient(Message.RecipientType.TO, new InternetAddress(
             recipients));
       }
+      // TODO: Need to be async.
       Transport.send(message);
     } catch (Exception e) {
     }
