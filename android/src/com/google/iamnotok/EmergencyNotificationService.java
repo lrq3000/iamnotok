@@ -17,7 +17,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.Geocoder;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -25,7 +24,6 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import com.google.iamnotok.EmergencyContactsHelper.Contact;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.utils.AccountUtils;
 import com.google.iamnotok.utils.FormatUtils;
@@ -82,6 +80,7 @@ public class EmergencyNotificationService extends Service {
 
 	private final NotificationSender emailNotificationSender = new EmailNotificationSender(formatUtils, accountUtils);
 	private final NotificationSender smsNotificationSender = new SmsNotificationSender(formatUtils, getBaseContext());
+	private final EmergencyCaller emergencyCaller = new EmergencyCaller(this);
 
 	private EmergencyContactsHelper contactHelper;
 
@@ -180,26 +179,6 @@ public class EmergencyNotificationService extends Service {
 		}
 	}
 
-	private void callEmergency() {
-		String number = null;
-		for (Contact contact : contactHelper.getAllContacts()) {
-			number = contact.getPhone();
-			if (number != null) {
-				break;
-			}
-		}
-		if (number == null) {
-			Log.w(mLogTag,
-					"Unable to find a contact with number, disabled emergency call");
-			// TODO: Actually disable emergency call.
-			return;
-		}
-		Intent i = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number,
-				null));
-		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		startActivity(i);
-	}
-
 	private void setNotificationTimer() {
 		this.notificationsTimer = new Timer();
 		this.notificationsTimer.schedule(new TimerTask() {
@@ -217,7 +196,7 @@ public class EmergencyNotificationService extends Service {
 		this.sendBroadcast(iAmNotOkIntent);
 
 		if (mNotifyViaCall) {
-			callEmergency();
+			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
 		}
 
 		sendEmergencyMessages(mLocationTracker.getLocationAddress());
