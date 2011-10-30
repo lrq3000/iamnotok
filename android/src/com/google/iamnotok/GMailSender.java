@@ -59,8 +59,7 @@ public class GMailSender extends javax.mail.Authenticator {
       MimeMessage message = new MimeMessage(session);
       DataHandler handler = new DataHandler(new ByteArrayDataSource(
           body.getBytes(), "text/plain"));
-      InternetAddress fromAddress = new InternetAddress(
-          "".equals(from) ? sender : from);
+      InternetAddress fromAddress = new InternetAddress(from.contains("@") ? from : sender);
       // TODO: gmail seems to override this... need to find out how to set the sender
       message.setSender(fromAddress);
       message.setFrom(fromAddress);
