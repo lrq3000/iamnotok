@@ -1,10 +1,6 @@
 package com.google.iamnotok;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -19,21 +15,38 @@ public class EmergencyContactsHelper {
 	private static final String CONTACT_IDS_PROPERTY_NAME = "contact_ids";
 
 	private Context context;
+	private ContactLookup lookupUtil;
 
-	public EmergencyContactsHelper(Context context) {
+	public EmergencyContactsHelper(Context context, ContactLookup lookupUtil) {
 		this.context = context;
+		this.lookupUtil = lookupUtil;
 	}
 	
-	private Set<String> getIds() {
-		return new LinkedHashSet<String>(Arrays.asList(prefs().getString(CONTACT_IDS_PROPERTY_NAME, "").split(",")));
+	private List<String> getIds() {
+		String idsCommaSeparatedString = getPrefs().getString(CONTACT_IDS_PROPERTY_NAME, "");
+		if (null == idsCommaSeparatedString || "".equals(idsCommaSeparatedString)) {
+			return new ArrayList<String>();
+		}
+		// here we'd like to return the contacts in the original order, by with no repeats
+		String[] ids = idsCommaSeparatedString.split(",");
+		List<String> result = new ArrayList<String>();
+		for (String id : ids) {
+			if (!"".equals(id) && !result.contains(id)) {
+				result.add(id);
+			}
+		}
+		return result;
 	}
 
 	public Collection<Contact> getAllContacts() {
 		Collection<Contact> result = new ArrayList<Contact>();
-		for (String id : getIds()) {
+		
+		List<String> ids = getIds();
+		for (String id : ids) {
 			Contact contact = lookupContact(id);
-			if (contact != null)
+			if (contact != null) {
 				result.add(contact);
+			}
 		}
 		return result;
 	}
@@ -43,10 +56,7 @@ public class EmergencyContactsHelper {
 	}
 	
 	private Contact lookupContact(String id) {
-		Contact result = new Contact(context, id);
-		if (!result.lookup())
-			return null;
-		return result;
+		return lookupUtil.lookup(context, id);
 	}
 
 	public Contact getContactWithName(String contactName) {
@@ -59,9 +69,12 @@ public class EmergencyContactsHelper {
 	}
 
 	public boolean addContact(String id) {
-		Set<String> updatedIds = getIds();
-		if (!updatedIds.add(id)) // fail if already in set
+		List<String> updatedIds = getIds();
+		if (updatedIds.contains(id)) { // fail if already in list
 			return false;
+		}
+		updatedIds.add(id);
+		
 		if (lookupContact(id) == null)
 			return false;
 		return updateContactIdsInPrefs(updatedIds);
@@ -69,17 +82,17 @@ public class EmergencyContactsHelper {
 	
 	private boolean updateContactIdsInPrefs(Collection<String> ids) {
 		String newValue = StringUtils.join(ids, ",");
-		return prefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, newValue).commit();
+		return getPrefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, newValue).commit();
 	}
 
 	public boolean deleteContact(String id) {
-		Set<String> updatedIds = getIds();
-		if (!updatedIds.remove(id)) // fail if not in set
+		List<String> updatedIds = getIds();
+		if (!updatedIds.remove(id)) // fail if not in list
 			return false;
 		return updateContactIdsInPrefs(updatedIds);
 	}
 
-	private SharedPreferences prefs() {
+	private SharedPreferences getPrefs() {
 		return context.getSharedPreferences(PREFS_NAME, 0);
 	}
 

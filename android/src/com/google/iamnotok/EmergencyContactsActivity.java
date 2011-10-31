@@ -30,7 +30,7 @@ public class EmergencyContactsActivity extends ListActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.contacts_list);
 
-		contactsHelper = new EmergencyContactsHelper(this);
+		contactsHelper = new EmergencyContactsHelper(this, new ContactLookupUtil());
 		setListAdapter(createAdapter());
 
 		emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
