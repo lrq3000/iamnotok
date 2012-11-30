@@ -43,6 +43,7 @@
     <string name="account_phone_number_desc">This phone number will appear in emergency notifications</string>
     <string name="notification_settings_cat">Notification Settings</string>
     <string name="cancel_emergency_text">Cancel Emergency</string>
+    <string name="cancel_text">Cancel</string>
     <string name="edittext_message_interval">edittext_message_interval</string>
     <string name="edittext_message_interval_title">Notification Interval</string>
     <string name="edittext_message_interval_desc">Seconds to wait between notifications</string>

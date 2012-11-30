@@ -4,16 +4,7 @@
     android:layout_height="fill_parent"
     android:paddingBottom="10dp"
     android:paddingTop="10dp" >
-
-    <Button
-        android:id="@+id/ImNowOKButton"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="@drawable/btn_iamok"
-        android:text="@string/i_am_now_ok"
-        style="@android:style/TextAppearance.Small" >
-    </Button>
-
+    
     <Button
         android:id="@+id/EmergencyButton"
         android:layout_width="fill_parent"
@@ -22,5 +13,23 @@
         android:text="@string/SOS"
         style="@android:style/TextAppearance.Medium" >
     </Button>
-
+    
+    <Button
+         android:id="@+id/CancelEmergencyButton"
+         android:layout_width="fill_parent"
+         android:layout_height="fill_parent"
+         android:background="@drawable/btn_iamok"
+         android:text="@string/cancel_text"
+         style="@android:style/TextAppearance.Small">
+    </Button>
+    
+    <Button
+        android:id="@+id/ImNowOKButton"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@drawable/btn_iamok"
+        android:text="@string/i_am_now_ok"
+        style="@android:style/TextAppearance.Small" >
+    </Button>
+        
 </FrameLayout>

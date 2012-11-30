@@ -42,13 +42,15 @@ public class EmergencyButtonWidgetProvider extends AppWidgetProvider {
     views.setOnClickPendingIntent(R.id.ImNowOKButton, pendingIAmNowOkIntent);
 
     views.setViewVisibility(R.id.ImNowOKButton, View.INVISIBLE);
+    views.setViewVisibility(R.id.CancelEmergencyButton, View.INVISIBLE);
     views.setViewVisibility(R.id.EmergencyButton, View.INVISIBLE);
+    
     switch (EmergencyNotificationService.applicationState) {
       case NORMAL_STATE:
         views.setViewVisibility(R.id.EmergencyButton, View.VISIBLE);
         break;
       case WAITING_STATE:
-        views.setViewVisibility(R.id.EmergencyButton, View.VISIBLE);
+        views.setViewVisibility(R.id.CancelEmergencyButton, View.VISIBLE);
         break;
       case EMERGENCY_STATE:
         views.setViewVisibility(R.id.ImNowOKButton, View.VISIBLE);
