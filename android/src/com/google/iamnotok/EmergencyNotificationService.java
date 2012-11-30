@@ -227,6 +227,7 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(LOG_TAG, "Received cancellation intent...");
+				unregisterReceiver(this);
 				waitTimer.cancel();
 				notificationManager.cancel(notificationID++);
 				if (EmergencyNotificationService.applicationState == VigilanceState.WAITING_STATE) {
@@ -244,6 +245,7 @@ public class EmergencyNotificationService extends Service {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(LOG_TAG, "Received I am now OK intent...");
+				unregisterReceiver(this);
 				if (applicationState == VigilanceState.EMERGENCY_STATE) {
 					Log.d(LOG_TAG, "Application in emergency state, I am now OK");
 					stopEmergency();
