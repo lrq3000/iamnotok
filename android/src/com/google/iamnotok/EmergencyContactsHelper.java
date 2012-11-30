@@ -21,7 +21,7 @@ public class EmergencyContactsHelper {
 		this.context = context;
 		this.lookupUtil = lookupUtil;
 	}
-	
+
 	private List<String> getIds() {
 		String idsCommaSeparatedString = getPrefs().getString(CONTACT_IDS_PROPERTY_NAME, "");
 		if (null == idsCommaSeparatedString || "".equals(idsCommaSeparatedString)) {
@@ -40,7 +40,7 @@ public class EmergencyContactsHelper {
 
 	public Collection<Contact> getAllContacts() {
 		Collection<Contact> result = new ArrayList<Contact>();
-		
+
 		List<String> ids = getIds();
 		for (String id : ids) {
 			Contact contact = lookupContact(id);
@@ -54,7 +54,7 @@ public class EmergencyContactsHelper {
 	public Contact getContactWithId(String id) {
 		return getIds().contains(id) ? lookupContact(id) : null;
 	}
-	
+
 	private Contact lookupContact(String id) {
 		return lookupUtil.lookup(context, id);
 	}
@@ -74,12 +74,12 @@ public class EmergencyContactsHelper {
 			return false;
 		}
 		updatedIds.add(id);
-		
+
 		if (lookupContact(id) == null)
 			return false;
 		return updateContactIdsInPrefs(updatedIds);
 	}
-	
+
 	private boolean updateContactIdsInPrefs(Collection<String> ids) {
 		String newValue = StringUtils.join(ids, ",");
 		return getPrefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, newValue).commit();
@@ -94,9 +94,5 @@ public class EmergencyContactsHelper {
 
 	private SharedPreferences getPrefs() {
 		return context.getSharedPreferences(PREFS_NAME, 0);
-	}
-
-	private boolean hasContact(String id) {
-		return getIds().contains(id) && lookupContact(id) != null;
 	}
 }

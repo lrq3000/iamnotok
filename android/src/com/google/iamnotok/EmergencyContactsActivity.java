@@ -140,7 +140,6 @@ public class EmergencyContactsActivity extends ListActivity {
 						switch (which) {
 						case DialogInterface.BUTTON_POSITIVE:
 							// Remove contact.
-							@SuppressWarnings("unchecked")
 							ContactAdapter adapter = (ContactAdapter) getListAdapter();
 							Contact contact = (Contact) adapter.getItem(pos);
 							contactsHelper.deleteContact(contact.getId());
@@ -240,7 +239,7 @@ public class EmergencyContactsActivity extends ListActivity {
 			this.list = list;
 			mInflater = LayoutInflater.from(context);
 		}
-		
+
 		public void setList(List<Contact> newList) {
 			this.list = newList;
 		}

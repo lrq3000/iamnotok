@@ -76,7 +76,7 @@ public class ContactDetailChooserActivity extends ListActivity {
 									.getTypeLabelResource(type));
 						}
 						itemList.add(new DetailItem(typeLabel, cur
-								.getString(COL_PHONE_NUMBER), false));
+								.getString(COL_PHONE_NUMBER)));
 					} else if (mimetype.equals(Email.CONTENT_ITEM_TYPE)) {
 						final int type = cur.getInt(COL_EMAIL_TYPE);
 						String typeLabel = null;
@@ -86,7 +86,7 @@ public class ContactDetailChooserActivity extends ListActivity {
 									.getTypeLabelResource(type));
 						}
 						itemList.add(new DetailItem(typeLabel, cur
-								.getString(COL_EMAIL), false));
+								.getString(COL_EMAIL)));
 					}
 
 				}
@@ -100,12 +100,10 @@ public class ContactDetailChooserActivity extends ListActivity {
 	private static class DetailItem {
 		private String type;
 		private String data;
-		private boolean isEmail;
 
-		public DetailItem(String type, String data, boolean isEmail) {
+		public DetailItem(String type, String data) {
 			this.type = type;
 			this.data = data;
-			this.isEmail = isEmail;
 		}
 	}
 

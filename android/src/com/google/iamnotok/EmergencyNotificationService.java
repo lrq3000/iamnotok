@@ -69,7 +69,6 @@ public class EmergencyNotificationService extends Service {
 	private boolean notifyViaEmail = true;
 	private boolean notifyViaCall = false;
 	private long waitBetweenMessagesMs = DEFAULT_WAIT_BETWEEN_MESSAGES_MS;
-	private String customMessage;
 
 	private final AccountUtils accountUtils = new AccountUtils(this);
 	private final FormatUtils formatUtils = new FormatUtils();
@@ -108,7 +107,7 @@ public class EmergencyNotificationService extends Service {
 
 		sendMessageAndResetTimer(locationAddress);
 	}
-	
+
 	private void sendMessageAndResetTimer(LocationAddress locationAddress) {
 		setNotificationTimer();
 		sendEmergencyMessages(locationAddress);
@@ -280,7 +279,7 @@ public class EmergencyNotificationService extends Service {
 		EmergencyButtonWidgetProvider.setupViews(this, views);
 		AppWidgetManager.getInstance(this).updateAppWidget(thisWidget, views);
 	}
-	
+
 	private long getWaitingTime() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
