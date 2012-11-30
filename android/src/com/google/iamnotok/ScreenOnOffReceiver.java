@@ -58,7 +58,6 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 			this.triggerEvent(context.getApplicationContext());
 			clicksQueue.clear();
 		}
-
 	}
 
 	private void triggerEvent(Context context) {
