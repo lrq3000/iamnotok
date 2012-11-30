@@ -51,6 +51,10 @@ public class EmergencyButtonWidgetProvider extends AppWidgetProvider {
     PendingIntent pendingIAmNowOkIntent = PendingIntent.getBroadcast(context, 0, iAmNowOkIntent, 0);
     views.setOnClickPendingIntent(R.id.ImNowOKButton, pendingIAmNowOkIntent);
 
+    Intent stopEmergency = new Intent(EmergencyNotificationService.STOP_EMERGENCY_INTENT);
+    PendingIntent pendingStopIntent = PendingIntent.getBroadcast(context, 0, stopEmergency, 0);
+    views.setOnClickPendingIntent(R.id.CancelEmergencyButton, pendingStopIntent);
+
     views.setViewVisibility(R.id.ImNowOKButton, View.INVISIBLE);
     views.setViewVisibility(R.id.CancelEmergencyButton, View.INVISIBLE);
     views.setViewVisibility(R.id.EmergencyButton, View.INVISIBLE);

@@ -228,6 +228,7 @@ public class EmergencyNotificationService extends Service {
 			public void onReceive(Context context, Intent intent) {
 				Log.d(LOG_TAG, "Received cancellation intent...");
 				waitTimer.cancel();
+				notificationManager.cancel(notificationID++);
 				if (EmergencyNotificationService.applicationState == VigilanceState.WAITING_STATE) {
 					Log.d(LOG_TAG,
 							"Application in waiting state, cancelling the emergency");
