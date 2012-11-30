@@ -3,6 +3,8 @@ package com.google.iamnotok;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
+
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.*;
@@ -47,16 +49,11 @@ public class EmergencyContactsActivity extends ListActivity {
 		BroadcastReceiver receiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				Log.d("EmergencyContactActivity.BroadcastReceiver", "Action: "
-						+ intent.getAction());
-				EmergencyContactsActivity.this.updateEmergencyButtonStatus();
+				Log.d("EmergencyContactActivity.BroadcastReceiver", "Action: " + intent.getAction());
+				EmergencyContactsActivity.this.updateEmergencyButtonStatus((VigilanceState) intent.getSerializableExtra(EmergencyNotificationService.NEW_STATE_EXTRA));
 			}
 		};
-		IntentFilter filter = new IntentFilter(
-				EmergencyNotificationService.SERVICE_I_AM_NOW_OK_INTENT);
-		registerReceiver(receiver, filter);
-		filter = new IntentFilter(
-				EmergencyNotificationService.SERVICE_I_AM_NOT_OK_INTENT);
+		IntentFilter filter = new IntentFilter(EmergencyNotificationService.STATE_CHANGE_INTENT);
 		registerReceiver(receiver, filter);
 
 		// Register the Screen on/off receiver.
@@ -65,7 +62,6 @@ public class EmergencyContactsActivity extends ListActivity {
 		if (prefs.getBoolean(getString(R.string.quiet_mode_enable), true)) {
 			ScreenOnOffReceiver.register(getApplicationContext());
 		}
-
 	}
 
 	protected void setupEmergencyButtonViews() {
@@ -108,14 +104,14 @@ public class EmergencyContactsActivity extends ListActivity {
 			}
 		});
 
-		updateEmergencyButtonStatus();
+		updateEmergencyButtonStatus(EmergencyNotificationService.applicationState);
 	}
 
-	protected void updateEmergencyButtonStatus() {
+	protected void updateEmergencyButtonStatus(VigilanceState newStatus) {
 		emergencyButton.setVisibility(View.GONE);
 		cancelButton.setVisibility(View.GONE);
 		okButton.setVisibility(View.GONE);
-		switch (EmergencyNotificationService.applicationState) {
+		switch (newStatus) {
 		case NORMAL_STATE:
 			emergencyButton.setVisibility(View.VISIBLE);
 			break;

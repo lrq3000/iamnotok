@@ -31,5 +31,4 @@
         android:text="@string/i_am_now_ok"
         style="@android:style/TextAppearance.Small" >
     </Button>
-        
 </FrameLayout>

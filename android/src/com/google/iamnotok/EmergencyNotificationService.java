@@ -8,9 +8,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -22,7 +20,6 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.google.iamnotok.LocationTracker.LocationAddress;
@@ -45,12 +42,11 @@ public class EmergencyNotificationService extends Service {
 	 * 10 seconds.
 	 */
 	public final static String SHOW_NOTIFICATION_WITH_DISABLE = "showNotification";
-	public final static String I_AM_NOT_OK_INTENT = "com.google.imnotok.I_AM_NOT_OK";
 	public final static String STOP_EMERGENCY_INTENT = "com.google.imnotok.STOP_EMERGENCY";
 	public final static String I_AM_NOW_OK_INTENT = "com.google.imnotok.I_AM_NOW_OK";
 
-	public final static String SERVICE_I_AM_NOT_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOT_OK";
-	public final static String SERVICE_I_AM_NOW_OK_INTENT = "com.google.imnotok.SERVICE_I_AM_NOW_OK";
+	public final static String STATE_CHANGE_INTENT = "com.google.iamnotok.STATE_CHANGE";
+	public final static String NEW_STATE_EXTRA = "com.google.iamnotok.STATE";
 
 	public enum VigilanceState {
 		NORMAL_STATE,
@@ -185,8 +181,6 @@ public class EmergencyNotificationService extends Service {
 	private void invokeEmergencyResponse() {
 		Log.d(LOG_TAG, "Invoking emergency response");
 
-		this.sendBroadcast(new Intent(SERVICE_I_AM_NOT_OK_INTENT));
-
 		if (notifyViaCall) {
 			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
 		}
@@ -274,13 +268,9 @@ public class EmergencyNotificationService extends Service {
 		Log.i(LOG_TAG, "Changing state from: " + applicationState + " to " + new_state);
 		applicationState = new_state;
 
-		// Push the updates to the widget.
-		ComponentName thisWidget = new ComponentName(this,
-				EmergencyButtonWidgetProvider.class);
-		RemoteViews views = new RemoteViews(this.getPackageName(),
-				R.layout.emergency_button_widget);
-		EmergencyButtonWidgetProvider.setupViews(this, views);
-		AppWidgetManager.getInstance(this).updateAppWidget(thisWidget, views);
+		Intent stateChangeIntent = new Intent(STATE_CHANGE_INTENT);
+		stateChangeIntent.putExtra(NEW_STATE_EXTRA, new_state);
+		sendBroadcast(stateChangeIntent);
 	}
 
 	private long getWaitingTime() {
@@ -304,9 +294,6 @@ public class EmergencyNotificationService extends Service {
 		this.changeState(VigilanceState.NORMAL_STATE);
 		sendEmergencyMessages(getLocationAddress());
 		locationTracker.deactivate();
-
-		Intent iAmNowOkIntent = new Intent(SERVICE_I_AM_NOW_OK_INTENT);
-		this.sendBroadcast(iAmNowOkIntent);
 	}
 
 	private synchronized void cancelNotificationsTimer() {
