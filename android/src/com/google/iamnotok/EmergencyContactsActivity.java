@@ -27,6 +27,14 @@ public class EmergencyContactsActivity extends ListActivity {
 	private Button cancelButton = null;
 	private Button okButton = null;
 
+	private BroadcastReceiver stateChangeReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Log.d("EmergencyContactActivity.BroadcastReceiver", "Action: " + intent.getAction());
+			EmergencyContactsActivity.this.updateEmergencyButtonStatus((VigilanceState) intent.getSerializableExtra(EmergencyNotificationService.NEW_STATE_EXTRA));
+		}
+	};
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -44,18 +52,21 @@ public class EmergencyContactsActivity extends ListActivity {
 		registerReceivers();
 	}
 
-	private void registerReceivers() {
-		// Register emergency notification service receiver.
-		BroadcastReceiver receiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				Log.d("EmergencyContactActivity.BroadcastReceiver", "Action: " + intent.getAction());
-				EmergencyContactsActivity.this.updateEmergencyButtonStatus((VigilanceState) intent.getSerializableExtra(EmergencyNotificationService.NEW_STATE_EXTRA));
-			}
-		};
-		IntentFilter filter = new IntentFilter(EmergencyNotificationService.STATE_CHANGE_INTENT);
-		registerReceiver(receiver, filter);
+	@Override
+	protected void onResume() {
+		super.onResume();
+		updateEmergencyButtonStatus(EmergencyNotificationService.applicationState);
+		registerReceiver(stateChangeReceiver, new IntentFilter(EmergencyNotificationService.STATE_CHANGE_INTENT));
+	}
 
+	@Override
+	protected void onPause() {
+		unregisterReceiver(stateChangeReceiver);
+		super.onPause();
+	}
+
+	private void registerReceivers() {
+		// TODO: Move to Manifest
 		// Register the Screen on/off receiver.
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(this);
@@ -103,8 +114,6 @@ public class EmergencyContactsActivity extends ListActivity {
 				EmergencyContactsActivity.this.sendBroadcast(iAmNowOkIntent);
 			}
 		});
-
-		updateEmergencyButtonStatus(EmergencyNotificationService.applicationState);
 	}
 
 	protected void updateEmergencyButtonStatus(VigilanceState newStatus) {
