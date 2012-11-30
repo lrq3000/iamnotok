@@ -20,6 +20,7 @@ import android.location.LocationManager;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -151,7 +152,7 @@ public class EmergencyNotificationService extends Service {
 				changeState(VigilanceState.EMERGENCY_STATE);
 				this.invokeEmergencyResponse();
 			}
-			super.onStart(intent, startId);
+			super.onStartCommand(intent, 0, startId);
 		} else {
 			Log.d(LOG_TAG,
 					"Application already in either waiting or emergency mode.");
@@ -211,16 +212,15 @@ public class EmergencyNotificationService extends Service {
 		PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
 				disableEmergencyIntent, 0);
 
-		Notification notification = new Notification(
-				android.R.drawable.stat_sys_warning,
-				this.getString(R.string.emergency_response_starting),
-				System.currentTimeMillis());
-		// Notification should be canceled when clicked
-		notification.flags |= Notification.FLAG_AUTO_CANCEL
-				| Notification.FLAG_ONGOING_EVENT;
-		notification.setLatestEventInfo(this,
-				this.getString(R.string.emergency_response_starting),
-				this.getString(R.string.click_to_disable), pendingIntent);
+		Notification notification = new NotificationCompat.Builder(this)
+			.setTicker(this.getString(R.string.emergency_response_starting))
+			.setSmallIcon(android.R.drawable.stat_sys_warning)
+			.setContentTitle(this.getString(R.string.emergency_response_starting))
+			.setContentText(this.getString(R.string.click_to_disable))
+			.setContentIntent(pendingIntent)
+			.setAutoCancel(true)
+			.setOngoing(true)
+			.build();
 
 		notificationManager.notify(notificationID, notification);
 

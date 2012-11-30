@@ -22,9 +22,9 @@ import android.telephony.TelephonyManager;
 public class ApplicationSettingsActivity extends PreferenceActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);		
+		super.onCreate(savedInstanceState);
 		this.addPreferencesFromResource(R.xml.preferences);
-		
+
 		// Put all of the google accounts on the phone into the account list.
 		Account[] accounts = AccountManager.get(this).getAccountsByType("com.google");
 		ListPreference accountList = (ListPreference) this.findPreference(
@@ -38,7 +38,7 @@ public class ApplicationSettingsActivity extends PreferenceActivity {
 		}
 		accountList.setEntries(captions);
 		accountList.setEntryValues(values);
-		
+
 		// If we have a phone number to use, fill it in the phone number field.
 		TelephonyManager telMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 		String lineNumber = telMgr.getLine1Number();

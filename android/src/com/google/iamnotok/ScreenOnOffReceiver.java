@@ -20,10 +20,10 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 		}
 		return _instance;
 	}
-	
-	
+
+
 	private static final int CLICK_NUMBER = 6;
-	
+
 	private LimitedQueue<Long> clicksQueue = new LimitedQueue<Long>(CLICK_NUMBER);
 	private int timeLimit = 5*1000; //5 seconds
 
@@ -39,26 +39,26 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 	}
 	public static void unregister(Context context) {
 		context.unregisterReceiver(instance());
-	}	
-	
+	}
+
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		Log.w("ImNotOK", "We're on "+ intent.getAction());
-		
+
 		long time = System.currentTimeMillis();
-		this.clicksQueue.offer(new Long(time));
-		
+		this.clicksQueue.offer(Long.valueOf(time));
+
 		if (clicksQueue.size() < CLICK_NUMBER) return;
-		
+
 		long timeInterval = clicksQueue.get(CLICK_NUMBER-1).longValue() - clicksQueue.get(0).longValue();
 		Log.w("ImNotOK",Long.toString(timeInterval/1000));
-		
+
 		if (timeInterval < timeLimit){
 			Log.w("ImNotOK","triggering the event");
 			this.triggerEvent(context.getApplicationContext());
 			clicksQueue.clear();
 		}
-	
+
 	}
 
 	private void triggerEvent(Context context) {

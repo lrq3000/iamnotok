@@ -2,6 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry exported="true" kind="lib" path="lib/android-support-v4.jar"/>
 	<classpathentry kind="lib" path="libraries/activation.jar"/>
 	<classpathentry kind="lib" path="libraries/additionnal.jar"/>
 	<classpathentry kind="lib" path="libraries/mail.jar"/>
