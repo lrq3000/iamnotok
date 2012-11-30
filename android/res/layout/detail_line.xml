@@ -10,7 +10,7 @@
 		android:layout_alignParentTop="true"
 		android:layout_alignParentLeft="true"></CheckBox>
 	<TextView
-		android:text="Type"
+		android:text="@string/details_type"
 		android:textAppearance="?android:attr/textAppearanceLarge"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
@@ -18,7 +18,7 @@
 		android:layout_alignParentTop="true"
 		android:layout_toRightOf="@+id/checkBox1"></TextView>
 	<TextView
-		android:text="Data"
+		android:text="@string/details_date"
 		android:textAppearance="?android:attr/textAppearanceSmall"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"

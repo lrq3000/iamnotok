@@ -18,6 +18,16 @@
     <string name="checkbox_call_notification_desc">Call the first contact on case of emergency</string>
     <string name="edittext_cancelation_delay">cancelation_delay</string>
 
+    <!-- Contacts -->
+    <string name="contact_name">Name</string>
+    <string name="contact_phone">Phone:</string>
+    <string name="contact_email">Email:</string>
+    <string name="contact_none">none</string>
+    
+    <!-- Details -->
+    <string name="details_type">Type</string>
+    <string name="details_date">Data</string>
+    
     <string name="quiet_mode_cat">Quiet Mode Settings</string>
     <string name="quiet_mode_enable">Enable Quiet Mode</string>
     <!-- Notification strings -->
