@@ -4,6 +4,7 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -14,6 +15,7 @@ import android.content.SharedPreferences;
 import android.location.Geocoder;
 import android.location.LocationManager;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -45,9 +47,10 @@ public class EmergencyNotificationService extends Service {
 	public final static String STATE_CHANGE_INTENT = "com.google.iamnotok.STATE_CHANGE";
 	public final static String NEW_STATE_EXTRA = "com.google.iamnotok.STATE";
 
-	public final static String ACTION_START_EMERGENCY = "startEmergency";
-	public final static String ACTION_CANCEL_EMERGENCY = "cancelEmergency";
-	public final static String ACTION_STOP_EMERGENCY = "stopEmergency";
+	private final static String ACTION_START_EMERGENCY = "startEmergency";
+	private final static String ACTION_ACTIVATE_EMERGENCY = "activateEmergency";
+	private final static String ACTION_CANCEL_EMERGENCY = "cancelEmergency";
+	private final static String ACTION_STOP_EMERGENCY = "stopEmergency";
 
 	public enum VigilanceState {
 		NORMAL_STATE,
@@ -60,7 +63,7 @@ public class EmergencyNotificationService extends Service {
 	private static final long DEFAULT_WAIT_TO_CANCEL_MS = 10000;
 	private static final long DEFAULT_WAIT_BETWEEN_MESSAGES_MS = 5 * 60 * 1000;
 
-	private int notificationID = 0;
+	private static final int NOTIFICATION_ID = 0;
 	private LocationTracker locationTracker;
 	private LocationUtils locationUtils;
 	private boolean notifyViaSMS = true;
@@ -78,9 +81,29 @@ public class EmergencyNotificationService extends Service {
 	private EmergencyContactsHelper contactHelper;
 
 	private Timer notificationsTimer;
-	private Timer waitingTimer;
 
 	NotificationManager notificationManager;
+	AlarmManager alarmManager;
+
+	public static Intent getStartIntent(Context context) {
+		return new Intent(context, EmergencyNotificationService.class).setAction(ACTION_START_EMERGENCY);
+	}
+
+	private static Intent getActivateIntent(Context context) {
+		return new Intent(context, EmergencyNotificationService.class).setAction(ACTION_ACTIVATE_EMERGENCY);
+	}
+
+	public static Intent getCancelIntent(Context context) {
+		return new Intent(context, EmergencyNotificationService.class).setAction(ACTION_CANCEL_EMERGENCY);
+	}
+
+	public static Intent getStopIntent(Context context) {
+		return new Intent(context, EmergencyNotificationService.class).setAction(ACTION_STOP_EMERGENCY);
+	}
+
+	private PendingIntent getWaitingPendingIntent() {
+		return PendingIntent.getService(this, 0, getActivateIntent(this), 0);
+	}
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -99,6 +122,7 @@ public class EmergencyNotificationService extends Service {
 
 		// Show a notification.
 		this.notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
+		this.alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
@@ -156,12 +180,15 @@ public class EmergencyNotificationService extends Service {
 			if (showNotification) {
 				this.showDisableNotificationAndWaitToInvokeResponse();
 			} else {
-				changeState(VigilanceState.EMERGENCY_STATE);
-				this.invokeEmergencyResponse();
+				startService(getActivateIntent(this));
 			}
+		} else if (intent.getAction().equals(ACTION_ACTIVATE_EMERGENCY)) {
+			notificationManager.cancel(NOTIFICATION_ID);
+			changeState(VigilanceState.EMERGENCY_STATE);
+			invokeEmergencyResponse();
 		} else if (intent.getAction().equals(ACTION_CANCEL_EMERGENCY)) {
-			waitingTimer.cancel();
-			notificationManager.cancel(notificationID++);
+			alarmManager.cancel(getWaitingPendingIntent());
+			notificationManager.cancel(NOTIFICATION_ID);
 			if (EmergencyNotificationService.applicationState == VigilanceState.WAITING_STATE) {
 				Log.d(LOG_TAG, "Application in waiting state, cancelling the emergency");
 				changeState(VigilanceState.NORMAL_STATE);
@@ -238,19 +265,9 @@ public class EmergencyNotificationService extends Service {
 			.setOngoing(true)
 			.build();
 
-		notificationManager.notify(notificationID, notification);
+		notificationManager.notify(NOTIFICATION_ID, notification);
 
-		waitingTimer = new Timer();
-		waitingTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				notificationManager.cancel(notificationID++);
-				if (applicationState == VigilanceState.WAITING_STATE) {
-					changeState(VigilanceState.EMERGENCY_STATE);
-					invokeEmergencyResponse();
-				}
-			}
-		}, this.getWaitingTime());
+		alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + getWaitingTime(), getWaitingPendingIntent());
 	}
 
 	private synchronized void changeState(VigilanceState new_state) {

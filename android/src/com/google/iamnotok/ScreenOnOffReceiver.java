@@ -61,8 +61,7 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 	}
 
 	private void triggerEvent(Context context) {
-	    Intent intent = new Intent(context, EmergencyNotificationService.class)
-	    	.setAction(EmergencyNotificationService.ACTION_START_EMERGENCY)
+	    Intent intent = EmergencyNotificationService.getStartIntent(context)
 	    	.putExtra(EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE, true);
 	    context.startService(intent);
 	}

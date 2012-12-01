@@ -41,20 +41,17 @@ public class EmergencyButtonWidgetProvider extends AppWidgetProvider {
     // Create intent to launch the EmergencyNotificationService
       RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.emergency_button_widget);
 
-    Intent intent = new Intent(context, EmergencyNotificationService.class)
-    	.setAction(EmergencyNotificationService.ACTION_START_EMERGENCY)
+    Intent intent = EmergencyNotificationService.getStartIntent(context)
     	.putExtra(EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE, true);
     PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, 0);
     views.setOnClickPendingIntent(R.id.EmergencyButton, pendingIntent);
 
     // Create ImNowOk intent
-    Intent iAmNowOkIntent = new Intent(context, EmergencyNotificationService.class)
-    	.setAction(EmergencyNotificationService.ACTION_STOP_EMERGENCY);
+    Intent iAmNowOkIntent = EmergencyNotificationService.getStopIntent(context);
     PendingIntent pendingIAmNowOkIntent = PendingIntent.getService(context, 0, iAmNowOkIntent, 0);
     views.setOnClickPendingIntent(R.id.ImNowOKButton, pendingIAmNowOkIntent);
 
-    Intent stopEmergency = new Intent(context, EmergencyNotificationService.class)
-    	.setAction(EmergencyNotificationService.ACTION_CANCEL_EMERGENCY);
+    Intent stopEmergency = EmergencyNotificationService.getCancelIntent(context);
     PendingIntent pendingStopIntent = PendingIntent.getService(context, 0, stopEmergency, 0);
     views.setOnClickPendingIntent(R.id.CancelEmergencyButton, pendingStopIntent);
 

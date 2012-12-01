@@ -77,15 +77,13 @@ public class EmergencyContactsActivity extends ListActivity {
 
 	protected void setupEmergencyButtonViews() {
 		// Create intent to launch the EmergencyNotificationService and button.
-		final Intent intent = new Intent(this, EmergencyNotificationService.class)
-			.setAction(EmergencyNotificationService.ACTION_START_EMERGENCY)
-			.putExtra(
-				EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE,
-				true);
 		emergencyButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startService(intent);
+				startService(EmergencyNotificationService.getStartIntent(EmergencyContactsActivity.this)
+						.putExtra(
+								EmergencyNotificationService.SHOW_NOTIFICATION_WITH_DISABLE,
+								true));
 				emergencyButton.setVisibility(View.GONE);
 				cancelButton.setVisibility(View.VISIBLE);
 
@@ -93,24 +91,20 @@ public class EmergencyContactsActivity extends ListActivity {
 		});
 
 		// Create CancelEmergency intent and button.
-		final Intent cancelEmergencyIntent = new Intent(this, EmergencyNotificationService.class)
-			.setAction(EmergencyNotificationService.ACTION_CANCEL_EMERGENCY);
 		cancelButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startService(cancelEmergencyIntent);
+				startService(EmergencyNotificationService.getCancelIntent(EmergencyContactsActivity.this));
 				cancelButton.setVisibility(View.GONE);
 				emergencyButton.setVisibility(View.VISIBLE);
 			}
 		});
 
 		// Create ImNowOk intent and button.
-		final Intent iAmNowOkIntent = new Intent(this, EmergencyNotificationService.class)
-			.setAction(EmergencyNotificationService.ACTION_STOP_EMERGENCY);
 		okButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startService(iAmNowOkIntent);
+				startService(EmergencyNotificationService.getStopIntent(EmergencyContactsActivity.this));
 			}
 		});
 	}
