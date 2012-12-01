@@ -1,7 +1,5 @@
 package com.google.iamnotok;
 
-import java.util.Locale;
-
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -10,8 +8,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.Geocoder;
-import android.location.LocationManager;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.os.Vibrator;
@@ -23,7 +19,6 @@ import android.widget.Toast;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.utils.AccountUtils;
 import com.google.iamnotok.utils.FormatUtils;
-import com.google.iamnotok.utils.LocationUtils;
 
 /**
  * Puts the phone to the emergency state and notifies the contacts in the
@@ -62,7 +57,6 @@ public class EmergencyNotificationService extends Service {
 
 	private static final int NOTIFICATION_ID = 0;
 	private LocationTracker locationTracker;
-	private LocationUtils locationUtils;
 	private boolean notifyViaSMS = true;
 	private boolean notifyViaEmail = true;
 	private boolean notifyViaCall = false;
@@ -114,11 +108,7 @@ public class EmergencyNotificationService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		contactHelper = new EmergencyContactsHelper(this, new ContactLookupUtil());
-		locationUtils = new LocationUtils();
-		locationTracker = new LocationTracker(
-				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
-				locationUtils,
-				new Geocoder(this, Locale.getDefault()));
+		locationTracker = new LocationTracker();
 
 		// Show a notification.
 		this.notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
@@ -173,7 +163,7 @@ public class EmergencyNotificationService extends Service {
 			((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(300);
 
 			// Make sure the location tracker is active
-			locationTracker.activate(this);
+			LocationTracker.activate(this);
 
 			boolean showNotification = (intent == null) || (intent.getBooleanExtra(SHOW_NOTIFICATION_WITH_DISABLE, false));
 			if (showNotification) {
@@ -191,7 +181,7 @@ public class EmergencyNotificationService extends Service {
 			if (getVigilanceState(this) == VigilanceState.WAITING_STATE) {
 				Log.d(LOG_TAG, "Application in waiting state, cancelling the emergency");
 				changeState(VigilanceState.NORMAL_STATE);
-				locationTracker.deactivate(this);
+				LocationTracker.deactivate(this);
 			} else {
 				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + getVigilanceState(this).name());
 			}
@@ -298,7 +288,7 @@ public class EmergencyNotificationService extends Service {
 		cancelNotificationsTimer();
 		this.changeState(VigilanceState.NORMAL_STATE);
 		sendEmergencyMessages(getLocationAddress());
-		locationTracker.deactivate(this);
+		LocationTracker.deactivate(this);
 	}
 
 	private synchronized void cancelNotificationsTimer() {
@@ -310,7 +300,7 @@ public class EmergencyNotificationService extends Service {
 	 */
 	private LocationAddress getLocationAddress() {
 		registerDistanceThresholdListener();
-		return locationTracker.getLocationAddress();
+		return LocationTracker.getLocationAddress(this);
 	}
 
 	private boolean registeredDistanceThresholdListener = false;
