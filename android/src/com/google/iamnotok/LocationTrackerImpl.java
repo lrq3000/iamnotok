@@ -48,12 +48,11 @@ public class LocationTrackerImpl implements LocationTracker {
 		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, UPDATE_INTERVAL_MS, 0, locationListener);
 
 		Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		if (networkLocation != null) {
-			updateLocation(networkLocation);
-		}
 		Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		if (gpsLocation != null) {
 			updateLocation(gpsLocation);
+		} else if (networkLocation != null) {
+			updateLocation(networkLocation);
 		}
 	}
 

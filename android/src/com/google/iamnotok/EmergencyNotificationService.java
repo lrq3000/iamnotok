@@ -204,7 +204,6 @@ public class EmergencyNotificationService extends Service {
 			}
 		} else if (intent.getAction().equals(ACTION_SEND_EMERGENCY)) {
 			sendEmergencyMessages(getLocationAddress());
-			Log.e(LOG_TAG, "Sending message at time: " + SystemClock.elapsedRealtime() / 1000);
 		} else {
 			Log.e(LOG_TAG, "Unknown action: " + intent.getAction());
 		}
