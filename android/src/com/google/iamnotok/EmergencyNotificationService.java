@@ -173,7 +173,7 @@ public class EmergencyNotificationService extends Service {
 			((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(300);
 
 			// Make sure the location tracker is active
-			locationTracker.activate();
+			locationTracker.activate(this);
 
 			boolean showNotification = (intent == null) || (intent.getBooleanExtra(SHOW_NOTIFICATION_WITH_DISABLE, false));
 			if (showNotification) {
@@ -191,7 +191,7 @@ public class EmergencyNotificationService extends Service {
 			if (getVigilanceState(this) == VigilanceState.WAITING_STATE) {
 				Log.d(LOG_TAG, "Application in waiting state, cancelling the emergency");
 				changeState(VigilanceState.NORMAL_STATE);
-				locationTracker.deactivate();
+				locationTracker.deactivate(this);
 			} else {
 				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + getVigilanceState(this).name());
 			}
@@ -298,7 +298,7 @@ public class EmergencyNotificationService extends Service {
 		cancelNotificationsTimer();
 		this.changeState(VigilanceState.NORMAL_STATE);
 		sendEmergencyMessages(getLocationAddress());
-		locationTracker.deactivate();
+		locationTracker.deactivate(this);
 	}
 
 	private synchronized void cancelNotificationsTimer() {

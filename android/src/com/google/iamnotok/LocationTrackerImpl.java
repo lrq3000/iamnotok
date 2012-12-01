@@ -3,49 +3,56 @@ package com.google.iamnotok;
 import java.io.IOException;
 import java.util.List;
 
-import android.location.*;
-import android.os.Bundle;
+import android.app.IntentService;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.util.Log;
 
 import com.google.iamnotok.utils.LocationUtils;
 
-public class LocationTrackerImpl implements LocationTracker {
+public class LocationTrackerImpl extends IntentService implements LocationTracker {
 	private static final String LOG_TAG = "LocationTrackerImpl";
 
 	private static final long UPDATE_INTERVAL_MS = 60000;
 	private static final float METERS_THRESHOLD_FOR_NOTIFY = 1000;
 
+	private static final String ACTION_UPDATE_LOCATION = "updateLocation";
+
 	private final LocationManager locationManager;
 	private final Geocoder geocoder;
-	private LocationListener locationListener;
 	private LocationAddress currentLocationAddress = new LocationAddress(null, null);
 	private LocationAddress lastNotifiedLocationAddress;
 	private final LocationUtils locationUtils;
 	private DistanceThresholdListener listener;
 
+	private PendingIntent getUpdateLocationPendingIntent(Context context) {
+		return PendingIntent.getService(context, 0, new Intent(context, getClass()).setAction(ACTION_UPDATE_LOCATION), 0);
+	}
+
 	public LocationTrackerImpl(LocationManager locationManager, LocationUtils locationUtils, Geocoder geocoder) {
+		super(LocationTrackerImpl.class.getName());
 		this.locationManager = locationManager;
 		this.locationUtils = locationUtils;
 		this.geocoder = geocoder;
 	}
 
 	@Override
-	public void activate() {
-		this.locationListener = new LocationListener() {
-			@Override
-			public void onLocationChanged(Location location) {
-				updateLocation(location);
-			}
+	protected void onHandleIntent(Intent intent) {
+		if (intent.getAction().equals(ACTION_UPDATE_LOCATION) && intent.hasExtra(LocationManager.KEY_LOCATION_CHANGED)) {
+			updateLocation((Location) intent.getSerializableExtra(LocationManager.KEY_LOCATION_CHANGED));
+		}
+	}
 
-			@Override public void onStatusChanged(String provider, int status, Bundle extras) {}
-			@Override public void onProviderEnabled(String provider) {}
-			@Override public void onProviderDisabled(String provider) {}
-
-		};
-
+	@Override
+	public void activate(Context context) {
 		Log.i(LOG_TAG,"In activate");
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_INTERVAL_MS, 0, locationListener);
-		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, UPDATE_INTERVAL_MS, 0, locationListener);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
+		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
 
 		Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -110,9 +117,9 @@ public class LocationTrackerImpl implements LocationTracker {
 	}
 
 	@Override
-	public void deactivate() {
+	public void deactivate(Context context) {
 		Log.i(LOG_TAG, "Deactivating");
-		locationManager.removeUpdates(locationListener);
+		locationManager.removeUpdates(getUpdateLocationPendingIntent(context));
 		// keep last known location
 	}
 

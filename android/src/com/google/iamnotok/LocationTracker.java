@@ -1,5 +1,6 @@
 package com.google.iamnotok;
 
+import android.content.Context;
 import android.location.Address;
 import android.location.Location;
 
@@ -9,7 +10,7 @@ public interface LocationTracker {
 		 * location instance holding the full location information
 		 */
 		public final Location location;
-		
+
 		/**
 		 * address reverse geolocated address of the location above. Can be null.
 		 */
@@ -19,17 +20,17 @@ public interface LocationTracker {
 			this.address = address;
 		}
 	}
-	
+
 	public LocationAddress getLocationAddress();
-	
+
 	/**
-	 * Will be called when location is updated by a substantial distance 
+	 * Will be called when location is updated by a substantial distance
 	 */
 	public interface DistanceThresholdListener {
 		void notify(LocationAddress locationAddress);
 	}
 	public void setDistanceThresholdListener(DistanceThresholdListener listener);
-	
-	public void activate();
-	public void deactivate();
+
+	public void activate(Context context);
+	public void deactivate(Context context);
 }
