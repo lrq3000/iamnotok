@@ -37,7 +37,6 @@
 		<receiver android:name="EmergencyButtonWidgetProvider">
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-				<action android:name="com.google.iamnotok.STATE_CHANGE" />
 			</intent-filter>
 			<meta-data android:name="android.appwidget.provider"
 				android:resource="@xml/emergency_widget_info" />

@@ -8,6 +8,7 @@ import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.*;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -19,21 +20,13 @@ import android.widget.AdapterView.OnItemLongClickListener;
 /**
  * A simple list of contacts: list/add/remove.
  */
-public class EmergencyContactsActivity extends ListActivity {
+public class EmergencyContactsActivity extends ListActivity implements OnSharedPreferenceChangeListener {
 	private static final int CONTACT_PICKER_RESULT = 1001;
 	private EmergencyContactsHelper contactsHelper;
 
 	private Button emergencyButton = null;
 	private Button cancelButton = null;
 	private Button okButton = null;
-
-	private BroadcastReceiver stateChangeReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Log.d("EmergencyContactActivity.BroadcastReceiver", "Action: " + intent.getAction());
-			EmergencyContactsActivity.this.updateEmergencyButtonStatus((VigilanceState) intent.getSerializableExtra(EmergencyNotificationService.NEW_STATE_EXTRA));
-		}
-	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -56,13 +49,20 @@ public class EmergencyContactsActivity extends ListActivity {
 	protected void onResume() {
 		super.onResume();
 		updateEmergencyButtonStatus(EmergencyNotificationService.getVigilanceState(this));
-		registerReceiver(stateChangeReceiver, new IntentFilter(EmergencyNotificationService.STATE_CHANGE_INTENT));
+		PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
 	}
 
 	@Override
 	protected void onPause() {
-		unregisterReceiver(stateChangeReceiver);
+		PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
 		super.onPause();
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (key.equals(EmergencyNotificationService.VIGILANCE_STATE_KEY)) {
+			updateEmergencyButtonStatus(EmergencyNotificationService.getVigilanceState(this));
+		}
 	}
 
 	private void registerReceivers() {

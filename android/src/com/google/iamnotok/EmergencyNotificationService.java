@@ -44,9 +44,6 @@ public class EmergencyNotificationService extends Service {
 	 */
 	public final static String SHOW_NOTIFICATION_WITH_DISABLE = "showNotification";
 
-	public final static String STATE_CHANGE_INTENT = "com.google.iamnotok.STATE_CHANGE";
-	public final static String NEW_STATE_EXTRA = "com.google.iamnotok.STATE";
-
 	private final static String ACTION_START_EMERGENCY = "startEmergency";
 	private final static String ACTION_ACTIVATE_EMERGENCY = "activateEmergency";
 	private final static String ACTION_CANCEL_EMERGENCY = "cancelEmergency";
@@ -273,10 +270,6 @@ public class EmergencyNotificationService extends Service {
 
 	private synchronized void changeState(VigilanceState new_state) {
 		Log.i(LOG_TAG, "Changing state from: " + getVigilanceState(this) + " to " + new_state);
-
-		Intent stateChangeIntent = new Intent(STATE_CHANGE_INTENT);
-		stateChangeIntent.putExtra(NEW_STATE_EXTRA, new_state);
-		sendBroadcast(stateChangeIntent);
 
 		PreferenceManager.getDefaultSharedPreferences(this).edit()
 			.putInt(VIGILANCE_STATE_KEY, new_state.ordinal())

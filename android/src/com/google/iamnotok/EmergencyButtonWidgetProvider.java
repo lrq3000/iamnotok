@@ -9,13 +9,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
 import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
 
 public class EmergencyButtonWidgetProvider extends AppWidgetProvider implements OnSharedPreferenceChangeListener {
+	private Context context;
 
   @Override
   public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -34,28 +34,24 @@ public class EmergencyButtonWidgetProvider extends AppWidgetProvider implements 
   @Override
 	public void onEnabled(Context context) {
 		super.onEnabled(context);
+		this.context = context;
 		PreferenceManager.getDefaultSharedPreferences(context).registerOnSharedPreferenceChangeListener(this);
 	}
 
   @Override
 	public void onDisabled(Context context) {
 	  	PreferenceManager.getDefaultSharedPreferences(context).unregisterOnSharedPreferenceChangeListener(this);
+	  	this.context = null;
 		super.onDisabled(context);
 	}
 
   @Override
-	public void onReceive(Context context, Intent intent) {
-	  if (intent.getAction() == EmergencyNotificationService.STATE_CHANGE_INTENT) {
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+	  if (key.equals(EmergencyNotificationService.VIGILANCE_STATE_KEY)) {
 	    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 	    appWidgetManager.updateAppWidget(new ComponentName(context.getPackageName(), this.getClass().getName()),
-	    		setupViews(context, (VigilanceState) intent.getSerializableExtra(EmergencyNotificationService.NEW_STATE_EXTRA)));
+	    		setupViews(context, EmergencyNotificationService.getVigilanceState(context)));
 	  }
-      super.onReceive(context, intent);
-	}
-
-  @Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-	  Log.e("LOG_TAG", "SHARE CHANGED!" + key);
 	}
 
   private RemoteViews setupViews(Context context, VigilanceState state) {
