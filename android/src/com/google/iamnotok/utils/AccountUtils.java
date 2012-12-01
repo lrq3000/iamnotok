@@ -107,8 +107,7 @@ public class AccountUtils {
 	}
 	
 	public String getCustomMessage() {
-		SharedPreferences prefs =
-			PreferenceManager.getDefaultSharedPreferences(context);
-		return prefs.getString(context.getString(R.string.edittext_custom_message), "");
+		Preferences pref = new Preferences(this.context);
+		return pref.getCustomMessage();
 	}
 }

@@ -97,9 +97,8 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 	private void registerReceivers() {
 		// TODO: Move to Manifest
 		// Register the Screen on/off receiver.
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		if (prefs.getBoolean(getString(R.string.quiet_mode_enable), true)) {
+		Preferences prefs = new Preferences(this);
+		if (prefs.getQuiteMode()) {
 			ScreenOnOffReceiver.register(getApplicationContext());
 		}
 	}
