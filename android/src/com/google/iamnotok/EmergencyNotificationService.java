@@ -52,12 +52,13 @@ public class EmergencyNotificationService extends Service {
 	private final static String ACTION_CANCEL_EMERGENCY = "cancelEmergency";
 	private final static String ACTION_STOP_EMERGENCY = "stopEmergency";
 
+	public final static String VIGILANCE_STATE_KEY = "vigilanceStateKey";
+
 	public enum VigilanceState {
 		NORMAL_STATE,
 		WAITING_STATE,
 		EMERGENCY_STATE,
 	}
-	public static VigilanceState applicationState = VigilanceState.NORMAL_STATE;
 
 	/** Default time allowed for user to cancel the emergency response. */
 	private static final long DEFAULT_WAIT_TO_CANCEL_MS = 10000;
@@ -126,7 +127,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		if (applicationState != VigilanceState.EMERGENCY_STATE) {
+		if (getVigilanceState(this) != VigilanceState.EMERGENCY_STATE) {
 			return;
 		}
 
@@ -162,7 +163,7 @@ public class EmergencyNotificationService extends Service {
 			}
 			// TODO: Check that we have someone to notify
 
-			if (applicationState != VigilanceState.NORMAL_STATE) {
+			if (getVigilanceState(this) != VigilanceState.NORMAL_STATE) {
 				Log.d(LOG_TAG, "Application already in either waiting or emergency mode.");
 				return START_NOT_STICKY;
 			}
@@ -189,19 +190,19 @@ public class EmergencyNotificationService extends Service {
 		} else if (intent.getAction().equals(ACTION_CANCEL_EMERGENCY)) {
 			alarmManager.cancel(getWaitingPendingIntent());
 			notificationManager.cancel(NOTIFICATION_ID);
-			if (EmergencyNotificationService.applicationState == VigilanceState.WAITING_STATE) {
+			if (getVigilanceState(this) == VigilanceState.WAITING_STATE) {
 				Log.d(LOG_TAG, "Application in waiting state, cancelling the emergency");
 				changeState(VigilanceState.NORMAL_STATE);
 				locationTracker.deactivate();
 			} else {
-				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + EmergencyNotificationService.applicationState.name());
+				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + getVigilanceState(this).name());
 			}
 		} else if (intent.getAction().equals(ACTION_STOP_EMERGENCY)) {
-			if (applicationState == VigilanceState.EMERGENCY_STATE) {
+			if (getVigilanceState(this) == VigilanceState.EMERGENCY_STATE) {
 				Log.d(LOG_TAG, "Application in emergency state, I am now OK");
 				stopEmergency();
 			} else {
-				Log.w(LOG_TAG, "Trying to stop a notification in state: " + EmergencyNotificationService.applicationState.name());
+				Log.w(LOG_TAG, "Trying to stop a notification in state: " + getVigilanceState(this).name());
 			}
 		} else {
 			Log.e(LOG_TAG, "Unknown action: " + intent.getAction());
@@ -243,10 +244,10 @@ public class EmergencyNotificationService extends Service {
 
 	private void sendEmergencyMessages(LocationAddress locationAddress) {
 		if (notifyViaSMS) {
-			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, applicationState);
+			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, getVigilanceState(this));
 		}
 		if (notifyViaEmail) {
-			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, applicationState);
+			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, getVigilanceState(this));
 		}
 	}
 
@@ -271,12 +272,19 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private synchronized void changeState(VigilanceState new_state) {
-		Log.i(LOG_TAG, "Changing state from: " + applicationState + " to " + new_state);
-		applicationState = new_state;
+		Log.i(LOG_TAG, "Changing state from: " + getVigilanceState(this) + " to " + new_state);
 
 		Intent stateChangeIntent = new Intent(STATE_CHANGE_INTENT);
 		stateChangeIntent.putExtra(NEW_STATE_EXTRA, new_state);
 		sendBroadcast(stateChangeIntent);
+
+		PreferenceManager.getDefaultSharedPreferences(this).edit()
+			.putInt(VIGILANCE_STATE_KEY, new_state.ordinal())
+			.commit();
+	}
+
+	public static VigilanceState getVigilanceState(Context context) {
+		return VigilanceState.values()[PreferenceManager.getDefaultSharedPreferences(context).getInt(VIGILANCE_STATE_KEY, 0)];
 	}
 
 	private long getWaitingTime() {

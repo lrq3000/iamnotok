@@ -55,7 +55,7 @@ public class EmergencyContactsActivity extends ListActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		updateEmergencyButtonStatus(EmergencyNotificationService.applicationState);
+		updateEmergencyButtonStatus(EmergencyNotificationService.getVigilanceState(this));
 		registerReceiver(stateChangeReceiver, new IntentFilter(EmergencyNotificationService.STATE_CHANGE_INTENT));
 	}
 
