@@ -8,10 +8,8 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.Geocoder;
 import android.location.LocationManager;
@@ -32,6 +30,7 @@ import com.google.iamnotok.utils.LocationUtils;
  * emergency contacts' list about the situation.
  */
 public class EmergencyNotificationService extends Service {
+
 	private final static String LOG_TAG = "ImNotOk - EmergencyNotificationService";
 
 	/**
@@ -42,11 +41,13 @@ public class EmergencyNotificationService extends Service {
 	 * 10 seconds.
 	 */
 	public final static String SHOW_NOTIFICATION_WITH_DISABLE = "showNotification";
-	public final static String STOP_EMERGENCY_INTENT = "com.google.imnotok.STOP_EMERGENCY";
-	public final static String I_AM_NOW_OK_INTENT = "com.google.imnotok.I_AM_NOW_OK";
 
 	public final static String STATE_CHANGE_INTENT = "com.google.iamnotok.STATE_CHANGE";
 	public final static String NEW_STATE_EXTRA = "com.google.iamnotok.STATE";
+
+	public final static String ACTION_START_EMERGENCY = "startEmergency";
+	public final static String ACTION_CANCEL_EMERGENCY = "cancelEmergency";
+	public final static String ACTION_STOP_EMERGENCY = "stopEmergency";
 
 	public enum VigilanceState {
 		NORMAL_STATE,
@@ -77,7 +78,9 @@ public class EmergencyNotificationService extends Service {
 	private EmergencyContactsHelper contactHelper;
 
 	private Timer notificationsTimer;
+	private Timer waitingTimer;
 
+	NotificationManager notificationManager;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -93,6 +96,9 @@ public class EmergencyNotificationService extends Service {
 				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
 				locationUtils,
 				new Geocoder(this, Locale.getDefault()));
+
+		// Show a notification.
+		this.notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
@@ -122,36 +128,56 @@ public class EmergencyNotificationService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d(LOG_TAG, "onStart() called:");
+		Log.i(LOG_TAG, "Service received action: " + intent.getAction());
+		if (intent.getAction().equals(ACTION_START_EMERGENCY)) {
+			readPreferences();
 
-		readPreferences();
+			if (!(notifyViaCall || notifyViaEmail || notifyViaSMS)) {
+				Toast.makeText(this, R.string.no_notification_defined, Toast.LENGTH_LONG).show();
+				return START_NOT_STICKY;
+			}
+			// TODO: Check that we have someone to notify
 
-		if (!(notifyViaCall || notifyViaEmail || notifyViaSMS)) {
-			Toast.makeText(this, R.string.no_notification_defined, Toast.LENGTH_LONG).show();
-			return START_NOT_STICKY;
-		}
-		// TODO: Check that we have someone to notify
+			if (applicationState != VigilanceState.NORMAL_STATE) {
+				Log.d(LOG_TAG, "Application already in either waiting or emergency mode.");
+				return START_NOT_STICKY;
+			}
 
-		if (applicationState != VigilanceState.NORMAL_STATE) {
-			Log.d(LOG_TAG, "Application already in either waiting or emergency mode.");
-			return START_NOT_STICKY;
-		}
+			Log.d(LOG_TAG, "Starting the service");
+			changeState(VigilanceState.WAITING_STATE);
 
-		Log.d(LOG_TAG, "Starting the service");
-		changeState(VigilanceState.WAITING_STATE);
+			// Vibrate for 300 milliseconds
+			((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(300);
 
-		// Vibrate for 300 milliseconds
-		((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(300);
+			// Make sure the location tracker is active
+			locationTracker.activate();
 
-		// Make sure the location tracker is active
-		locationTracker.activate();
-
-		boolean showNotification = (intent == null) || (intent.getBooleanExtra(SHOW_NOTIFICATION_WITH_DISABLE, false));
-		if (showNotification) {
-			this.showDisableNotificationAndWaitToInvokeResponse();
+			boolean showNotification = (intent == null) || (intent.getBooleanExtra(SHOW_NOTIFICATION_WITH_DISABLE, false));
+			if (showNotification) {
+				this.showDisableNotificationAndWaitToInvokeResponse();
+			} else {
+				changeState(VigilanceState.EMERGENCY_STATE);
+				this.invokeEmergencyResponse();
+			}
+		} else if (intent.getAction().equals(ACTION_CANCEL_EMERGENCY)) {
+			waitingTimer.cancel();
+			notificationManager.cancel(notificationID++);
+			if (EmergencyNotificationService.applicationState == VigilanceState.WAITING_STATE) {
+				Log.d(LOG_TAG, "Application in waiting state, cancelling the emergency");
+				changeState(VigilanceState.NORMAL_STATE);
+				locationTracker.deactivate();
+			} else {
+				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + EmergencyNotificationService.applicationState.name());
+			}
+		} else if (intent.getAction().equals(ACTION_STOP_EMERGENCY)) {
+			if (applicationState == VigilanceState.EMERGENCY_STATE) {
+				Log.d(LOG_TAG, "Application in emergency state, I am now OK");
+				stopEmergency();
+			} else {
+				Log.w(LOG_TAG, "Trying to stop a notification in state: " + EmergencyNotificationService.applicationState.name());
+			}
 		} else {
-			changeState(VigilanceState.EMERGENCY_STATE);
-			this.invokeEmergencyResponse();
+			Log.e(LOG_TAG, "Unknown action: " + intent.getAction());
 		}
 
 		return START_NOT_STICKY;
@@ -200,67 +226,27 @@ public class EmergencyNotificationService extends Service {
 	private void showDisableNotificationAndWaitToInvokeResponse() {
 		Log.d(LOG_TAG, "Showing notification and waiting");
 
-		// Show a notification.
-		final NotificationManager notificationManager = (NotificationManager) this
-				.getSystemService(NOTIFICATION_SERVICE);
-
-		Intent disableEmergencyIntent = new Intent(STOP_EMERGENCY_INTENT);
-		PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
-				disableEmergencyIntent, 0);
+		Intent cancelEmergencyIntent = new Intent(this, this.getClass()).setAction(ACTION_CANCEL_EMERGENCY);
 
 		Notification notification = new NotificationCompat.Builder(this)
 			.setTicker(this.getString(R.string.emergency_response_starting))
 			.setSmallIcon(android.R.drawable.stat_sys_warning)
 			.setContentTitle(this.getString(R.string.emergency_response_starting))
 			.setContentText(this.getString(R.string.click_to_disable))
-			.setContentIntent(pendingIntent)
+			.setContentIntent(PendingIntent.getService(this, 0, cancelEmergencyIntent, 0))
 			.setAutoCancel(true)
 			.setOngoing(true)
 			.build();
 
 		notificationManager.notify(notificationID, notification);
 
-		final Timer waitTimer = new Timer();
-
-		// Register a receiver that can receive the cancellation intents.
-		final BroadcastReceiver cancellationReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				Log.d(LOG_TAG, "Received cancellation intent...");
-				unregisterReceiver(this);
-				waitTimer.cancel();
-				notificationManager.cancel(notificationID++);
-				if (EmergencyNotificationService.applicationState == VigilanceState.WAITING_STATE) {
-					Log.d(LOG_TAG,
-							"Application in waiting state, cancelling the emergency");
-					changeState(VigilanceState.NORMAL_STATE);
-					locationTracker.deactivate();
-				}
-			}
-		};
-		this.registerReceiver(cancellationReceiver, new IntentFilter(STOP_EMERGENCY_INTENT));
-
-		// Register a receiver that can receive the I am now OK intents.
-		final BroadcastReceiver imnowOKReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				Log.d(LOG_TAG, "Received I am now OK intent...");
-				unregisterReceiver(this);
-				if (applicationState == VigilanceState.EMERGENCY_STATE) {
-					Log.d(LOG_TAG, "Application in emergency state, I am now OK");
-					stopEmergency();
-				}
-			}
-		};
-
-		waitTimer.schedule(new TimerTask() {
+		waitingTimer = new Timer();
+		waitingTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				unregisterReceiver(cancellationReceiver);
 				notificationManager.cancel(notificationID++);
 				if (applicationState == VigilanceState.WAITING_STATE) {
 					changeState(VigilanceState.EMERGENCY_STATE);
-					registerReceiver(imnowOKReceiver, new IntentFilter(I_AM_NOW_OK_INTENT));
 					invokeEmergencyResponse();
 				}
 			}
