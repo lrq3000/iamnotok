@@ -1,8 +1,6 @@
 package com.google.iamnotok;
 
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -48,6 +46,7 @@ public class EmergencyNotificationService extends Service {
 	private final static String ACTION_ACTIVATE_EMERGENCY = "activateEmergency";
 	private final static String ACTION_CANCEL_EMERGENCY = "cancelEmergency";
 	private final static String ACTION_STOP_EMERGENCY = "stopEmergency";
+	private final static String ACTION_SEND_EMERGENCY = "sendEmergency";
 
 	public final static String VIGILANCE_STATE_KEY = "vigilanceStateKey";
 
@@ -78,8 +77,6 @@ public class EmergencyNotificationService extends Service {
 
 	private EmergencyContactsHelper contactHelper;
 
-	private Timer notificationsTimer;
-
 	NotificationManager notificationManager;
 	AlarmManager alarmManager;
 
@@ -101,6 +98,11 @@ public class EmergencyNotificationService extends Service {
 
 	private PendingIntent getWaitingPendingIntent() {
 		return PendingIntent.getService(this, 0, getActivateIntent(this), 0);
+	}
+
+	private PendingIntent getSendEmergencyPendingIntent() {
+		return PendingIntent.getService(this, 0,
+				new Intent(this, this.getClass()).setAction(ACTION_SEND_EMERGENCY), 0);
 	}
 
 	@Override
@@ -135,7 +137,6 @@ public class EmergencyNotificationService extends Service {
 
 	private void sendMessageAndResetTimer(LocationAddress locationAddress) {
 		setNotificationTimer();
-		sendEmergencyMessages(locationAddress);
 	}
 
 	private long readWaitBetweenMessagesMs(SharedPreferences prefs) {
@@ -201,6 +202,9 @@ public class EmergencyNotificationService extends Service {
 			} else {
 				Log.w(LOG_TAG, "Trying to stop a notification in state: " + getVigilanceState(this).name());
 			}
+		} else if (intent.getAction().equals(ACTION_SEND_EMERGENCY)) {
+			sendEmergencyMessages(getLocationAddress());
+			Log.e(LOG_TAG, "Sending message at time: " + SystemClock.elapsedRealtime() / 1000);
 		} else {
 			Log.e(LOG_TAG, "Unknown action: " + intent.getAction());
 		}
@@ -217,16 +221,11 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private synchronized void setNotificationTimer() {
-		cancelNotificationsTimer();
-		Log.d(LOG_TAG, "Setting notification");
-		this.notificationsTimer = new Timer();
-		this.notificationsTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				Log.d(LOG_TAG, "Sending timed notification");
-				sendEmergencyMessages(getLocationAddress());
-			}
-		}, waitBetweenMessagesMs, waitBetweenMessagesMs);
+		alarmManager.setRepeating(
+				AlarmManager.ELAPSED_REALTIME_WAKEUP,
+				SystemClock.elapsedRealtime(),
+				waitBetweenMessagesMs,
+				getSendEmergencyPendingIntent());
 	}
 
 	private void invokeEmergencyResponse() {
@@ -304,11 +303,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private synchronized void cancelNotificationsTimer() {
-		if (this.notificationsTimer != null) {
-			Log.d(LOG_TAG, "Canceling notification timer");
-			this.notificationsTimer.cancel();
-			this.notificationsTimer = null;
-		}
+		alarmManager.cancel(getSendEmergencyPendingIntent());
 	}
 
 	/**
