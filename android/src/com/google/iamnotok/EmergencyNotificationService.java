@@ -115,7 +115,7 @@ public class EmergencyNotificationService extends Service {
 		super.onCreate();
 		contactHelper = new EmergencyContactsHelper(this, new ContactLookupUtil());
 		locationUtils = new LocationUtils();
-		locationTracker = new LocationTrackerImpl(
+		locationTracker = new LocationTracker(
 				(LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
 				locationUtils,
 				new Geocoder(this, Locale.getDefault()));

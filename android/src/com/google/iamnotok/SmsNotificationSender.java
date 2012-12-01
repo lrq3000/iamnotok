@@ -8,7 +8,9 @@ import android.telephony.SmsManager;
 
 import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
 import com.google.iamnotok.LocationTracker.LocationAddress;
-import com.google.iamnotok.utils.*;
+import com.google.iamnotok.utils.AccountUtils;
+import com.google.iamnotok.utils.FormatUtils;
+import com.google.iamnotok.utils.IamNotOKLogger;
 
 public class SmsNotificationSender implements NotificationSender {
 
