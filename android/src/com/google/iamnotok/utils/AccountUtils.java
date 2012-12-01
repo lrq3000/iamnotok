@@ -36,7 +36,7 @@ public class AccountUtils {
 			}
 		}
 
-		// If we got here, then we didn'notificationsTimer find the account in the preferences.
+		// If we got here, then we didn't find the account in the preferences.
 		// This probably means that the user removed the account after selecting it.
 		// In this case, we just return the first available account, if any.
 		// TODO: Should we notify the user here?
@@ -80,7 +80,7 @@ public class AccountUtils {
 			return phoneNumber;
 		}
 
-		// If we don'notificationsTimer have a phone number in the preferences, try getting it
+		// If we don't have a phone number in the preferences, try getting it
 		// from the weird function called getLine1Number.
 		TelephonyManager telMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 		String lineNumber = telMgr.getLine1Number();
