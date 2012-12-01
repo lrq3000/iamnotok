@@ -1,17 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-      <PreferenceCategory android:key="@string/account_settings_cat" android:title="@string/account_settings_cat"><ListPreference android:title="@string/select_account_list_title" android:summary="@string/select_account_list_desc" android:key="@string/select_account_list" android:enabled="true" />
-      <EditTextPreference android:key="@string/account_phone_number" android:title="@string/account_phone_number_title" android:summary="@string/account_phone_number_desc" android:numeric="signed" android:imeOptions="actionDone"/>
-</PreferenceCategory><PreferenceCategory android:key="@string/notification_settings_cat" android:title="@string/notification_settings_cat"><CheckBoxPreference android:key="@string/checkbox_sms_notification" android:title="@string/checkbox_sms_notification_title" android:summary="@string/checkbox_sms_notification_desc" android:enabled="true" android:defaultValue="true" /><CheckBoxPreference android:key="@string/checkbox_email_notification" android:title="@string/checkbox_email_notification_title" android:summary="@string/checkbox_email_notification_desc" android:enabled="true" android:defaultValue="true" /><CheckBoxPreference android:key="@string/checkbox_call_notification" android:title="@string/checkbox_call_notification_title" android:summary="@string/checkbox_call_notification_desc" android:enabled="true" android:defaultValue="false" /><EditTextPreference android:key="@string/edittext_custom_message" android:summary="@string/edittext_custom_message_desc" android:title="@string/edittext_custom_message_title"/><EditTextPreference android:key="@string/edittext_cancelation_delay" android:title="Cancelation Delay" android:summary="Seconds before notifying of emergency situation" android:numeric="signed" android:defaultValue="10" />
-<EditTextPreference android:key="@string/edittext_message_interval" android:defaultValue="300" android:summary="@string/edittext_message_interval_desc" android:title="@string/edittext_message_interval_title" android:numeric="signed" android:imeOptions="actionDone"/>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-</PreferenceCategory>
-       
-       
-             
-<PreferenceCategory android:title="@string/quiet_mode_cat" android:key="@string/quiet_mode_cat"><CheckBoxPreference android:key="@string/quiet_mode_enable" android:defaultValue="true" android:enabled="true" android:title="@string/quiet_mode_enable"></CheckBoxPreference>
-</PreferenceCategory>
+    <PreferenceCategory
+        android:key="@string/account_settings_cat"
+        android:title="@string/account_settings_cat" >
+        <ListPreference
+            android:enabled="true"
+            android:key="@string/select_account_list"
+            android:summary="@string/select_account_list_desc"
+            android:title="@string/select_account_list_title" />
 
+        <EditTextPreference
+            android:imeOptions="actionDone"
+            android:key="@string/account_phone_number"
+            android:numeric="signed"
+            android:summary="@string/account_phone_number_desc"
+            android:title="@string/account_phone_number_title" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="@string/notification_settings_cat"
+        android:title="@string/notification_settings_cat" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:enabled="true"
+            android:key="@string/checkbox_sms_notification"
+            android:summary="@string/checkbox_sms_notification_desc"
+            android:title="@string/checkbox_sms_notification_title" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:enabled="true"
+            android:key="@string/checkbox_email_notification"
+            android:summary="@string/checkbox_email_notification_desc"
+            android:title="@string/checkbox_email_notification_title" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="@string/checkbox_call_notification"
+            android:summary="@string/checkbox_call_notification_desc"
+            android:title="@string/checkbox_call_notification_title" />
 
+        <EditTextPreference
+            android:key="@string/edittext_custom_message"
+            android:summary="@string/edittext_custom_message_desc"
+            android:title="@string/edittext_custom_message_title" />
+        <EditTextPreference
+            android:defaultValue="10"
+            android:key="@string/edittext_cancelation_delay"
+            android:numeric="signed"
+            android:summary="Seconds before notifying of emergency situation"
+            android:title="Cancelation Delay" />
+        <EditTextPreference
+            android:defaultValue="300"
+            android:imeOptions="actionDone"
+            android:key="@string/edittext_message_interval"
+            android:numeric="signed"
+            android:summary="@string/edittext_message_interval_desc"
+            android:title="@string/edittext_message_interval_title" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="@string/quiet_mode_cat"
+        android:title="@string/quiet_mode_cat" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:enabled="true"
+            android:key="@string/quiet_mode_enable"
+            android:title="@string/quiet_mode_enable" >
+        </CheckBoxPreference>
+    </PreferenceCategory>
 
 </PreferenceScreen>
