@@ -3,19 +3,34 @@ package com.google.iamnotok;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
-
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.content.*;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.*;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ListAdapter;
+import android.widget.TextView;
+
+import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
+import com.google.iamnotok.utils.AccountUtils;
 
 /**
  * A simple list of contacts: list/add/remove.
@@ -33,6 +48,10 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.contacts_list);
 
+		if (Build.VERSION.SDK_INT >= 11) {
+			updateActionBar();
+		}
+
 		contactsHelper = new EmergencyContactsHelper(this, new ContactLookupUtil());
 		setListAdapter(createAdapter());
 
@@ -43,6 +62,12 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 		setupEmergencyButtonViews();
 		setupListView();
 		registerReceivers();
+	}
+
+	@TargetApi(11)
+	private void updateActionBar() {
+		getActionBar().setSubtitle(new AccountUtils(this).getAccountName());
+		// TODO: Move to using navigationList here.
 	}
 
 	@Override
@@ -62,6 +87,10 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		if (key.equals(EmergencyNotificationService.VIGILANCE_STATE_KEY)) {
 			updateEmergencyButtonStatus(EmergencyNotificationService.getVigilanceState(this));
+		} else if (key.equals(Preferences.ACCOUNT_NAME_KEY)) {
+			if (Build.VERSION.SDK_INT >= 11) {
+				updateActionBar();
+			}
 		}
 	}
 
