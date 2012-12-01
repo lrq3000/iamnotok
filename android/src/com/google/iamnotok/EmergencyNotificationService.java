@@ -17,6 +17,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.iamnotok.LocationTracker.LocationAddress;
+import com.google.iamnotok.senders.NotificationSender;
+import com.google.iamnotok.senders.SmsNotificationSender;
+import com.google.iamnotok.senders.email_sender.EmailNotificationSender;
 import com.google.iamnotok.utils.AccountUtils;
 import com.google.iamnotok.utils.FormatUtils;
 

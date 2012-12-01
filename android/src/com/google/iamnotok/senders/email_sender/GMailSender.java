@@ -1,4 +1,4 @@
-package com.google.iamnotok;
+package com.google.iamnotok.senders.email_sender;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

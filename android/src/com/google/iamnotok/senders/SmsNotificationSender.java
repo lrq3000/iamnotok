@@ -1,4 +1,4 @@
-package com.google.iamnotok;
+package com.google.iamnotok.senders;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,6 +6,7 @@ import java.util.Collection;
 import android.content.Context;
 import android.telephony.SmsManager;
 
+import com.google.iamnotok.Contact;
 import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.utils.AccountUtils;
