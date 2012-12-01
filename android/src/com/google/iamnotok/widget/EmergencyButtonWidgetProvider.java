@@ -1,4 +1,4 @@
-package com.google.iamnotok;
+package com.google.iamnotok.widget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -12,7 +12,9 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import com.google.iamnotok.EmergencyNotificationService;
 import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
+import com.google.iamnotok.R;
 
 public class EmergencyButtonWidgetProvider extends AppWidgetProvider implements OnSharedPreferenceChangeListener {
 	private Context context;
