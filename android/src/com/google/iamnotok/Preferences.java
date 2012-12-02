@@ -7,14 +7,14 @@ import android.preference.PreferenceManager;
 public class Preferences {
 	
 	// Keys
-	public static final String ACCOUNT_NAME_KEY 				= "select_account_list";
-	public static final String QUITE_MODE_KEY 					= "Enable Quiet Mode";
-	public static final String CUSTOM_MESSAGE_KEY 				= "edittext_custom_message";
-	public static final String SMS_NOTIFICATION_KEY 			= "sms_notification";
-	public static final String EMAIL_NOTIFICATION_KEY 			= "email_notification";
-	public static final String CALL_NOTIFICATION_KEY 			= "email_notification";
-	public static final String MESSAGE_INTERVAL_SECONDS_KEY 	= "edittext_message_interval";
-	public static final String CANCELATION_DELAY_SECONDS_KEY 	= "cancelation_delay";
+	public static final String ACCOUNT_NAME_KEY                 = "select_account_list";
+	public static final String QUITE_MODE_KEY                   = "Enable Quiet Mode";
+	public static final String CUSTOM_MESSAGE_KEY               = "edittext_custom_message";
+	public static final String SMS_NOTIFICATION_KEY             = "sms_notification";
+	public static final String EMAIL_NOTIFICATION_KEY           = "email_notification";
+	public static final String CALL_NOTIFICATION_KEY            = "email_notification";
+	public static final String MESSAGE_INTERVAL_SECONDS_KEY     = "edittext_message_interval";
+	public static final String CANCELATION_DELAY_SECONDS_KEY    = "cancelation_delay";
 	
 	// Default values
 	public static final long DEFAULT_MESSAGE_INTERVAL_SECONDS 	= 5 * 60;
