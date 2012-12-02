@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.os.Vibrator;
@@ -54,16 +53,12 @@ public class EmergencyNotificationService extends Service {
 		EMERGENCY_STATE,
 	}
 
-	/** Default time allowed for user to cancel the emergency response. */
-	private static final long DEFAULT_WAIT_TO_CANCEL_MS = 10000;
-	private static final long DEFAULT_WAIT_BETWEEN_MESSAGES_MS = 5 * 60 * 1000;
-
 	private static final int NOTIFICATION_ID = 0;
 	private LocationTracker locationTracker;
 	private boolean notifyViaSMS = true;
 	private boolean notifyViaEmail = true;
 	private boolean notifyViaCall = false;
-	private long waitBetweenMessagesMs = DEFAULT_WAIT_BETWEEN_MESSAGES_MS;
+	private long waitBetweenMessagesMs = Preferences.DEFAULT_MESSAGE_INTERVAL_SECONDS * 1000;
 
 	private final AccountUtils accountUtils = new AccountUtils(this);
 	private final FormatUtils formatUtils = new FormatUtils();
@@ -132,16 +127,6 @@ public class EmergencyNotificationService extends Service {
 		setNotificationTimer();
 	}
 
-	private long readWaitBetweenMessagesMs(SharedPreferences prefs) {
-		try {
-			String messageIntervalString = prefs.getString(getString(R.string.edittext_message_interval), null);
-			if (messageIntervalString != null)
-				return Integer.parseInt(messageIntervalString) * 1000; // Convert to milliseconds.
-		} catch (NumberFormatException e) {
-		}
-		return DEFAULT_WAIT_BETWEEN_MESSAGES_MS;
-	}
-
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.i(LOG_TAG, "Service received action: " + intent.getAction());
@@ -205,11 +190,11 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void readPreferences() {
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		notifyViaSMS = prefs.getBoolean(getString(R.string.checkbox_sms_notification), true);
-		notifyViaEmail = prefs.getBoolean(getString(R.string.checkbox_email_notification), true);
-		notifyViaCall = prefs.getBoolean(getString(R.string.checkbox_call_notification), false);
-		waitBetweenMessagesMs = readWaitBetweenMessagesMs(prefs);
+		Preferences prefs = new Preferences(this);
+		notifyViaSMS = prefs.getSMSNotification();
+		notifyViaEmail = prefs.getEmailNotification();
+		notifyViaCall = prefs.getCallNotification();
+		waitBetweenMessagesMs = prefs.getMessageIntervalMilliseconds();
 	}
 
 	private synchronized void setNotificationTimer() {
@@ -272,18 +257,8 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private long getWaitingTime() {
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-		String prefName = getString(R.string.edittext_cancelation_delay);
-		String prefVal = prefs.getString(prefName, null);
-		Log.d(LOG_TAG, String.format("from prefs: %s=%s", prefName, prefVal));
-
-		try {
-			return prefVal == null ? DEFAULT_WAIT_TO_CANCEL_MS : Integer.parseInt(prefVal) * 1000;
-		} catch (NumberFormatException e) {
-			Log.e("delay_time", String.format("Badly formatted pref: %s=%s", prefName, prefVal));
-			return DEFAULT_WAIT_TO_CANCEL_MS;
-		}
+		Preferences prefs = new Preferences(this);
+		return prefs.getCancelationDelayMilliseconds();
 	}
 
 	private void stopEmergency() {
