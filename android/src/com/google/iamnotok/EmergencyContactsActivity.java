@@ -29,7 +29,7 @@ import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
+import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.utils.AccountUtils;
 
 /**
@@ -73,7 +73,8 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 	@Override
 	protected void onResume() {
 		super.onResume();
-		updateEmergencyButtonStatus(EmergencyNotificationService.getVigilanceState(this));
+		Preferences pref = new Preferences(this);
+		updateEmergencyButtonStatus(pref.getVigilanceState());
 		PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
 	}
 
@@ -85,8 +86,9 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (key.equals(EmergencyNotificationService.VIGILANCE_STATE_KEY)) {
-			updateEmergencyButtonStatus(EmergencyNotificationService.getVigilanceState(this));
+		if (key.equals(Preferences.VIGILANCE_STATE_KEY)) {
+			Preferences pref = new Preferences(this);
+			updateEmergencyButtonStatus(pref.getVigilanceState());
 		} else if (key.equals(Preferences.ACCOUNT_NAME_KEY)) {
 			if (Build.VERSION.SDK_INT >= 11) {
 				updateActionBar();

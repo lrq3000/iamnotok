@@ -14,7 +14,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.iamnotok.utils.LocationUtils;
@@ -62,11 +61,9 @@ public class LocationTracker extends IntentService {
 
 	private static final String ACTION_UPDATE_LOCATION = "updateLocation";
 
-	private static final String KEY_LAST_NOTIFIED_ADDRESS = "keyLastNotifiedAddress";
-	private static final String KEY_CURRENT_LOCATION_ADDRESS = "keyCurrentLocationAddress";
-
 	private Geocoder geocoder;
 	private DistanceThresholdListener listener;
+	private Preferences preferences;
 
 	private static Intent getUpdateLocationIntent(Context context) {
 		return new Intent(context, LocationTracker.class).setAction(ACTION_UPDATE_LOCATION);
@@ -80,47 +77,11 @@ public class LocationTracker extends IntentService {
 		super(LocationTracker.class.getName());
 	}
 
-	private static void storeLocationAddress(LocationAddress locationAddress, String key, Context context) {
-		Parcel parcel = Parcel.obtain();
-		locationAddress.writeToParcel(parcel, 0);
-		PreferenceManager.getDefaultSharedPreferences(context).edit()
-			.putString(key, parcel.marshall().toString()).commit();
-	}
-
-	private static LocationAddress loadLocationAddress(String key, Context context) {
-		String encoded = PreferenceManager.getDefaultSharedPreferences(context).getString(key, null);
-		if (encoded == null) {
-			return null;
-		}
-		Parcel parcel = Parcel.obtain();
-		parcel.unmarshall(encoded.getBytes(), 0, encoded.length());
-		return LocationAddress.readFromParcel(parcel);
-	}
-
-	private static void setLastNotifiedAddress(LocationAddress lastNotifiedAddress, Context context) {
-		storeLocationAddress(lastNotifiedAddress, KEY_LAST_NOTIFIED_ADDRESS, context);
-	}
-
-	private static LocationAddress getLastNotifiedAddress(Context context) {
-		return loadLocationAddress(KEY_LAST_NOTIFIED_ADDRESS, context);
-	}
-
-	private static void setCurrentLocationAddress(LocationAddress currentLocationAddress, Context context) {
-		storeLocationAddress(currentLocationAddress, KEY_CURRENT_LOCATION_ADDRESS, context);
-	}
-
-	private static LocationAddress getCurrentLocationAddress(Context context) {
-		LocationAddress currentLocationAddress = loadLocationAddress(KEY_CURRENT_LOCATION_ADDRESS, context);
-		if (currentLocationAddress == null) {
-			return new LocationAddress(null, null);
-		}
-		return currentLocationAddress;
-	}
-
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		this.geocoder = new Geocoder(this, Locale.getDefault());
+		this.preferences = new Preferences(this);
 	}
 
 	@Override
@@ -164,7 +125,7 @@ public class LocationTracker extends IntentService {
 	private void updateLocation(Location newLocation) {
 		Log.i(LOG_TAG, "In updatLocation");
 
-		LocationAddress currentLocationAddress = getCurrentLocationAddress(this);
+		LocationAddress currentLocationAddress = getCurrentLocation(preferences);
 		if (LocationUtils.isBetterLocation(newLocation, currentLocationAddress.location)) {
 			currentLocationAddress = new LocationAddress(newLocation, null);
 			updateAddressAndNotify(currentLocationAddress.location);
@@ -174,14 +135,17 @@ public class LocationTracker extends IntentService {
 	}
 
 	/**
-	 * Notifying only if last notified location is farther than METERS_THRESHOLD_FOR_NOTIFY from current.
-	 * On no previous notifications, we do NOT notify.
+	 * Notifying only if last notified location is farther than
+	 * METERS_THRESHOLD_FOR_NOTIFY from current. On no previous notifications,
+	 * we do NOT notify. (TODO: why?)
 	 */
 	private boolean shouldNotify() {
-		LocationAddress lastNotifiedLocationAddress = getLastNotifiedAddress(this);
-		return (lastNotifiedLocationAddress != null) &&
-				(lastNotifiedLocationAddress.location.distanceTo(
-						getCurrentLocationAddress(this).location) > METERS_THRESHOLD_FOR_NOTIFY);
+		LocationAddress lastNotifiedLocationAddress = preferences.getLastNotifiedLocation();
+		if (lastNotifiedLocationAddress == null)
+			return false;
+		LocationAddress currentLocationAddress = getCurrentLocation(preferences);
+		float distance = lastNotifiedLocationAddress.location.distanceTo(currentLocationAddress.location);
+		return distance > METERS_THRESHOLD_FOR_NOTIFY;
 	}
 
 	private void updateAddressAndNotify(final Location location) {
@@ -191,7 +155,7 @@ public class LocationTracker extends IntentService {
 	                List<Address> list = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
 	                if (list != null && list.size() > 0) {
 	                    Address address = list.get(0);
-	                    setCurrentLocationAddress(new LocationAddress(location, address), LocationTracker.this);
+	                    preferences.setCurrentLocation(new LocationAddress(location, address));
 	                }
 	            } catch (IOException e) {
 	                Log.e(LOG_TAG, "Impossible to connect to Geocoder", e);
@@ -209,7 +173,7 @@ public class LocationTracker extends IntentService {
 		Log.i(LOG_TAG, "Deactivating");
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		locationManager.removeUpdates(getUpdateLocationPendingIntent(context));
-		// keep last known location
+		// TODO: keep last known location?
 	}
 
 	// TODO: VERY IMPORTANT: this should'nt be here. This should be sent by intent!
@@ -219,16 +183,29 @@ public class LocationTracker extends IntentService {
 
 	// Synchronized so 2 concurrent calls() won't confuse listeners
 	private synchronized void notifyListeners() {
-		LocationAddress currentLocationAddress = getCurrentLocationAddress(this);
+		LocationAddress currentLocationAddress = getCurrentLocation(preferences);
 		if (listener != null)
 			listener.notify(currentLocationAddress);
-		setLastNotifiedAddress(currentLocationAddress, this);
+		preferences.setLastNotifiedLocation(currentLocationAddress);
 		Log.i(LOG_TAG, "Done notifying all listeners with best location " + currentLocationAddress);
 	}
 
+	
+	// TODO: why static?
+	
 	public static LocationAddress getLocationAddress(Context context) {
-		LocationAddress currentLocationAddress = getCurrentLocationAddress(context);
-		setLastNotifiedAddress(currentLocationAddress, context);
+		Preferences pref = new Preferences(context);
+		LocationAddress currentLocationAddress = getCurrentLocation(pref);
+		pref.setLastNotifiedLocation(currentLocationAddress);
+		return currentLocationAddress;
+	}
+	
+	// Returns stored location address from preferences or new location address
+	// with null location and address.
+	private static LocationAddress getCurrentLocation(Preferences pref) {
+		LocationAddress currentLocationAddress = pref.getCurrentLocation();
+		if (currentLocationAddress == null)
+			return new LocationAddress(null, null);
 		return currentLocationAddress;
 	}
 }

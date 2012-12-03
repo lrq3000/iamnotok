@@ -10,12 +10,12 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.os.Vibrator;
-import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.iamnotok.LocationTracker.LocationAddress;
+import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.senders.NotificationSender;
 import com.google.iamnotok.senders.SmsNotificationSender;
 import com.google.iamnotok.senders.email_sender.EmailNotificationSender;
@@ -45,16 +45,10 @@ public class EmergencyNotificationService extends Service {
 	private final static String ACTION_STOP_EMERGENCY = "stopEmergency";
 	private final static String ACTION_SEND_EMERGENCY = "sendEmergency";
 
-	public final static String VIGILANCE_STATE_KEY = "vigilanceStateKey";
-
-	public enum VigilanceState {
-		NORMAL_STATE,
-		WAITING_STATE,
-		EMERGENCY_STATE,
-	}
-
 	private static final int NOTIFICATION_ID = 0;
 	private LocationTracker locationTracker;
+	private Preferences preferences;
+	
 	private boolean notifyViaSMS = true;
 	private boolean notifyViaEmail = true;
 	private boolean notifyViaCall = false;
@@ -107,6 +101,7 @@ public class EmergencyNotificationService extends Service {
 		super.onCreate();
 		contactHelper = new EmergencyContactsHelper(this, new ContactLookupUtil());
 		locationTracker = new LocationTracker();
+		preferences = new Preferences(this);
 
 		// Show a notification.
 		this.notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
@@ -114,7 +109,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		if (getVigilanceState(this) != VigilanceState.EMERGENCY_STATE) {
+		if (preferences.getVigilanceState() != VigilanceState.EMERGENCY_STATE) {
 			return;
 		}
 
@@ -137,9 +132,10 @@ public class EmergencyNotificationService extends Service {
 				Toast.makeText(this, R.string.no_notification_defined, Toast.LENGTH_LONG).show();
 				return START_NOT_STICKY;
 			}
-			// TODO: Check that we have someone to notify
 
-			if (getVigilanceState(this) != VigilanceState.NORMAL_STATE) {
+			// TODO: Check that we have someone to notify
+			
+			if (preferences.getVigilanceState() != VigilanceState.NORMAL_STATE) {
 				Log.d(LOG_TAG, "Application already in either waiting or emergency mode.");
 				return START_NOT_STICKY;
 			}
@@ -166,19 +162,19 @@ public class EmergencyNotificationService extends Service {
 		} else if (intent.getAction().equals(ACTION_CANCEL_EMERGENCY)) {
 			alarmManager.cancel(getWaitingPendingIntent());
 			notificationManager.cancel(NOTIFICATION_ID);
-			if (getVigilanceState(this) == VigilanceState.WAITING_STATE) {
+			if (preferences.getVigilanceState() == VigilanceState.WAITING_STATE) {
 				Log.d(LOG_TAG, "Application in waiting state, cancelling the emergency");
 				changeState(VigilanceState.NORMAL_STATE);
 				LocationTracker.deactivate(this);
 			} else {
-				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + getVigilanceState(this).name());
+				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + preferences.getVigilanceState().name());
 			}
 		} else if (intent.getAction().equals(ACTION_STOP_EMERGENCY)) {
-			if (getVigilanceState(this) == VigilanceState.EMERGENCY_STATE) {
+			if (preferences.getVigilanceState() == VigilanceState.EMERGENCY_STATE) {
 				Log.d(LOG_TAG, "Application in emergency state, I am now OK");
 				stopEmergency();
 			} else {
-				Log.w(LOG_TAG, "Trying to stop a notification in state: " + getVigilanceState(this).name());
+				Log.w(LOG_TAG, "Trying to stop a notification in state: " + preferences.getVigilanceState().name());
 			}
 		} else if (intent.getAction().equals(ACTION_SEND_EMERGENCY)) {
 			sendEmergencyMessages(getLocationAddress());
@@ -190,11 +186,10 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private void readPreferences() {
-		Preferences prefs = new Preferences(this);
-		notifyViaSMS = prefs.getSMSNotification();
-		notifyViaEmail = prefs.getEmailNotification();
-		notifyViaCall = prefs.getCallNotification();
-		waitBetweenMessagesMs = prefs.getMessageIntervalMilliseconds();
+		notifyViaSMS = preferences.getSMSNotification();
+		notifyViaEmail = preferences.getEmailNotification();
+		notifyViaCall = preferences.getCallNotification();
+		waitBetweenMessagesMs = preferences.getMessageIntervalMilliseconds();
 	}
 
 	private synchronized void setNotificationTimer() {
@@ -217,10 +212,10 @@ public class EmergencyNotificationService extends Service {
 
 	private void sendEmergencyMessages(LocationAddress locationAddress) {
 		if (notifyViaSMS) {
-			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, getVigilanceState(this));
+			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
 		}
 		if (notifyViaEmail) {
-			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, getVigilanceState(this));
+			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
 		}
 	}
 
@@ -245,20 +240,12 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private synchronized void changeState(VigilanceState new_state) {
-		Log.i(LOG_TAG, "Changing state from: " + getVigilanceState(this) + " to " + new_state);
-
-		PreferenceManager.getDefaultSharedPreferences(this).edit()
-			.putInt(VIGILANCE_STATE_KEY, new_state.ordinal())
-			.commit();
-	}
-
-	public static VigilanceState getVigilanceState(Context context) {
-		return VigilanceState.values()[PreferenceManager.getDefaultSharedPreferences(context).getInt(VIGILANCE_STATE_KEY, 0)];
+		Log.i(LOG_TAG, "Changing state from: " + preferences.getVigilanceState().name() + " to " + new_state);
+		preferences.setVigilanceState(new_state);
 	}
 
 	private long getWaitingTime() {
-		Preferences prefs = new Preferences(this);
-		return prefs.getCancelationDelayMilliseconds();
+		return preferences.getCancelationDelayMilliseconds();
 	}
 
 	private void stopEmergency() {

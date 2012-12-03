@@ -13,7 +13,8 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 import com.google.iamnotok.EmergencyNotificationService;
-import com.google.iamnotok.EmergencyNotificationService.VigilanceState;
+import com.google.iamnotok.Preferences;
+import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.R;
 
 public class EmergencyButtonWidgetProvider extends AppWidgetProvider implements OnSharedPreferenceChangeListener {
@@ -27,7 +28,8 @@ public class EmergencyButtonWidgetProvider extends AppWidgetProvider implements 
       int appWidgetId = appWidgetIds[i];
 
       // Get the remote views and set the pending intent for the emergency button.
-      appWidgetManager.updateAppWidget(appWidgetId, setupViews(context, EmergencyNotificationService.getVigilanceState(context)));
+      Preferences pref = new Preferences(context);
+      appWidgetManager.updateAppWidget(appWidgetId, setupViews(context, pref.getVigilanceState()));
     }
 
     super.onUpdate(context, appWidgetManager, appWidgetIds);
@@ -49,10 +51,11 @@ public class EmergencyButtonWidgetProvider extends AppWidgetProvider implements 
 
   @Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-	  if (key.equals(EmergencyNotificationService.VIGILANCE_STATE_KEY)) {
+	  if (key.equals(Preferences.VIGILANCE_STATE_KEY)) {
 	    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-	    appWidgetManager.updateAppWidget(new ComponentName(context.getPackageName(), this.getClass().getName()),
-	    		setupViews(context, EmergencyNotificationService.getVigilanceState(context)));
+	    Preferences pref = new Preferences(context);
+;	    appWidgetManager.updateAppWidget(new ComponentName(context.getPackageName(), this.getClass().getName()),
+	    		setupViews(context, pref.getVigilanceState()));
 	  }
 	}
 
