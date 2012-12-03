@@ -34,7 +34,7 @@
 				<category android:name="android.intent.category.HOME" />
 			</intent-filter>
 		</receiver>
-		<receiver android:name="EmergencyButtonWidgetProvider">
+		<receiver android:name=".widget.EmergencyButtonWidgetProvider">
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 			</intent-filter>
