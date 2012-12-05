@@ -189,7 +189,7 @@ public class EmergencyNotificationService extends Service {
 			changeState(VigilanceState.NORMAL_STATE);
 			LocationTracker.deactivate(this);
 		} else {
-			Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + preferences.getVigilanceState().name());
+			Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + preferences.getVigilanceState());
 		}		
 	}
 	
@@ -201,7 +201,7 @@ public class EmergencyNotificationService extends Service {
 			sendEmergencyMessages();
 			LocationTracker.deactivate(this);
 		} else {
-			Log.w(LOG_TAG, "Trying to stop a notification in state: " + preferences.getVigilanceState().name());
+			Log.w(LOG_TAG, "Trying to stop a notification in state: " + preferences.getVigilanceState());
 		}
 	}
 	
@@ -250,7 +250,7 @@ public class EmergencyNotificationService extends Service {
 	// Keeping application state
 	
 	private synchronized void changeState(VigilanceState new_state) {
-		Log.i(LOG_TAG, "Changing state from: " + preferences.getVigilanceState().name() + " to " + new_state);
+		Log.i(LOG_TAG, "Changing state from: " + preferences.getVigilanceState() + " to " + new_state);
 		preferences.setVigilanceState(new_state);
 	}
 
