@@ -21,9 +21,9 @@ public class Preferences {
 	public static final String PHONE_NUMBER_KEY                 = "account_phone_number";
 	public static final String QUITE_MODE_KEY                   = "Enable Quiet Mode";
 	public static final String CUSTOM_MESSAGE_KEY               = "edittext_custom_message";
-	public static final String SMS_NOTIFICATION_KEY             = "sms_notification";
-	public static final String EMAIL_NOTIFICATION_KEY           = "email_notification";
-	public static final String CALL_NOTIFICATION_KEY            = "email_notification";
+	public static final String NOTIFY_VIA_SMS_KEY               = "sms_notification";
+	public static final String NOTIFY_VIA_EMAIL_KEY             = "email_notification";
+	public static final String NOTIFY_VIA_CALL_KEY              = "email_notification";
 	public static final String MESSAGE_INTERVAL_SECONDS_KEY     = "edittext_message_interval";
 	public static final String CANCELATION_DELAY_SECONDS_KEY    = "cancelation_delay";
 	public static final String VIGILANCE_STATE_KEY              = "vigilanceStateKey";
@@ -63,18 +63,18 @@ public class Preferences {
 		return preferences.getString(CUSTOM_MESSAGE_KEY, "");
 	}
 	
-	public boolean getSMSNotification() {
+	public boolean getNotifyViaSMS() {
 		// Enabled if not set
-		return preferences.getBoolean(SMS_NOTIFICATION_KEY, true);
+		return preferences.getBoolean(NOTIFY_VIA_SMS_KEY, true);
 	}
 
-	public boolean getEmailNotification() {
+	public boolean getNotifyViaEmail() {
 		// Enabled if not set
-		return preferences.getBoolean(EMAIL_NOTIFICATION_KEY, true);
+		return preferences.getBoolean(NOTIFY_VIA_EMAIL_KEY, true);
 	}
 	
-	public boolean getCallNotification() {
-		return preferences.getBoolean(CALL_NOTIFICATION_KEY, false);
+	public boolean getNotifyViaCall() {
+		return preferences.getBoolean(NOTIFY_VIA_CALL_KEY, false);
 	}
 
 	public long getMessageIntervalMilliseconds() {

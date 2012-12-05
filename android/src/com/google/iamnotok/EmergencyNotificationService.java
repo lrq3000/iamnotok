@@ -141,9 +141,9 @@ public class EmergencyNotificationService extends Service {
 	
 	private void startEmergency(Intent intent) {
 		// TODO: remove this when each contact will have its own notifications list.
-		if (!(preferences.getCallNotification() || 
-			  preferences.getEmailNotification() ||
-			  preferences.getSMSNotification())) {
+		if (!(preferences.getNotifyViaCall() || 
+			  preferences.getNotifyViaEmail() ||
+			  preferences.getNotifyViaSMS())) {
 			Log.d(LOG_TAG, "No notification option selected");
 			Toast.makeText(this, R.string.no_notification_defined, Toast.LENGTH_LONG).show();
 			return;
@@ -209,10 +209,10 @@ public class EmergencyNotificationService extends Service {
 	private void sendEmergencyMessages() {
 		Log.i(LOG_TAG, "Sending emergency messages");
 		LocationAddress locationAddress = getLocationAddress();
-		if (preferences.getSMSNotification()) {
+		if (preferences.getNotifyViaSMS()) {
 			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
 		}
-		if (preferences.getEmailNotification()) {
+		if (preferences.getNotifyViaEmail()) {
 			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
 		}
 	}
@@ -243,7 +243,7 @@ public class EmergencyNotificationService extends Service {
 	private void invokeEmergencyResponse() {
 		Log.d(LOG_TAG, "Invoking emergency response");
 
-		if (preferences.getCallNotification()) {
+		if (preferences.getNotifyViaCall()) {
 			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
 		}
 
