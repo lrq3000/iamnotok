@@ -69,7 +69,7 @@ public class EmailNotificationSender implements NotificationSender {
 	  try {
 	    GMailSender sender = new GMailSender("imnotokandroidapplication@gmail.com", "googlezurich");
 	    String mailAddress = accountUtils.getMailAddress();
-	    sender.sendMail(mailAddress, subject, message, "imnotokapplication@gmail.com", recipients);
+	    sender.sendMail(mailAddress, subject, message, "imnotokandroidapplication@gmail.com", recipients);
 	  } catch (Exception e) {
 	    Log.e("SendMail", e.getMessage(), e);
 	  }

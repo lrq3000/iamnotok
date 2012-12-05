@@ -1,5 +1,8 @@
 package com.google.iamnotok.senders.email_sender;
 
+import android.os.AsyncTask;
+import android.util.Log;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,15 +38,19 @@ public class GMailSender extends javax.mail.Authenticator {
     this.password = password;
 
     Properties props = new Properties();
-    props.setProperty("mail.transport.protocol", "smtp");
-    props.setProperty("mail.host", mailhost);
+    //props.setProperty("mail.transport.protocol", "smtp");
+
+    //props.setProperty("mail.host", mailhost);
+
+    props.put("mail.smtp.host", mailhost);
     props.put("mail.smtp.auth", "true");
     props.put("mail.smtp.port", "465");
     props.put("mail.smtp.socketFactory.port", "465");
     props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
     props.put("mail.smtp.socketFactory.fallback", "false");
-    props.put("smtp.mail", "igal1987@gmail.com");
-    props.setProperty("mail.smtp.quitwait", "false");
+
+    //props.put("smtp.mail", "igal1987@gmail.com");
+    //props.setProperty("mail.smtp.quitwait", "false");
 
     session = Session.getDefaultInstance(props, this);
   }
@@ -54,29 +61,48 @@ public class GMailSender extends javax.mail.Authenticator {
   }
 
   public synchronized void sendMail(final String from, String subject, String body, String sender,
-      String recipients) throws Exception {
-    try {
-      MimeMessage message = new MimeMessage(session);
-      DataHandler handler = new DataHandler(new ByteArrayDataSource(
-          body.getBytes(), "text/plain"));
-      InternetAddress fromAddress = new InternetAddress(from.contains("@") ? from : sender);
-      // TODO: gmail seems to override this... need to find out how to set the sender
-      message.setSender(fromAddress);
-      message.setFrom(fromAddress);
-      message.setSubject(subject);
-      message.setDataHandler(handler);
-      if (recipients.indexOf(',') > 0) {
-        message.setRecipients(Message.RecipientType.TO,
-            InternetAddress.parse(recipients));
-      } else {
-        message.setRecipient(Message.RecipientType.TO, new InternetAddress(
-            recipients));
-      }
-      // TODO: Need to be async.
-      Transport.send(message);
-    } catch (Exception e) {
-    }
+      String recipients) {
+
+      new EmailSenderTask().execute(from, subject, body, sender, recipients);
   }
+
+    private class EmailSenderTask extends AsyncTask<String, Void, Void> {
+        protected Void doInBackground(String... params) {
+            String from = params[0];
+            String subject = params[1];
+            String body = params[2];
+            String sender = params[3];
+            String recipients = params[4];
+
+            try {
+                MimeMessage message = new MimeMessage(session);
+                DataHandler handler = new DataHandler(new ByteArrayDataSource(
+                        body.getBytes(), "text/plain"));
+
+                InternetAddress fromAddress = new InternetAddress(from.contains("@") ? from : sender);
+
+                // TODO: gmail seems to override this... need to find out how to set the sender
+                message.setSender(fromAddress);
+                message.setFrom(fromAddress);
+                message.setSubject(subject);
+                message.setDataHandler(handler);
+
+                if (recipients.indexOf(',') > 0) {
+                    message.setRecipients(Message.RecipientType.TO,
+                            InternetAddress.parse(recipients));
+                } else {
+                    message.setRecipient(Message.RecipientType.TO, new InternetAddress(
+                            recipients));
+                }
+
+                Transport.send(message);
+            } catch (Exception e) {
+                Log.e("sendMail", e.getMessage(), e);
+            }
+
+            return null;
+        }
+    }
 
   public class ByteArrayDataSource implements DataSource {
     private byte[] data;

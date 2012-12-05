@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">I\'m Not OK</string>
+    <string name="app_name">iamnotok</string>
     <string name="SOS">SOS</string>
     <string name="emergency_response_starting">Sending SOS messages to your emergency contacts</string>
     <string name="click_to_disable">Click to disable</string>
