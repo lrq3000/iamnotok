@@ -24,47 +24,47 @@ import javax.mail.internet.MimeMessage;
  */
 
 public class GMailSender extends javax.mail.Authenticator {
-  private String mailhost = "smtp.gmail.com";
-  private String user;
-  private String password;
-  private Session session;
+    private String mailhost = "smtp.gmail.com";
+    private String user;
+    private String password;
+    private Session session;
 
-  static {
-    Security.addProvider(new JSSEProvider());
-  }
+    static {
+        Security.addProvider(new JSSEProvider());
+    }
 
-  public GMailSender(String user, String password) {
-    this.user = user;
-    this.password = password;
+    public GMailSender(String user, String password) {
+        this.user = user;
+        this.password = password;
 
-    Properties props = new Properties();
-    //props.setProperty("mail.transport.protocol", "smtp");
+        Properties props = new Properties();
+        //props.setProperty("mail.transport.protocol", "smtp");
 
-    //props.setProperty("mail.host", mailhost);
+        //props.setProperty("mail.host", mailhost);
 
-    props.put("mail.smtp.host", mailhost);
-    props.put("mail.smtp.auth", "true");
-    props.put("mail.smtp.port", "465");
-    props.put("mail.smtp.socketFactory.port", "465");
-    props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-    props.put("mail.smtp.socketFactory.fallback", "false");
+        props.put("mail.smtp.host", mailhost);
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.port", "465");
+        props.put("mail.smtp.socketFactory.port", "465");
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.socketFactory.fallback", "false");
 
-    //props.put("smtp.mail", "igal1987@gmail.com");
-    //props.setProperty("mail.smtp.quitwait", "false");
+        //props.put("smtp.mail", "igal1987@gmail.com");
+        //props.setProperty("mail.smtp.quitwait", "false");
 
-    session = Session.getDefaultInstance(props, this);
-  }
+        session = Session.getDefaultInstance(props, this);
+    }
 
-  @Override
-  protected PasswordAuthentication getPasswordAuthentication() {
-    return new PasswordAuthentication(user, password);
-  }
+    @Override
+    protected PasswordAuthentication getPasswordAuthentication() {
+        return new PasswordAuthentication(user, password);
+    }
 
-  public synchronized void sendMail(final String from, String subject, String body, String sender,
-      String recipients) {
+    public synchronized void sendMail(final String from, String subject, String body, String sender,
+                                      String recipients) {
 
-      new EmailSenderTask().execute(from, subject, body, sender, recipients);
-  }
+        new EmailSenderTask().execute(from, subject, body, sender, recipients);
+    }
 
     private class EmailSenderTask extends AsyncTask<String, Void, Void> {
         protected Void doInBackground(String... params) {
@@ -73,6 +73,7 @@ public class GMailSender extends javax.mail.Authenticator {
             String body = params[2];
             String sender = params[3];
             String recipients = params[4];
+            InternetAddress[] replyToAddresses = new InternetAddress[1];
 
             try {
                 MimeMessage message = new MimeMessage(session);
@@ -80,10 +81,12 @@ public class GMailSender extends javax.mail.Authenticator {
                         body.getBytes(), "text/plain"));
 
                 InternetAddress fromAddress = new InternetAddress(from.contains("@") ? from : sender);
+                replyToAddresses[0] = fromAddress;
 
                 // TODO: gmail seems to override this... need to find out how to set the sender
                 message.setSender(fromAddress);
                 message.setFrom(fromAddress);
+                message.setReplyTo(replyToAddresses);
                 message.setSubject(subject);
                 message.setDataHandler(handler);
 
@@ -104,46 +107,46 @@ public class GMailSender extends javax.mail.Authenticator {
         }
     }
 
-  public class ByteArrayDataSource implements DataSource {
-    private byte[] data;
-    private String type;
+    public class ByteArrayDataSource implements DataSource {
+        private byte[] data;
+        private String type;
 
-    public ByteArrayDataSource(byte[] data, String type) {
-      super();
-      this.data = data;
-      this.type = type;
-    }
+        public ByteArrayDataSource(byte[] data, String type) {
+            super();
+            this.data = data;
+            this.type = type;
+        }
 
-    public ByteArrayDataSource(byte[] data) {
-      super();
-      this.data = data;
-    }
+        public ByteArrayDataSource(byte[] data) {
+            super();
+            this.data = data;
+        }
 
-    public void setType(String type) {
-      this.type = type;
-    }
+        public void setType(String type) {
+            this.type = type;
+        }
 
-    @Override
-	public String getContentType() {
-      if (type == null)
-        return "application/octet-stream";
-      else
-        return type;
-    }
+        @Override
+        public String getContentType() {
+            if (type == null)
+                return "application/octet-stream";
+            else
+                return type;
+        }
 
-    @Override
-	public InputStream getInputStream() {
-      return new ByteArrayInputStream(data);
-    }
+        @Override
+        public InputStream getInputStream() {
+            return new ByteArrayInputStream(data);
+        }
 
-    @Override
-	public String getName() {
-      return "ByteArrayDataSource";
-    }
+        @Override
+        public String getName() {
+            return "ByteArrayDataSource";
+        }
 
-    @Override
-	public OutputStream getOutputStream() throws IOException {
-      throw new IOException("Not Supported");
+        @Override
+        public OutputStream getOutputStream() throws IOException {
+            throw new IOException("Not Supported");
+        }
     }
-  }
 }
