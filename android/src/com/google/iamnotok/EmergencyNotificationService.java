@@ -124,8 +124,9 @@ public class EmergencyNotificationService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.i(LOG_TAG, "Service received action: " + intent.getAction());
-		if (intent.getAction().equals(ACTION_START_EMERGENCY)) {
+		final String action = intent.getAction();
+		Log.i(LOG_TAG, "Service received action: " + action);
+		if (action.equals(ACTION_START_EMERGENCY)) {
 			readPreferences();
 
 			if (!(notifyViaCall || notifyViaEmail || notifyViaSMS)) {
@@ -155,11 +156,11 @@ public class EmergencyNotificationService extends Service {
 			} else {
 				startService(getActivateIntent(this));
 			}
-		} else if (intent.getAction().equals(ACTION_ACTIVATE_EMERGENCY)) {
+		} else if (action.equals(ACTION_ACTIVATE_EMERGENCY)) {
 			notificationManager.cancel(NOTIFICATION_ID);
 			changeState(VigilanceState.EMERGENCY_STATE);
 			invokeEmergencyResponse();
-		} else if (intent.getAction().equals(ACTION_CANCEL_EMERGENCY)) {
+		} else if (action.equals(ACTION_CANCEL_EMERGENCY)) {
 			alarmManager.cancel(getWaitingPendingIntent());
 			notificationManager.cancel(NOTIFICATION_ID);
 			if (preferences.getVigilanceState() == VigilanceState.WAITING_STATE) {
@@ -169,17 +170,17 @@ public class EmergencyNotificationService extends Service {
 			} else {
 				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + preferences.getVigilanceState().name());
 			}
-		} else if (intent.getAction().equals(ACTION_STOP_EMERGENCY)) {
+		} else if (action.equals(ACTION_STOP_EMERGENCY)) {
 			if (preferences.getVigilanceState() == VigilanceState.EMERGENCY_STATE) {
 				Log.d(LOG_TAG, "Application in emergency state, I am now OK");
 				stopEmergency();
 			} else {
 				Log.w(LOG_TAG, "Trying to stop a notification in state: " + preferences.getVigilanceState().name());
 			}
-		} else if (intent.getAction().equals(ACTION_SEND_EMERGENCY)) {
+		} else if (action.equals(ACTION_SEND_EMERGENCY)) {
 			sendEmergencyMessages(getLocationAddress());
 		} else {
-			Log.e(LOG_TAG, "Unknown action: " + intent.getAction());
+			Log.e(LOG_TAG, "Unknown action: " + action);
 		}
 
 		return START_NOT_STICKY;
