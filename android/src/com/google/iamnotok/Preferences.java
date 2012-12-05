@@ -18,6 +18,7 @@ public class Preferences {
 	// Keys
 	// TODO: consistent names
 	public static final String ACCOUNT_NAME_KEY                 = "select_account_list";
+	public static final String PHONE_NUMBER_KEY                 = "account_phone_number";
 	public static final String QUITE_MODE_KEY                   = "Enable Quiet Mode";
 	public static final String CUSTOM_MESSAGE_KEY               = "edittext_custom_message";
 	public static final String SMS_NOTIFICATION_KEY             = "sms_notification";
@@ -39,12 +40,18 @@ public class Preferences {
 		preferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 
+	// User preferences
+	
 	public String getAccountName() {
 		return preferences.getString(ACCOUNT_NAME_KEY, "");
 	}
 
 	public void setAccountName(String name) {
 		preferences.edit().putString(ACCOUNT_NAME_KEY, name).commit();
+	}
+	
+	public String getPhoneNumber() {
+		return preferences.getString(PHONE_NUMBER_KEY, "");
 	}
 	
 	public boolean getQuiteMode() {
@@ -78,6 +85,8 @@ public class Preferences {
 		return getLong(CANCELATION_DELAY_SECONDS_KEY, DEFAULT_CANCELATION_DELAY_SECONDS) * 1000;
 	}
 		
+	// Application data 
+	
 	public VigilanceState getVigilanceState() {
 		try {
 			int ordinal = preferences.getInt(VIGILANCE_STATE_KEY, VigilanceState.NORMAL_STATE.ordinal());

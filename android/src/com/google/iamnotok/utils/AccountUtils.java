@@ -87,11 +87,9 @@ public class AccountUtils {
 
 	public String getPhoneNumber() {
 		// First try to get the phone number from the preferences.
-		SharedPreferences prefs =
-			PreferenceManager.getDefaultSharedPreferences(context);
-		String phoneNumber = prefs.getString(
-				context.getString(R.string.account_phone_number), "");
-		if (phoneNumber != null && !phoneNumber.equals("")) {
+		Preferences prefs = new Preferences(context);
+		String phoneNumber = prefs.getPhoneNumber();
+		if (!phoneNumber.equals("")) {
 			return phoneNumber;
 		}
 
