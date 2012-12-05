@@ -3,17 +3,14 @@ package com.google.iamnotok.utils;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.google.iamnotok.Preferences;
-import com.google.iamnotok.R;
 
 public class AccountUtils {
 	private static final String LOG_TAG = "AccountUtils";
