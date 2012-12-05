@@ -127,91 +127,86 @@ public class EmergencyNotificationService extends Service {
 		final String action = intent.getAction();
 		Log.i(LOG_TAG, "Service received action: " + action);
 		if (action.equals(ACTION_START_EMERGENCY)) {
-			readPreferences();
-
-			if (!(notifyViaCall || notifyViaEmail || notifyViaSMS)) {
-				Toast.makeText(this, R.string.no_notification_defined, Toast.LENGTH_LONG).show();
-				return START_NOT_STICKY;
-			}
-
-			// TODO: Check that we have someone to notify
-			
-			if (preferences.getVigilanceState() != VigilanceState.NORMAL_STATE) {
-				Log.d(LOG_TAG, "Application already in either waiting or emergency mode.");
-				return START_NOT_STICKY;
-			}
-
-			Log.d(LOG_TAG, "Starting the service");
-			changeState(VigilanceState.WAITING_STATE);
-
-			// Vibrate for 300 milliseconds
-			((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(300);
-
-			// Make sure the location tracker is active
-			LocationTracker.activate(this);
-
-			boolean showNotification = (intent == null) || (intent.getBooleanExtra(SHOW_NOTIFICATION_WITH_DISABLE, false));
-			if (showNotification) {
-				this.showDisableNotificationAndWaitToInvokeResponse();
-			} else {
-				startService(getActivateIntent(this));
-			}
+			startEmergency(intent);
 		} else if (action.equals(ACTION_ACTIVATE_EMERGENCY)) {
-			notificationManager.cancel(NOTIFICATION_ID);
-			changeState(VigilanceState.EMERGENCY_STATE);
-			invokeEmergencyResponse();
+			activateEmergency();
 		} else if (action.equals(ACTION_CANCEL_EMERGENCY)) {
-			alarmManager.cancel(getWaitingPendingIntent());
-			notificationManager.cancel(NOTIFICATION_ID);
-			if (preferences.getVigilanceState() == VigilanceState.WAITING_STATE) {
-				Log.d(LOG_TAG, "Application in waiting state, cancelling the emergency");
-				changeState(VigilanceState.NORMAL_STATE);
-				LocationTracker.deactivate(this);
-			} else {
-				Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + preferences.getVigilanceState().name());
-			}
+			cancelEmergency();
 		} else if (action.equals(ACTION_STOP_EMERGENCY)) {
-			if (preferences.getVigilanceState() == VigilanceState.EMERGENCY_STATE) {
-				Log.d(LOG_TAG, "Application in emergency state, I am now OK");
-				stopEmergency();
-			} else {
-				Log.w(LOG_TAG, "Trying to stop a notification in state: " + preferences.getVigilanceState().name());
-			}
+			stopEmergency();
 		} else if (action.equals(ACTION_SEND_EMERGENCY)) {
-			sendEmergencyMessages(getLocationAddress());
+			sendEmergencyMessages();
 		} else {
 			Log.e(LOG_TAG, "Unknown action: " + action);
 		}
-
 		return START_NOT_STICKY;
 	}
 
-	private void readPreferences() {
-		notifyViaSMS = preferences.getSMSNotification();
-		notifyViaEmail = preferences.getEmailNotification();
-		notifyViaCall = preferences.getCallNotification();
-		waitBetweenMessagesMs = preferences.getMessageIntervalMilliseconds();
-	}
+	// Handling actions
+	
+	private void startEmergency(Intent intent) {
+		readPreferences();
 
-	private synchronized void setNotificationTimer() {
-		alarmManager.setRepeating(
-				AlarmManager.ELAPSED_REALTIME_WAKEUP,
-				SystemClock.elapsedRealtime(),
-				waitBetweenMessagesMs,
-				getSendEmergencyPendingIntent());
-	}
-
-	private void invokeEmergencyResponse() {
-		Log.d(LOG_TAG, "Invoking emergency response");
-
-		if (notifyViaCall) {
-			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
+		if (!(notifyViaCall || notifyViaEmail || notifyViaSMS)) {
+			Toast.makeText(this, R.string.no_notification_defined, Toast.LENGTH_LONG).show();
+			return;
 		}
 
-		sendMessageAndResetTimer(getLocationAddress());
-	}
+		// TODO: Check that we have someone to notify
+		
+		if (preferences.getVigilanceState() != VigilanceState.NORMAL_STATE) {
+			Log.d(LOG_TAG, "Application already in either waiting or emergency mode.");
+			return;
+		}
 
-	private void sendEmergencyMessages(LocationAddress locationAddress) {
+		Log.d(LOG_TAG, "Starting the service");
+		changeState(VigilanceState.WAITING_STATE);
+
+		// Vibrate for 300 milliseconds
+		((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(300);
+
+		// Make sure the location tracker is active
+		LocationTracker.activate(this);
+
+		if (intent.getBooleanExtra(SHOW_NOTIFICATION_WITH_DISABLE, false)) {
+			this.showDisableNotificationAndWaitToInvokeResponse();
+		} else {
+			startService(getActivateIntent(this));
+		}
+	}
+	
+	private void activateEmergency() {
+		notificationManager.cancel(NOTIFICATION_ID);
+		changeState(VigilanceState.EMERGENCY_STATE);
+		invokeEmergencyResponse();		
+	}
+	
+	private void cancelEmergency() {
+		alarmManager.cancel(getWaitingPendingIntent());
+		notificationManager.cancel(NOTIFICATION_ID);
+		if (preferences.getVigilanceState() == VigilanceState.WAITING_STATE) {
+			Log.d(LOG_TAG, "Application in waiting state, cancelling the emergency");
+			changeState(VigilanceState.NORMAL_STATE);
+			LocationTracker.deactivate(this);
+		} else {
+			Log.w(LOG_TAG, "Trying to cancel a notificaiton in state: " + preferences.getVigilanceState().name());
+		}		
+	}
+	
+	private void stopEmergency() {
+		if (preferences.getVigilanceState() == VigilanceState.EMERGENCY_STATE) {
+			Log.d(LOG_TAG, "Stopping emergency");
+			cancelNotificationsTimer();
+			this.changeState(VigilanceState.NORMAL_STATE);
+			sendEmergencyMessages();
+			LocationTracker.deactivate(this);
+		} else {
+			Log.w(LOG_TAG, "Trying to stop a notification in state: " + preferences.getVigilanceState().name());
+		}
+	}
+	
+	private void sendEmergencyMessages() {
+		LocationAddress locationAddress = getLocationAddress();
 		if (notifyViaSMS) {
 			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
 		}
@@ -220,6 +215,8 @@ public class EmergencyNotificationService extends Service {
 		}
 	}
 
+	// Sending emergency response
+	
 	private void showDisableNotificationAndWaitToInvokeResponse() {
 		Log.d(LOG_TAG, "Showing notification and waiting");
 
@@ -240,27 +237,39 @@ public class EmergencyNotificationService extends Service {
 		alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + getWaitingTime(), getWaitingPendingIntent());
 	}
 
+	private void invokeEmergencyResponse() {
+		Log.d(LOG_TAG, "Invoking emergency response");
+
+		if (notifyViaCall) {
+			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
+		}
+
+		sendMessageAndResetTimer(getLocationAddress());
+	}
+
+	// Keeping application state
+	
 	private synchronized void changeState(VigilanceState new_state) {
 		Log.i(LOG_TAG, "Changing state from: " + preferences.getVigilanceState().name() + " to " + new_state);
 		preferences.setVigilanceState(new_state);
 	}
 
-	private long getWaitingTime() {
-		return preferences.getCancelationDelayMilliseconds();
-	}
-
-	private void stopEmergency() {
-		Log.d(LOG_TAG, "Stopping emergency");
-		cancelNotificationsTimer();
-		this.changeState(VigilanceState.NORMAL_STATE);
-		sendEmergencyMessages(getLocationAddress());
-		LocationTracker.deactivate(this);
+	// Handling repeating notifications
+	
+	private synchronized void setNotificationTimer() {
+		alarmManager.setRepeating(
+				AlarmManager.ELAPSED_REALTIME_WAKEUP,
+				SystemClock.elapsedRealtime(),
+				waitBetweenMessagesMs,
+				getSendEmergencyPendingIntent());
 	}
 
 	private synchronized void cancelNotificationsTimer() {
 		alarmManager.cancel(getSendEmergencyPendingIntent());
 	}
 
+	// Watching location
+	
 	/**
 	 * Returns location address, and registers the distance threshold listener on first invocation
 	 */
@@ -270,6 +279,7 @@ public class EmergencyNotificationService extends Service {
 	}
 
 	private boolean registeredDistanceThresholdListener = false;
+	
 	private void registerDistanceThresholdListener() {
 		if (registeredDistanceThresholdListener)
 			return;
@@ -281,4 +291,18 @@ public class EmergencyNotificationService extends Service {
 			}
 		});
 	}
+	
+	// Other stuff
+	
+	private void readPreferences() {
+		notifyViaSMS = preferences.getSMSNotification();
+		notifyViaEmail = preferences.getEmailNotification();
+		notifyViaCall = preferences.getCallNotification();
+		waitBetweenMessagesMs = preferences.getMessageIntervalMilliseconds();
+	}
+
+	private long getWaitingTime() {
+		return preferences.getCancelationDelayMilliseconds();
+	}
+
 }
