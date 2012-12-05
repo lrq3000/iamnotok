@@ -49,11 +49,6 @@ public class EmergencyNotificationService extends Service {
 	private LocationTracker locationTracker;
 	private Preferences preferences;
 	
-	private boolean notifyViaSMS = true;
-	private boolean notifyViaEmail = true;
-	private boolean notifyViaCall = false;
-	private long waitBetweenMessagesMs = Preferences.DEFAULT_MESSAGE_INTERVAL_SECONDS * 1000;
-
 	private final AccountUtils accountUtils = new AccountUtils(this);
 	private final FormatUtils formatUtils = new FormatUtils();
 
@@ -145,10 +140,10 @@ public class EmergencyNotificationService extends Service {
 	// Handling actions
 	
 	private void startEmergency(Intent intent) {
-		readPreferences();
-
 		// TODO: remove this when each contact will have its own notifications list.
-		if (!(notifyViaCall || notifyViaEmail || notifyViaSMS)) {
+		if (!(preferences.getCallNotification() || 
+			  preferences.getEmailNotification() ||
+			  preferences.getSMSNotification())) {
 			Log.d(LOG_TAG, "No notification option selected");
 			Toast.makeText(this, R.string.no_notification_defined, Toast.LENGTH_LONG).show();
 			return;
@@ -214,10 +209,10 @@ public class EmergencyNotificationService extends Service {
 	private void sendEmergencyMessages() {
 		Log.i(LOG_TAG, "Sending emergency messages");
 		LocationAddress locationAddress = getLocationAddress();
-		if (notifyViaSMS) {
+		if (preferences.getSMSNotification()) {
 			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
 		}
-		if (notifyViaEmail) {
+		if (preferences.getEmailNotification()) {
 			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
 		}
 	}
@@ -248,7 +243,7 @@ public class EmergencyNotificationService extends Service {
 	private void invokeEmergencyResponse() {
 		Log.d(LOG_TAG, "Invoking emergency response");
 
-		if (notifyViaCall) {
+		if (preferences.getCallNotification()) {
 			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
 		}
 
@@ -268,7 +263,7 @@ public class EmergencyNotificationService extends Service {
 		alarmManager.setRepeating(
 				AlarmManager.ELAPSED_REALTIME_WAKEUP,
 				SystemClock.elapsedRealtime(),
-				waitBetweenMessagesMs,
+				preferences.getMessageIntervalMilliseconds(),
 				getSendEmergencyPendingIntent());
 	}
 
@@ -300,13 +295,4 @@ public class EmergencyNotificationService extends Service {
 		});
 	}
 	
-	// Other stuff
-	
-	private void readPreferences() {
-		notifyViaSMS = preferences.getSMSNotification();
-		notifyViaEmail = preferences.getEmailNotification();
-		notifyViaCall = preferences.getCallNotification();
-		waitBetweenMessagesMs = preferences.getMessageIntervalMilliseconds();
-	}
-
 }
