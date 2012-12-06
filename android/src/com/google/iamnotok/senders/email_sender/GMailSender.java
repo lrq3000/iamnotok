@@ -38,9 +38,6 @@ public class GMailSender extends javax.mail.Authenticator {
         this.password = password;
 
         Properties props = new Properties();
-        //props.setProperty("mail.transport.protocol", "smtp");
-
-        //props.setProperty("mail.host", mailhost);
 
         props.put("mail.smtp.host", mailhost);
         props.put("mail.smtp.auth", "true");
@@ -48,10 +45,7 @@ public class GMailSender extends javax.mail.Authenticator {
         props.put("mail.smtp.socketFactory.port", "465");
         props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         props.put("mail.smtp.socketFactory.fallback", "false");
-
-        //props.put("smtp.mail", "igal1987@gmail.com");
-        //props.setProperty("mail.smtp.quitwait", "false");
-
+        
         session = Session.getDefaultInstance(props, this);
     }
 
@@ -84,6 +78,7 @@ public class GMailSender extends javax.mail.Authenticator {
                 replyToAddresses[0] = fromAddress;
 
                 // TODO: gmail seems to override this... need to find out how to set the sender
+                // COMMENT: Added reply to address so that the user would be able to reply directly to the sender.
                 message.setSender(fromAddress);
                 message.setFrom(fromAddress);
                 message.setReplyTo(replyToAddresses);
