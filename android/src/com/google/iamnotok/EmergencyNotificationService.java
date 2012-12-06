@@ -103,20 +103,6 @@ public class EmergencyNotificationService extends Service {
 		this.alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 	}
 
-	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
-		if (preferences.getVigilanceState() != VigilanceState.EMERGENCY_STATE) {
-			return;
-		}
-
-		Log.d(LOG_TAG, "onDistanceThresholdPassed");
-
-		sendMessageAndResetTimer(locationAddress);
-	}
-
-	private void sendMessageAndResetTimer(LocationAddress locationAddress) {
-		setNotificationTimer();
-	}
-
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		final String action = intent.getAction();
@@ -242,12 +228,10 @@ public class EmergencyNotificationService extends Service {
 
 	private void invokeEmergencyResponse() {
 		Log.d(LOG_TAG, "Invoking emergency response");
-
 		if (preferences.getNotifyViaCall()) {
 			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
 		}
-
-		sendMessageAndResetTimer(getLocationAddress());
+		sendMessageAndResetNotificationsTimer();
 	}
 
 	// Keeping application state
@@ -259,7 +243,7 @@ public class EmergencyNotificationService extends Service {
 
 	// Handling repeating notifications
 	
-	private synchronized void setNotificationTimer() {
+	private synchronized void sendMessageAndResetNotificationsTimer() {
 		alarmManager.setRepeating(
 				AlarmManager.ELAPSED_REALTIME_WAKEUP,
 				SystemClock.elapsedRealtime(),
@@ -295,4 +279,12 @@ public class EmergencyNotificationService extends Service {
 		});
 	}
 	
+	protected void onDistanceThresholdPassed(LocationAddress locationAddress) {
+		if (preferences.getVigilanceState() != VigilanceState.EMERGENCY_STATE) {
+			return;
+		}
+		Log.d(LOG_TAG, "onDistanceThresholdPassed");
+		sendMessageAndResetNotificationsTimer();
+	}
+
 }
