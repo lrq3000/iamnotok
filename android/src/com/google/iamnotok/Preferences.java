@@ -23,7 +23,7 @@ public class Preferences {
 	public static final String CUSTOM_MESSAGE_KEY               = "edittext_custom_message";
 	public static final String NOTIFY_VIA_SMS_KEY               = "sms_notification";
 	public static final String NOTIFY_VIA_EMAIL_KEY             = "email_notification";
-	public static final String NOTIFY_VIA_CALL_KEY              = "email_notification";
+	public static final String NOTIFY_VIA_CALL_KEY              = "call_notification";
 	public static final String MESSAGE_INTERVAL_SECONDS_KEY     = "edittext_message_interval";
 	public static final String CANCELATION_DELAY_SECONDS_KEY    = "cancelation_delay";
 	public static final String VIGILANCE_STATE_KEY              = "vigilanceStateKey";
