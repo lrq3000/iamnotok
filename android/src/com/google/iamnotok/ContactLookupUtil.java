@@ -54,7 +54,7 @@ public class ContactLookupUtil implements ContactLookup {
 				}
 				final String mimetype = cur.getString(mimetypeCol);
 				if (mimetype.equals(Phone.CONTENT_ITEM_TYPE)) {
-					if (phone == null || cur.getInt(COL_PHONE_TYPE) == Phone.TYPE_MOBILE) {
+					if (phone == null && cur.getInt(COL_PHONE_TYPE) == Phone.TYPE_MOBILE) {
 						phone = cur.getString(COL_PHONE_NUMBER);
 					}
 				} else if (mimetype.equals(Email.CONTENT_ITEM_TYPE)) {
