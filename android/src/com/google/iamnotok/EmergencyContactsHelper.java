@@ -22,22 +22,6 @@ public class EmergencyContactsHelper {
 		this.lookupUtil = lookupUtil;
 	}
 
-	private List<String> getIds() {
-		String idsCommaSeparatedString = getPrefs().getString(CONTACT_IDS_PROPERTY_NAME, "");
-		if (null == idsCommaSeparatedString || "".equals(idsCommaSeparatedString)) {
-			return new ArrayList<String>();
-		}
-		// here we'd like to return the contacts in the original order, by with no repeats
-		String[] ids = idsCommaSeparatedString.split(",");
-		List<String> result = new ArrayList<String>();
-		for (String id : ids) {
-			if (!"".equals(id) && !result.contains(id)) {
-				result.add(id);
-			}
-		}
-		return result;
-	}
-
 	public Collection<Contact> getAllContacts() {
 		Collection<Contact> result = new ArrayList<Contact>();
 
@@ -90,6 +74,24 @@ public class EmergencyContactsHelper {
 		if (!updatedIds.remove(id)) // fail if not in list
 			return false;
 		return updateContactIdsInPrefs(updatedIds);
+	}
+
+	// Looking up contacts
+	
+	private List<String> getIds() {
+		String idsCommaSeparatedString = getPrefs().getString(CONTACT_IDS_PROPERTY_NAME, "");
+		if (null == idsCommaSeparatedString || "".equals(idsCommaSeparatedString)) {
+			return new ArrayList<String>();
+		}
+		// here we'd like to return the contacts in the original order, by with no repeats
+		String[] ids = idsCommaSeparatedString.split(",");
+		List<String> result = new ArrayList<String>();
+		for (String id : ids) {
+			if (!"".equals(id) && !result.contains(id)) {
+				result.add(id);
+			}
+		}
+		return result;
 	}
 
 	private SharedPreferences getPrefs() {
