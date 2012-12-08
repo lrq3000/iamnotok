@@ -39,10 +39,6 @@ public class EmergencyContactsHelper {
 		return getIds().contains(id) ? lookupContact(id) : null;
 	}
 
-	private Contact lookupContact(String id) {
-		return lookupUtil.lookup(context, id);
-	}
-
 	public Contact getContactWithName(String contactName) {
 		for (String id : getIds()) {
 			Contact c = lookupContact(id);
@@ -92,6 +88,10 @@ public class EmergencyContactsHelper {
 			}
 		}
 		return result;
+	}
+	
+	private Contact lookupContact(String id) {
+		return lookupUtil.lookup(context, id);
 	}
 
 	private SharedPreferences getPrefs() {
