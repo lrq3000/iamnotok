@@ -1,5 +1,8 @@
 package com.google.iamnotok;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -45,8 +48,8 @@ public class ContactLookupUtil implements ContactLookup {
 			final int mimetypeCol = cur.getColumnIndex(Data.MIMETYPE);
 			
 			String name = null;
-			String phone = null;
-			String email = null;
+			List<String> phones = new ArrayList<String>();
+			List<String> emails = new ArrayList<String>();
 			
 			while (cur.moveToNext()) {
 				if (name == null) {
@@ -54,16 +57,14 @@ public class ContactLookupUtil implements ContactLookup {
 				}
 				final String mimetype = cur.getString(mimetypeCol);
 				if (mimetype.equals(Phone.CONTENT_ITEM_TYPE)) {
-					if (phone == null && cur.getInt(COL_PHONE_TYPE) == Phone.TYPE_MOBILE) {
-						phone = cur.getString(COL_PHONE_NUMBER);
+					if (cur.getInt(COL_PHONE_TYPE) == Phone.TYPE_MOBILE) {
+						phones.add(cur.getString(COL_PHONE_NUMBER));
 					}
 				} else if (mimetype.equals(Email.CONTENT_ITEM_TYPE)) {
-					if (email == null) {
-						email = cur.getString(COL_EMAIL);
-					}
+					emails.add(cur.getString(COL_EMAIL));
 				}
 			}
-			return new Contact(id, name, phone, email);
+			return new Contact(id, name, phones, emails);
 		} finally {
 			cur.close();
 		}

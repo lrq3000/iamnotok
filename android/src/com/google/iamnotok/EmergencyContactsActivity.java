@@ -300,7 +300,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			TextView textView = (TextView) v.findViewById(R.id.name);
 			textView.setText(friend.getName());
 
-			String phone = friend.getPhone();
+			String phone = friend.getSelectedPhone();
 			v.findViewById(R.id.phone).setVisibility(
 					phone == null ? View.GONE : View.VISIBLE);
 			TextView phoneView = (TextView) v.findViewById(R.id.phone_value);
@@ -308,7 +308,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 				phoneView.setText(phone);
 			}
 
-			String email = friend.getEmail();
+			String email = friend.getSelectedEmail();
 			v.findViewById(R.id.email).setVisibility(
 					email == null ? View.GONE : View.VISIBLE);
 			if (email != null) {

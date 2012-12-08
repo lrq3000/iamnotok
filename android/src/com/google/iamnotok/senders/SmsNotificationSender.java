@@ -31,8 +31,8 @@ public class SmsNotificationSender implements NotificationSender {
 	public boolean sendNotifications(Collection<Contact> contacts,
 			LocationAddress locationAddress, VigilanceState state) {
 		for (Contact contact : contacts) {
-			if (contact.getPhone() != null) {
-				sendTextMessage(contact.getPhone(), locationAddress, state);
+			if (contact.getSelectedPhone() != null) {
+				sendTextMessage(contact.getSelectedPhone(), locationAddress, state);
 			}
 		}
 

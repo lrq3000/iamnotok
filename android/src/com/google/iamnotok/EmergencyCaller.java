@@ -19,7 +19,7 @@ public class EmergencyCaller {
 	public boolean makeCall(Collection<Contact> contacts) {
 		String number = null;
 		for (Contact contact : contacts) {
-			number = contact.getPhone();
+			number = contact.getSelectedPhone();
 			if (number != null) {
 				break;
 			}

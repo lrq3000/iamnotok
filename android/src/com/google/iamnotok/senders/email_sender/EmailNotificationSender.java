@@ -39,8 +39,8 @@ public class EmailNotificationSender implements NotificationSender {
 	private List<String> getAllContactEmails(Collection<Contact> contacts) {
 		List<String> emails = new ArrayList<String>();
 		for (Contact contact : contacts) {
-			if (contact.getEmail() != null) {
-				emails.add(contact.getEmail());
+			if (contact.getSelectedEmail() != null) {
+				emails.add(contact.getSelectedEmail());
 			}
 		}
 		return emails;
