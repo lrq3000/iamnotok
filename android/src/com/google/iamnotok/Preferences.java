@@ -142,10 +142,15 @@ public class Preferences {
 	}
 
 	private long getLong(String key, long defaultValue) {
+		// EditTextPreference can limit input to numeric values, but store the
+		// result as string.
+		final String stringValue = preferences.getString(key, "");
+		if (stringValue.equals(""))
+			return defaultValue; // Not set yet
 		try {
-			return preferences.getLong(key, defaultValue);
-		} catch (ClassCastException e) {
-			// Stored value cannot be parsed as long
+			return Integer.parseInt(stringValue);
+		} catch (NumberFormatException e) {
+			// Invalid integer value
 			return defaultValue;
 		}
 	}
