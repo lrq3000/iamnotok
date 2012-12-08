@@ -148,7 +148,7 @@ public class Preferences {
 		if (stringValue.equals(""))
 			return defaultValue; // Not set yet
 		try {
-			return Integer.parseInt(stringValue);
+			return Integer.parseInt(stringValue, 10);
 		} catch (NumberFormatException e) {
 			// Invalid integer value
 			return defaultValue;
