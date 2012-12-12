@@ -16,6 +16,7 @@ import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -57,49 +58,7 @@ public class GMailSender extends javax.mail.Authenticator {
     public synchronized void sendMail(final String from, String subject, String body, String sender,
                                       String recipients) {
 
-        new EmailSenderTask().execute(from, subject, body, sender, recipients);
-    }
-
-    private class EmailSenderTask extends AsyncTask<String, Void, Void> {
-        protected Void doInBackground(String... params) {
-            String from = params[0];
-            String subject = params[1];
-            String body = params[2];
-            String sender = params[3];
-            String recipients = params[4];
-            InternetAddress[] replyToAddresses = new InternetAddress[1];
-
-            try {
-                MimeMessage message = new MimeMessage(session);
-                DataHandler handler = new DataHandler(new ByteArrayDataSource(
-                        body.getBytes(), "text/plain"));
-
-                InternetAddress fromAddress = new InternetAddress(from.contains("@") ? from : sender);
-                replyToAddresses[0] = fromAddress;
-
-                // TODO: gmail seems to override this... need to find out how to set the sender
-                // COMMENT: Added reply to address so that the user would be able to reply directly to the sender.
-                message.setSender(fromAddress);
-                message.setFrom(fromAddress);
-                message.setReplyTo(replyToAddresses);
-                message.setSubject(subject);
-                message.setDataHandler(handler);
-
-                if (recipients.indexOf(',') > 0) {
-                    message.setRecipients(Message.RecipientType.TO,
-                            InternetAddress.parse(recipients));
-                } else {
-                    message.setRecipient(Message.RecipientType.TO, new InternetAddress(
-                            recipients));
-                }
-
-                Transport.send(message);
-            } catch (Exception e) {
-                Log.e("sendMail", e.getMessage(), e);
-            }
-
-            return null;
-        }
+        new EmailSenderTask(from, subject, body, sender, recipients).execute();
     }
 
     public class ByteArrayDataSource implements DataSource {
@@ -142,6 +101,76 @@ public class GMailSender extends javax.mail.Authenticator {
         @Override
         public OutputStream getOutputStream() throws IOException {
             throw new IOException("Not Supported");
+        }
+    }
+    
+    /**
+     * Solving NetworkOnMainThreadException in JellyBean. 
+     */
+    private class EmailSenderTask extends AsyncTask<Void, Void, Void> {
+    	public final int REPLY_TO_ADDRESSES_AMOUNT = 1;
+    	
+    	private String subject;
+    	private String body;
+    	private String sender;
+    	private String recipients;
+    	private InternetAddress from;
+    	private InternetAddress[] replyToAddresses;
+    	private MimeMessage message;
+        private DataHandler handler;
+    	
+    	public EmailSenderTask(final String from, String subject, String body, String sender,
+                                      String recipients) {
+    		this.subject = subject;
+    		this.body = body;
+    		this.sender = sender;
+    		this.recipients = recipients;
+    		
+    		try {
+				this.from = new InternetAddress(from.contains("@") ? from : sender);
+			} catch (AddressException e) {
+				Log.e("sendMail", e.getMessage(), e);
+			}
+    		
+    		this.replyToAddresses = new InternetAddress[REPLY_TO_ADDRESSES_AMOUNT];
+    		this.replyToAddresses[0] = this.from;
+    		
+    		this.message = new MimeMessage(session);
+    		this.handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/plain"));
+    	}
+    	
+    	@Override
+    	protected void onPreExecute() {
+    		try {
+	    		// TODO: gmail seems to override this... need to find out how to set the sender
+	            // COMMENT: Added reply to address so that the user would be able to reply directly to the sender.
+	            this.message.setSender(this.from);
+	            this.message.setFrom(this.from);
+	            this.message.setReplyTo(this.replyToAddresses);
+	            this.message.setSubject(this.subject);
+	            this.message.setDataHandler(this.handler);
+	
+	            if (this.recipients.indexOf(',') > 0) {
+	            	this.message.setRecipients(Message.RecipientType.TO,
+	                        InternetAddress.parse(this.recipients));
+	            } else {
+	            	this.message.setRecipient(Message.RecipientType.TO, new InternetAddress(
+	            			this.recipients));
+	            }
+    		} catch(Exception e) {
+    			Log.e("sendMail", e.getMessage(), e);
+    		}
+    	}
+    	
+    	@Override
+        protected Void doInBackground(Void... params) {
+            try {
+                Transport.send(this.message);
+            } catch (Exception e) {
+                Log.e("sendMail", e.getMessage(), e);
+            }
+
+            return null;
         }
     }
 }
