@@ -52,7 +52,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			updateActionBar();
 		}
 
-		contactsHelper = new EmergencyContactsHelper(this, new ContactLookupUtil());
+		contactsHelper = new EmergencyContactsHelper(this, new ContactLookupUtil(), new Database(this));
 		setListAdapter(createAdapter());
 
 		emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
@@ -170,7 +170,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 							// Remove contact.
 							ContactAdapter adapter = (ContactAdapter) getListAdapter();
 							Contact contact = (Contact) adapter.getItem(pos);
-							contactsHelper.deleteContact(contact.getId());
+							contactsHelper.deleteContact(contact.getID());
 							adapter.setList(new ArrayList<Contact>(
 									contactsHelper.getAllContacts()));
 							adapter.notifyDataSetChanged();
@@ -236,16 +236,12 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 	}
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if (resultCode == RESULT_OK) {
 			switch (requestCode) {
 			case CONTACT_PICKER_RESULT:
-				// Extract contact id.
-				String contactId = data.getData().getLastPathSegment();
-				// Try to store it.
-				Log.d("Hello", "Add: " + contactId);
-				if (!contactsHelper.addContact(contactId)) {
-					Log.e("Hello", "Add failed.");
+				String contactSystemID = intent.getData().getLastPathSegment();
+				if (!contactsHelper.addContact(contactSystemID)) {
 					break;
 				}
 				ContactAdapter adapter = (ContactAdapter) getListAdapter();
@@ -284,7 +280,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 
 		@Override
 		public long getItemId(int pos) {
-			return Long.parseLong(list.get(pos).getId());
+			return Long.parseLong(list.get(pos).getSystemID());
 		}
 
 		@Override

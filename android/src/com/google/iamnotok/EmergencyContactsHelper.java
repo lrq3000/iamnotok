@@ -1,100 +1,69 @@
 package com.google.iamnotok;
 
-import java.util.*;
+import java.util.Collection;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-
-import com.google.iamnotok.utils.StringUtils;
+import android.util.Log;
 
 /**
- * Maintains a list of contact ids. Quite crude but should do the job for now.
+ * Maintains a list of contacts
  */
 public class EmergencyContactsHelper {
-	private static final String PREFS_NAME = "MyPrefsFile";
-	private static final String CONTACT_IDS_PROPERTY_NAME = "contact_ids";
+	
+	private static final String LOG = "EmergencyContactsHelper";
 
 	private Context context;
 	private ContactLookup lookupUtil;
+	private Database database;
 
-	public EmergencyContactsHelper(Context context, ContactLookup lookupUtil) {
+	public EmergencyContactsHelper(Context context, ContactLookup lookupUtil, Database database) {
 		this.context = context;
 		this.lookupUtil = lookupUtil;
+		this.database = database;
 	}
 
 	public Collection<Contact> getAllContacts() {
-		Collection<Contact> result = new ArrayList<Contact>();
-
-		List<String> ids = getIds();
-		for (String id : ids) {
-			Contact contact = lookupContact(id);
-			if (contact != null) {
-				result.add(contact);
-			}
-		}
-		return result;
+		Collection<Contact> contacts = database.getAllContacts();
+		validateContacts(contacts);
+		return contacts;
 	}
 
-	public Contact getContactWithId(String id) {
-		return getIds().contains(id) ? lookupContact(id) : null;
-	}
-
-	public Contact getContactWithName(String contactName) {
-		for (String id : getIds()) {
-			Contact c = lookupContact(id);
-			if (c != null && c.getName().equals(contactName))
-				return c;
-		}
-		return null;
-	}
-
-	public boolean addContact(String id) {
-		List<String> updatedIds = getIds();
-		if (updatedIds.contains(id)) { // fail if already in list
+	public boolean addContact(String systemID) {
+		Contact contact = lookupContact(systemID);
+		if (contact == null) {
+			Log.d(LOG, "no system contact with id: " + systemID);
 			return false;
 		}
-		updatedIds.add(id);
-
-		if (lookupContact(id) == null)
+		if (database.containsContactWithSystemID(systemID)) {
+			Log.d(LOG, "contact " + systemID + " already exists");
 			return false;
-		return updateContactIdsInPrefs(updatedIds);
-	}
-
-	private boolean updateContactIdsInPrefs(Collection<String> ids) {
-		String newValue = StringUtils.join(ids, ",");
-		return getPrefs().edit().putString(CONTACT_IDS_PROPERTY_NAME, newValue).commit();
-	}
-
-	public boolean deleteContact(String id) {
-		List<String> updatedIds = getIds();
-		if (!updatedIds.remove(id)) // fail if not in list
-			return false;
-		return updateContactIdsInPrefs(updatedIds);
-	}
-
-	// Looking up contacts
-	
-	private List<String> getIds() {
-		String idsCommaSeparatedString = getPrefs().getString(CONTACT_IDS_PROPERTY_NAME, "");
-		if (null == idsCommaSeparatedString || "".equals(idsCommaSeparatedString)) {
-			return new ArrayList<String>();
 		}
-		// here we'd like to return the contacts in the original order, by with no repeats
-		String[] ids = idsCommaSeparatedString.split(",");
-		List<String> result = new ArrayList<String>();
-		for (String id : ids) {
-			if (!"".equals(id) && !result.contains(id)) {
-				result.add(id);
-			}
-		}
-		return result;
+		database.addContact(contact);
+		return true;
+	}
+
+	public void deleteContact(long id) {
+		database.deleteContactWithID(id);
+	}
+
+	private void validateContacts(Collection<Contact> contacts) {
+		// XXX Validate with system database and store modified contacts
+		// for each contact
+		// 		get system contact
+		// 		if system contacts has phones:
+		//			remove contact phones which are not in system contacts phones.
+		//			if contacts has no phone:
+		//				copy first phone from system contact
+		// 		if system contacts has emails:
+		//			remove contact emals which are not in system contacts phones.
+		//			if contacts has no email:
+		//				copy first email from system contact
+		// 		if contact was modifed:
+		//			update contact in database
 	}
 	
-	private Contact lookupContact(String id) {
-		return lookupUtil.lookup(context, id);
+	private Contact lookupContact(String systemID) {
+		return lookupUtil.lookup(context, systemID);
 	}
 
-	private SharedPreferences getPrefs() {
-		return context.getSharedPreferences(PREFS_NAME, 0);
-	}
 }

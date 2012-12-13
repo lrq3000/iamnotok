@@ -2,23 +2,36 @@ package com.google.iamnotok;
 
 import java.util.List;
 
-
 public class Contact {
 
-	private final String id;
+	private final static int NO_ID = 0;
+	
+	private final long id;
+	private final String systemID;
 	private final String name;
 	private final List<String> phones;
 	private final List<String> emails;
 
-	public Contact(String id, String name, List<String> phones, List<String> emails) {
+	// Creating contact from system contacts database
+	public Contact(String systemID, String name, List<String> phones, List<String> emails) {
+		this(NO_ID, systemID, name, phones, emails);
+	}
+
+	// Creating contact stored in iamnotok database
+	public Contact(long id, String systemID, String name, List<String> phones, List<String> emails) {
 		this.id = id;
+		this.systemID = systemID;
 		this.name = name;
 		this.phones = phones;
 		this.emails = emails;
 	}
 
-	public String getId() {
+	public long getID() {
 		return id;
+	}
+
+	public String getSystemID() {
+		return systemID;
 	}
 
 	public String getName() {
@@ -39,6 +52,6 @@ public class Contact {
 
 	@Override
 	public String toString() {
-		return id + ": " + name + " (" + getSelectedPhone() + ") <" + getSelectedEmail() + ">";
+		return "<Contact " + name + " phone: " + getSelectedPhone() + " email: " + getSelectedEmail() + ">";
 	}
 }

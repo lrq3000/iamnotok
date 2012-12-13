@@ -1,5 +1,7 @@
 package com.google.iamnotok;
 
+import java.util.Collection;
+
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -56,6 +58,7 @@ public class EmergencyNotificationService extends Service {
 	private final NotificationSender smsNotificationSender = new SmsNotificationSender(this, formatUtils, accountUtils);
 	private final EmergencyCaller emergencyCaller = new EmergencyCaller(getBaseContext());
 
+	private Database database;
 	private EmergencyContactsHelper contactHelper;
 
 	NotificationManager notificationManager;
@@ -94,7 +97,7 @@ public class EmergencyNotificationService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		contactHelper = new EmergencyContactsHelper(this, new ContactLookupUtil());
+		contactHelper = new EmergencyContactsHelper(this, new ContactLookupUtil(), new Database(this));
 		locationTracker = new LocationTracker();
 		preferences = new Preferences(this);
 
@@ -194,12 +197,13 @@ public class EmergencyNotificationService extends Service {
 	
 	private void sendEmergencyMessages() {
 		Log.i(LOG_TAG, "Sending emergency messages");
-		LocationAddress locationAddress = getLocationAddress();
+		LocationAddress locationAddress = getLocationAddress();		
+		Collection<Contact> contacts = contactHelper.getAllContacts();
 		if (preferences.getNotifyViaSMS()) {
-			smsNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
+			smsNotificationSender.sendNotifications(contacts, locationAddress, preferences.getVigilanceState());
 		}
 		if (preferences.getNotifyViaEmail()) {
-			emailNotificationSender.sendNotifications(contactHelper.getAllContacts(), locationAddress, preferences.getVigilanceState());
+			emailNotificationSender.sendNotifications(contacts, locationAddress, preferences.getVigilanceState());
 		}
 	}
 
