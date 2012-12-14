@@ -51,20 +51,16 @@ public class Contact {
 		return name;
 	}
 
-	public Attribute getSelectedPhone() {
-		if (phones.size() > 0)
-			return phones.get(0);
-		return null;
+	public List<Attribute> getPhones() {
+		return phones;
 	}
 
-	public Attribute getSelectedEmail() {
-		if (emails.size() > 0)
-			return emails.get(0);
-		return null;
+	public List<Attribute> getEmails() {
+		return emails;
 	}
 
 	@Override
 	public String toString() {
-		return "<Contact " + name + " phone: " + getSelectedPhone() + " email: " + getSelectedEmail() + ">";
+		return "<Contact " + name + " phones: " + getPhones() + " emails: " + getEmails() + ">";
 	}
 }

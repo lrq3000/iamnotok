@@ -297,24 +297,23 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			TextView textView = (TextView) v.findViewById(R.id.name);
 			textView.setText(friend.getName());
 
-			Attribute phone = friend.getSelectedPhone();
+			// XXX Show SMS label if contacts has phones
+			List<Attribute> phones = friend.getPhones();
 			v.findViewById(R.id.phone).setVisibility(
-					phone == null ? View.GONE : View.VISIBLE);
-			if (phone != null) {
+					phones.isEmpty() ? View.GONE : View.VISIBLE);
+			if (!phones.isEmpty()) {
 				TextView phoneView = (TextView) v.findViewById(R.id.phone_value);
-				phoneView.setText(phone.value);
-				// XXX set phone.label
+				phoneView.setText(phones.get(0).value);
 			}
 
-			Attribute email = friend.getSelectedEmail();
+			// XXX Show EMAIL label if contacts has phones
+			List<Attribute> emails = friend.getEmails();
 			v.findViewById(R.id.email).setVisibility(
-					email == null ? View.GONE : View.VISIBLE);
-			if (email != null) {
+					emails.isEmpty() ? View.GONE : View.VISIBLE);
+			if (!emails.isEmpty()) {
 				TextView emailView = (TextView) v
 						.findViewById(R.id.email_value);
-				emailView.setText(email.value);
-				// XXX set email.label
-
+				emailView.setText(emails.get(0).value);
 			}
 			return v;
 		}

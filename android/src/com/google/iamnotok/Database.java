@@ -111,13 +111,10 @@ public class Database {
 			values.put(CONTACT_SYSTEM_ID, contact.getSystemID());
 			values.put(CONTACT_NAME, contact.getName());
 			long id = db.insertOrThrow(CONTACT_TABLE, null, values);
-			// XXX Handle multiple phones and email addresses
-			Attribute phone = contact.getSelectedPhone();
-			if (phone != null) {
+			for (Attribute phone : contact.getPhones()) {
 				addNotification(id, NOTIFICATION_TYPE_SMS, phone.value, phone.label);
 			}
-			Attribute email = contact.getSelectedEmail();
-			if (email != null) {
+			for (Attribute email : contact.getEmails()) {
 				addNotification(id, NOTIFICATION_TYPE_EMAIL, email.value, email.label);
 			}
 			db.setTransactionSuccessful();

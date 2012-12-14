@@ -40,8 +40,7 @@ public class EmailNotificationSender implements NotificationSender {
 	private List<String> getAllContactEmails(Collection<Contact> contacts) {
 		List<String> emails = new ArrayList<String>();
 		for (Contact contact : contacts) {
-			Attribute email = contact.getSelectedEmail();
-			if (email != null) {
+			for (Attribute email : contact.getEmails()) {
 				emails.add(email.value);
 			}
 		}

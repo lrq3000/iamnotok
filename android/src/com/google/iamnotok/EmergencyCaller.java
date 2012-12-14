@@ -19,25 +19,28 @@ public class EmergencyCaller {
 	}
 
 	public boolean makeCall(Collection<Contact> contacts) {
-		Attribute phone = null;
-		for (Contact contact : contacts) {
-			phone = contact.getSelectedPhone();
-			if (phone != null) {
-				break;
-			}
-		}
+		String phone = getFirstPhone(contacts);
 		if (phone == null) {
 			Log.w(LOG_TAG,
 					"Unable to find a contact with number, disabled emergency call");
 			return false;
 		}
-		Intent i = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", phone.value,
+		Intent i = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", phone,
 				null));
 		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		context.startActivity(i);
 		return true;
 	}
 
+	private String getFirstPhone(Collection<Contact> contacts) {
+		for (Contact contact : contacts) {
+			for (Attribute phone : contact.getPhones()) {
+				return phone.value;
+			}
+		}
+		return null;
+	}
+	
 	public void closeCall() {
 		// Do we even need that?
 	}
