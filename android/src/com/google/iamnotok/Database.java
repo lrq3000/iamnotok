@@ -18,7 +18,7 @@ public class Database {
 	private static final String LOG = "Database";
 	
 	private static final String NAME = "iamnotok.db";
-	private static final int VERSION = 1;
+	private static final int VERSION = 2;
 	
 	private static final String CONTACT_TABLE = "contact";
 	private static final String CONTACT_ID = "_id";
@@ -54,7 +54,7 @@ public class Database {
 			
 			db.execSQL("create table " + NOTIFICATION_TABLE + " ( "
 						+ NOTIFICATION_ID + " integer primary key autoincrement not null, "
-						+ NOTIFICATION_CONTACT_ID + " text not null references " + CONTACT_TABLE + "(" + CONTACT_ID + "), "
+						+ NOTIFICATION_CONTACT_ID + " integer not null references " + CONTACT_TABLE + "(" + CONTACT_ID + "), "
 						+ NOTIFICATION_TYPE + " text not null, "
 						+ NOTIFICATION_TARGET + " text not null, "
 						+ NOTIFICATION_LABEL + " text not null"
