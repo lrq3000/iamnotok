@@ -29,6 +29,7 @@ import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import com.google.iamnotok.Contact.Attribute;
 import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.utils.AccountUtils;
 
@@ -296,21 +297,24 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			TextView textView = (TextView) v.findViewById(R.id.name);
 			textView.setText(friend.getName());
 
-			String phone = friend.getSelectedPhone();
+			Attribute phone = friend.getSelectedPhone();
 			v.findViewById(R.id.phone).setVisibility(
 					phone == null ? View.GONE : View.VISIBLE);
-			TextView phoneView = (TextView) v.findViewById(R.id.phone_value);
 			if (phone != null) {
-				phoneView.setText(phone);
+				TextView phoneView = (TextView) v.findViewById(R.id.phone_value);
+				phoneView.setText(phone.value);
+				// XXX set phone.label
 			}
 
-			String email = friend.getSelectedEmail();
+			Attribute email = friend.getSelectedEmail();
 			v.findViewById(R.id.email).setVisibility(
 					email == null ? View.GONE : View.VISIBLE);
 			if (email != null) {
 				TextView emailView = (TextView) v
 						.findViewById(R.id.email_value);
-				emailView.setText(email);
+				emailView.setText(email.value);
+				// XXX set email.label
+
 			}
 			return v;
 		}

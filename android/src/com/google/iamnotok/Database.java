@@ -3,6 +3,8 @@ package com.google.iamnotok;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.iamnotok.Contact.Attribute;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -28,6 +30,7 @@ public class Database {
 	private static final String NOTIFICATION_CONTACT_ID = "contact_id";
 	private static final String NOTIFICATION_TYPE = "type";
 	private static final String NOTIFICATION_TARGET = "target";
+	private static final String NOTIFICATION_LABEL = "label";
 
 	private static final String NOTIFICATION_TYPE_EMAIL = "EMAIL";
 	private static final String NOTIFICATION_TYPE_SMS = "SMS";
@@ -50,7 +53,8 @@ public class Database {
 						+ NOTIFICATION_ID + " integer primary key autoincrement not null, "
 						+ NOTIFICATION_CONTACT_ID + " text not null references " + CONTACT_TABLE + "(" + CONTACT_ID + "), "
 						+ NOTIFICATION_TYPE + " text not null, "
-						+ NOTIFICATION_TARGET + " text not null "
+						+ NOTIFICATION_TARGET + " text not null, "
+						+ NOTIFICATION_LABEL + " text not null"
 					+ ")");
 			db.execSQL("create unique index contact_notification on " + NOTIFICATION_TABLE + "("
 						+ NOTIFICATION_CONTACT_ID + ", "
@@ -88,8 +92,8 @@ public class Database {
 				long id = cursor.getLong(0);
 				String systemID = cursor.getString(1);
 				String name = cursor.getString(2);
-				List<String> phones = getNotifications(id, NOTIFICATION_TYPE_SMS);
-				List<String> emails = getNotifications(id, NOTIFICATION_TYPE_EMAIL);
+				List<Attribute> phones = getNotifications(id, NOTIFICATION_TYPE_SMS);
+				List<Attribute> emails = getNotifications(id, NOTIFICATION_TYPE_EMAIL);
 				result.add(new Contact(id, systemID, name, phones, emails));
 			}
 		} finally {
@@ -108,13 +112,13 @@ public class Database {
 			values.put(CONTACT_NAME, contact.getName());
 			long id = db.insertOrThrow(CONTACT_TABLE, null, values);
 			// XXX Handle multiple phones and email addresses
-			String phone = contact.getSelectedPhone();
+			Attribute phone = contact.getSelectedPhone();
 			if (phone != null) {
-				addNotification(id, NOTIFICATION_TYPE_SMS, phone);
+				addNotification(id, NOTIFICATION_TYPE_SMS, phone.value, phone.label);
 			}
-			String email = contact.getSelectedEmail();
+			Attribute email = contact.getSelectedEmail();
 			if (email != null) {
-				addNotification(id, NOTIFICATION_TYPE_EMAIL, email);
+				addNotification(id, NOTIFICATION_TYPE_EMAIL, email.value, email.label);
 			}
 			db.setTransactionSuccessful();
 		} finally {
@@ -152,19 +156,21 @@ public class Database {
 
 	// Accessing notifications
 	
-	private List<String> getNotifications(long id, String type) {
+	private List<Attribute> getNotifications(long id, String type) {
 		SQLiteDatabase db = helper.getWritableDatabase();
-		List<String> result = new ArrayList<String>();
+		List<Attribute> result = new ArrayList<Attribute>();
 		String[] args = {String.valueOf(id), type};
 		Cursor cursor = db.rawQuery(
-				"select " + NOTIFICATION_TARGET
+				"select " + NOTIFICATION_TARGET + "," + NOTIFICATION_LABEL
 				+ " from " + NOTIFICATION_TABLE
 				+ " where " + NOTIFICATION_CONTACT_ID + "=? and " + NOTIFICATION_TYPE + "=? "
 				+ " order by " + NOTIFICATION_ID, 
 				args);
 		try {
 			while (cursor.moveToNext()) {
-				result.add(cursor.getString(0));
+				String value = cursor.getString(0);
+				String label = cursor.getString(1);
+				result.add(new Attribute(value, label));
 			}
 		} finally {
 			cursor.close();
@@ -172,13 +178,15 @@ public class Database {
 		return result;
 	}
 
-	private void addNotification(long contactID, String type, String target) {
-		Log.d(LOG, "adding notification contactID: " + contactID + " type: " + type + " target: " + target);
+	private void addNotification(long contactID, String type, String target, String label) {
+		Log.d(LOG, "adding notification contactID: " + contactID + " type: " + type 
+				+ " target: " + target + " label: " + label);
 		SQLiteDatabase db = helper.getWritableDatabase();
 		ContentValues values = new ContentValues();
 		values.put(NOTIFICATION_CONTACT_ID, contactID);
 		values.put(NOTIFICATION_TYPE, type);
 		values.put(NOTIFICATION_TARGET, target);
+		values.put(NOTIFICATION_LABEL, label);
 		db.insertOrThrow(NOTIFICATION_TABLE, null, values);
 	}
 

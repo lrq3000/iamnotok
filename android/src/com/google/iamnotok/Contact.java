@@ -4,21 +4,34 @@ import java.util.List;
 
 public class Contact {
 
+	public static class Attribute {
+		public final String value;
+		public final String label;
+		public Attribute(String value, String label) {
+			this.value = value;
+			this.label = label;
+		}
+		@Override
+		public String toString() {
+			return value + " (" + label + ")"; 
+		}
+	}
+	
 	private final static int NO_ID = 0;
 	
 	private final long id;
 	private final String systemID;
 	private final String name;
-	private final List<String> phones;
-	private final List<String> emails;
+	private final List<Attribute> phones;
+	private final List<Attribute> emails;
 
 	// Creating contact from system contacts database
-	public Contact(String systemID, String name, List<String> phones, List<String> emails) {
+	public Contact(String systemID, String name, List<Attribute> phones, List<Attribute> emails) {
 		this(NO_ID, systemID, name, phones, emails);
 	}
 
 	// Creating contact stored in iamnotok database
-	public Contact(long id, String systemID, String name, List<String> phones, List<String> emails) {
+	public Contact(long id, String systemID, String name, List<Attribute> phones, List<Attribute> emails) {
 		this.id = id;
 		this.systemID = systemID;
 		this.name = name;
@@ -38,13 +51,13 @@ public class Contact {
 		return name;
 	}
 
-	public String getSelectedPhone() {
+	public Attribute getSelectedPhone() {
 		if (phones.size() > 0)
 			return phones.get(0);
 		return null;
 	}
 
-	public String getSelectedEmail() {
+	public Attribute getSelectedEmail() {
 		if (emails.size() > 0)
 			return emails.get(0);
 		return null;

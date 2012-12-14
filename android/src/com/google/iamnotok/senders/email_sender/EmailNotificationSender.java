@@ -7,6 +7,7 @@ import java.util.List;
 import android.util.Log;
 
 import com.google.iamnotok.Contact;
+import com.google.iamnotok.Contact.Attribute;
 import com.google.iamnotok.LocationTracker;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.Preferences.VigilanceState;
@@ -39,8 +40,9 @@ public class EmailNotificationSender implements NotificationSender {
 	private List<String> getAllContactEmails(Collection<Contact> contacts) {
 		List<String> emails = new ArrayList<String>();
 		for (Contact contact : contacts) {
-			if (contact.getSelectedEmail() != null) {
-				emails.add(contact.getSelectedEmail());
+			Attribute email = contact.getSelectedEmail();
+			if (email != null) {
+				emails.add(email.value);
 			}
 		}
 		return emails;

@@ -32,7 +32,7 @@ public class SmsNotificationSender implements NotificationSender {
 			LocationAddress locationAddress, VigilanceState state) {
 		for (Contact contact : contacts) {
 			if (contact.getSelectedPhone() != null) {
-				sendTextMessage(contact.getSelectedPhone(), locationAddress, state);
+				sendTextMessage(contact.getSelectedPhone().value, locationAddress, state);
 			}
 		}
 
