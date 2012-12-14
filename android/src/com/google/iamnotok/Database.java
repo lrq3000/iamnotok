@@ -108,7 +108,9 @@ public class Database {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		List<Contact> result = new ArrayList<Contact>();
 		Cursor cursor = db.rawQuery(
-				"select * from " + CONTACT_TABLE + " order by " + CONTACT_ID, 
+				"select " + CONTACT_ID + "," + CONTACT_SYSTEM_ID + "," + CONTACT_NAME
+				+ " from " + CONTACT_TABLE
+				+ " order by " + CONTACT_ID, 
 				null);
 		try {
 			while (cursor.moveToNext()) {
