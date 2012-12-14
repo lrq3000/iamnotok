@@ -2,8 +2,6 @@ package com.google.iamnotok;
 
 import java.util.Collection;
 
-import com.google.iamnotok.Contact.Attribute;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -32,10 +30,11 @@ public class EmergencyCaller {
 		return true;
 	}
 
+	// Temporary hack until we store the voice call phone number somewhere.
 	private String getFirstPhone(Collection<Contact> contacts) {
 		for (Contact contact : contacts) {
-			for (Attribute phone : contact.getPhones()) {
-				return phone.value;
+			for (String phone : contact.getEnabledPhones()) {
+				return phone;
 			}
 		}
 		return null;

@@ -1,42 +1,28 @@
 package com.google.iamnotok;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Contact {
 
-	public static class Attribute {
-		public final String value;
-		public final String label;
-		public Attribute(String value, String label) {
-			this.value = value;
-			this.label = label;
-		}
-		@Override
-		public String toString() {
-			return value + " (" + label + ")"; 
-		}
-	}
-	
 	private final static int NO_ID = 0;
 	
 	private final long id;
 	private final String systemID;
 	private final String name;
-	private final List<Attribute> phones;
-	private final List<Attribute> emails;
+	private final List<Notification> notifications;
 
 	// Creating contact from system contacts database
-	public Contact(String systemID, String name, List<Attribute> phones, List<Attribute> emails) {
-		this(NO_ID, systemID, name, phones, emails);
+	public Contact(String systemID, String name, List<Notification> notifications) {
+		this(NO_ID, systemID, name, notifications);
 	}
 
 	// Creating contact stored in iamnotok database
-	public Contact(long id, String systemID, String name, List<Attribute> phones, List<Attribute> emails) {
+	public Contact(long id, String systemID, String name, List<Notification> notifications) {
 		this.id = id;
 		this.systemID = systemID;
 		this.name = name;
-		this.phones = phones;
-		this.emails = emails;
+		this.notifications = notifications;
 	}
 
 	public long getID() {
@@ -51,16 +37,49 @@ public class Contact {
 		return name;
 	}
 
-	public List<Attribute> getPhones() {
-		return phones;
+	public List<Notification> getAllNotifications() {
+		return notifications;
 	}
 
-	public List<Attribute> getEmails() {
-		return emails;
+	public List<Notification> getSMSNotifications() {
+		List<Notification> result = new ArrayList<Notification>();
+		for (Notification n : notifications) {
+			if (n.type.equals(Notification.TYPE_SMS))
+				result.add(n);
+		}
+		return result;
+	}
+
+	public List<String> getEnabledPhones() {
+		List<String> result = new ArrayList<String>();
+		for (Notification n : getSMSNotifications()) {
+			if (n.isEnabled())
+				result.add(n.target);
+		}
+		return result;
+	}
+
+	public List<Notification> getEmailNotifications() {
+		List<Notification> result = new ArrayList<Notification>();
+		for (Notification n : notifications) {
+			if (n.type.equals(Notification.TYPE_EMAIL))
+				result.add(n);
+		}
+		return result;
+	}
+	
+	public List<String> getEnabledEmails() {
+		List<String> result = new ArrayList<String>();
+		for (Notification n : getEmailNotifications()) {
+			if (n.isEnabled())
+				result.add(n.target);
+		}
+		return result;
 	}
 
 	@Override
 	public String toString() {
-		return "<Contact " + name + " phones: " + getPhones() + " emails: " + getEmails() + ">";
+		return "<Contact " + name + " phones: " + getEnabledPhones() + " emails: " + getEnabledEmails() + ">";
 	}
+
 }

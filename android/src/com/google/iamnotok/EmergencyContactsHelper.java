@@ -3,8 +3,6 @@ package com.google.iamnotok;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.iamnotok.Contact.Attribute;
-
 import android.content.Context;
 import android.util.Log;
 
@@ -42,23 +40,19 @@ public class EmergencyContactsHelper {
 			return false;
 		}
 		
-		// XXX "Select" the first phone and email until the user interface for
+		// XXX Select the first phone and email until the user interface for
 		// selecting phones and emails is done.
-		keepFirst(contact.getEmails());
-		keepFirst(contact.getPhones());
+		List<Notification> phones = contact.getSMSNotifications();
+		if (!phones.isEmpty())
+			phones.get(0).setEnabled(true);
+		List<Notification> emails = contact.getEmailNotifications();
+		if (!emails.isEmpty())
+			emails.get(0).setEnabled(true);
 		
 		database.addContact(contact);
 		return true;
 	}
 
-	private void keepFirst(List<Attribute> list) {
-		if (list.size() > 1) {
-			Attribute first = list.get(0);
-			list.clear();
-			list.add(first);
-		}
-	}
-	
 	public void deleteContact(long id) {
 		database.deleteContactWithID(id);
 	}

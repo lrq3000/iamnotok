@@ -3,8 +3,6 @@ package com.google.iamnotok;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.iamnotok.Contact.Attribute;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -18,7 +16,7 @@ public class Database {
 	private static final String LOG = "Database";
 	
 	private static final String NAME = "iamnotok.db";
-	private static final int VERSION = 2;
+	private static final int VERSION = 3;
 	
 	private static final String CONTACT_TABLE = "contact";
 	private static final String CONTACT_ID = "_id";
@@ -31,12 +29,10 @@ public class Database {
 	private static final String NOTIFICATION_TYPE = "type";
 	private static final String NOTIFICATION_TARGET = "target";
 	private static final String NOTIFICATION_LABEL = "label";
+	private static final String NOTIFICATION_ENABLED = "enabled";
 	
 	private static final String CONTACT_NOTIFICTION_INDEX = "contact_notification";
-	
-	private static final String NOTIFICATION_TYPE_EMAIL = "EMAIL";
-	private static final String NOTIFICATION_TYPE_SMS = "SMS";
-	
+		
 	static class Helper extends SQLiteOpenHelper {
 
 		public Helper(Context context) {
@@ -57,7 +53,8 @@ public class Database {
 						+ NOTIFICATION_CONTACT_ID + " integer not null references " + CONTACT_TABLE + "(" + CONTACT_ID + "), "
 						+ NOTIFICATION_TYPE + " text not null, "
 						+ NOTIFICATION_TARGET + " text not null, "
-						+ NOTIFICATION_LABEL + " text not null"
+						+ NOTIFICATION_LABEL + " text not null, "
+						+ NOTIFICATION_ENABLED + " integer not null"
 					+ ")");
 			
 			// Ensure that there is only one notification per contact, type and target
@@ -117,9 +114,8 @@ public class Database {
 				long id = cursor.getLong(0);
 				String systemID = cursor.getString(1);
 				String name = cursor.getString(2);
-				List<Attribute> phones = getNotifications(id, NOTIFICATION_TYPE_SMS);
-				List<Attribute> emails = getNotifications(id, NOTIFICATION_TYPE_EMAIL);
-				result.add(new Contact(id, systemID, name, phones, emails));
+				List<Notification> notifications = getNotifications(id);
+				result.add(new Contact(id, systemID, name, notifications));
 			}
 		} finally {
 			cursor.close();
@@ -136,11 +132,8 @@ public class Database {
 			values.put(CONTACT_SYSTEM_ID, contact.getSystemID());
 			values.put(CONTACT_NAME, contact.getName());
 			long id = db.insertOrThrow(CONTACT_TABLE, null, values);
-			for (Attribute phone : contact.getPhones()) {
-				addNotification(id, NOTIFICATION_TYPE_SMS, phone.value, phone.label);
-			}
-			for (Attribute email : contact.getEmails()) {
-				addNotification(id, NOTIFICATION_TYPE_EMAIL, email.value, email.label);
+			for (Notification n : contact.getAllNotifications()) {
+				addNotification(id, n);
 			}
 			db.setTransactionSuccessful();
 		} finally {
@@ -178,21 +171,28 @@ public class Database {
 
 	// Accessing notifications
 	
-	private List<Attribute> getNotifications(long id, String type) {
+	private List<Notification> getNotifications(long contactID) {
 		SQLiteDatabase db = helper.getWritableDatabase();
-		List<Attribute> result = new ArrayList<Attribute>();
-		String[] args = {String.valueOf(id), type};
+		List<Notification> result = new ArrayList<Notification>();
+		String[] args = {String.valueOf(contactID)};
 		Cursor cursor = db.rawQuery(
-				"select " + NOTIFICATION_TARGET + "," + NOTIFICATION_LABEL
+				"select " + NOTIFICATION_ID + "," 
+						+ NOTIFICATION_TYPE + "," 
+						+ NOTIFICATION_TARGET + "," 
+						+ NOTIFICATION_LABEL + "," 
+						+ NOTIFICATION_ENABLED
 				+ " from " + NOTIFICATION_TABLE
-				+ " where " + NOTIFICATION_CONTACT_ID + "=? and " + NOTIFICATION_TYPE + "=? "
+				+ " where " + NOTIFICATION_CONTACT_ID + "=?"
 				+ " order by " + NOTIFICATION_ID, 
 				args);
 		try {
 			while (cursor.moveToNext()) {
-				String value = cursor.getString(0);
-				String label = cursor.getString(1);
-				result.add(new Attribute(value, label));
+				long id = cursor.getLong(0);
+				String type = cursor.getString(1);
+				String target = cursor.getString(2);
+				String label = cursor.getString(3);
+				boolean enabled = cursor.getInt(4) == 1;
+				result.add(new Notification(id, type, target, label, enabled));
 			}
 		} finally {
 			cursor.close();
@@ -200,15 +200,19 @@ public class Database {
 		return result;
 	}
 
-	private void addNotification(long contactID, String type, String target, String label) {
-		Log.d(LOG, "adding notification contactID: " + contactID + " type: " + type 
-				+ " target: " + target + " label: " + label);
+	private void addNotification(long contactID, Notification n) {
+		Log.d(LOG, "adding notification contactID: " + contactID 
+				+ " type: " + n.type 
+				+ " target: " + n.target 
+				+ " label: " + n.label 
+				+ " enabled: " + n.isEnabled());
 		SQLiteDatabase db = helper.getWritableDatabase();
 		ContentValues values = new ContentValues();
 		values.put(NOTIFICATION_CONTACT_ID, contactID);
-		values.put(NOTIFICATION_TYPE, type);
-		values.put(NOTIFICATION_TARGET, target);
-		values.put(NOTIFICATION_LABEL, label);
+		values.put(NOTIFICATION_TYPE, n.type);
+		values.put(NOTIFICATION_TARGET, n.target);
+		values.put(NOTIFICATION_LABEL, n.label);
+		values.put(NOTIFICATION_ENABLED, n.isEnabled() ? 1 : 0);
 		db.insertOrThrow(NOTIFICATION_TABLE, null, values);
 	}
 

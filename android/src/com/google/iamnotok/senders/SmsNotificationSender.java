@@ -7,7 +7,7 @@ import android.content.Context;
 import android.telephony.SmsManager;
 
 import com.google.iamnotok.Contact;
-import com.google.iamnotok.Contact.Attribute;
+import com.google.iamnotok.Notification;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.utils.AccountUtils;
@@ -32,8 +32,8 @@ public class SmsNotificationSender implements NotificationSender {
 	public boolean sendNotifications(Collection<Contact> contacts,
 			LocationAddress locationAddress, VigilanceState state) {
 		for (Contact contact : contacts) {
-			for (Attribute phone : contact.getPhones()) {
-				sendTextMessage(phone.value, locationAddress, state);
+			for (String phone : contact.getEnabledPhones()) {
+				sendTextMessage(phone, locationAddress, state);
 			}
 		}
 

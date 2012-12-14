@@ -3,8 +3,6 @@ package com.google.iamnotok;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.iamnotok.Contact.Attribute;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -65,8 +63,7 @@ public class ContactLookupUtil implements ContactLookup {
 			final int emailLabelCol = cur.getColumnIndex(Email.LABEL);
 			
 			String name = null;
-			List<Attribute> phones = new ArrayList<Attribute>();
-			List<Attribute> emails = new ArrayList<Attribute>();
+			List<Notification> notifications = new ArrayList<Notification>();
 			
 			while (cur.moveToNext()) {
 				if (name == null) {
@@ -81,7 +78,7 @@ public class ContactLookupUtil implements ContactLookup {
 						if (label == null)
 							label = context.getString(Phone.getTypeLabelResource(type));
 						Log.d(LOG, "adding phone number: " + value + " label: " + label);
-						phones.add(new Attribute(value, label));
+						notifications.add(new Notification(Notification.TYPE_SMS, value, label));
 					}
 				} else if (mimetype.equals(Email.CONTENT_ITEM_TYPE)) {
 					final int type = cur.getInt(emailTypeCol);
@@ -90,10 +87,10 @@ public class ContactLookupUtil implements ContactLookup {
 					if (label == null)
 						label = context.getString(Email.getTypeLabelResource(type));
 					Log.d(LOG, "adding email data: " + value + " label: " + label);
-					emails.add(new Attribute(value, label));
+					notifications.add(new Notification(Notification.TYPE_EMAIL, value, label));
 				}
 			}
-			return new Contact(id, name, phones, emails);
+			return new Contact(id, name, notifications);
 		} finally {
 			cur.close();
 		}

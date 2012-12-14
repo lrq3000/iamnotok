@@ -29,7 +29,7 @@ import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.google.iamnotok.Contact.Attribute;
+import com.google.iamnotok.Notification;
 import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.utils.AccountUtils;
 
@@ -298,22 +298,22 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			textView.setText(friend.getName());
 
 			// XXX Show SMS label if contacts has phones
-			List<Attribute> phones = friend.getPhones();
+			List<String> phones = friend.getEnabledPhones();
 			v.findViewById(R.id.phone).setVisibility(
 					phones.isEmpty() ? View.GONE : View.VISIBLE);
 			if (!phones.isEmpty()) {
 				TextView phoneView = (TextView) v.findViewById(R.id.phone_value);
-				phoneView.setText(phones.get(0).value);
+				phoneView.setText(phones.get(0));
 			}
 
-			// XXX Show EMAIL label if contacts has phones
-			List<Attribute> emails = friend.getEmails();
+			// XXX Show EMAIL label if contacts has emails
+			List<String> emails = friend.getEnabledEmails();
 			v.findViewById(R.id.email).setVisibility(
 					emails.isEmpty() ? View.GONE : View.VISIBLE);
 			if (!emails.isEmpty()) {
 				TextView emailView = (TextView) v
 						.findViewById(R.id.email_value);
-				emailView.setText(emails.get(0).value);
+				emailView.setText(emails.get(0));
 			}
 			return v;
 		}
