@@ -13,14 +13,15 @@ import android.provider.ContactsContract.Data;
 
 public class ContactLookupUtil implements ContactLookup {
 
-	private static final String[] PROJECTION = new String[] { Data._ID,
-			Data.IS_SUPER_PRIMARY, Data.DISPLAY_NAME, Phone.TYPE, Phone.NUMBER,
-			Email.DATA, Data.MIMETYPE };
-
-	private static final int COL_NAME = 2;
-	private static final int COL_PHONE_TYPE = 3;
-	private static final int COL_PHONE_NUMBER = 4;
-	private static final int COL_EMAIL = 5;
+	private static final String[] PROJECTION = {
+		Data._ID,
+		Data.IS_SUPER_PRIMARY,
+		Data.DISPLAY_NAME, 
+		Data.MIMETYPE,
+		Phone.TYPE,
+		Phone.NUMBER,
+		Email.DATA, 
+	};
 
 	private static final String WHERE_CLAUSE = Data.CONTACT_ID + " = ? AND ("
 			+ Data.MIMETYPE + " =? OR " + Data.MIMETYPE + " =?)";
@@ -34,7 +35,7 @@ public class ContactLookupUtil implements ContactLookup {
 	 */
 	public Contact lookup(Context context, String id) {
 		ContentResolver cr = context.getContentResolver();
-		final String[] whereArgs = new String[] { id,
+		final String[] whereArgs = { id,
 				CommonDataKinds.Email.CONTENT_ITEM_TYPE,
 				CommonDataKinds.Phone.CONTENT_ITEM_TYPE };
 
@@ -45,7 +46,12 @@ public class ContactLookupUtil implements ContactLookup {
 			return null;
 		}
 		try {
+			// Getting indexes dynamically make it easier to modify the projection.
 			final int mimetypeCol = cur.getColumnIndex(Data.MIMETYPE);
+			final int nameCol = cur.getColumnIndex(Data.DISPLAY_NAME);
+			final int phoneTypeCol = cur.getColumnIndex(Phone.TYPE);
+			final int phoneNumberCol = cur.getColumnIndex(Phone.NUMBER);
+			final int emailDataCol = cur.getColumnIndex(Email.DATA);
 			
 			String name = null;
 			List<String> phones = new ArrayList<String>();
@@ -53,15 +59,15 @@ public class ContactLookupUtil implements ContactLookup {
 			
 			while (cur.moveToNext()) {
 				if (name == null) {
-					name = cur.getString(COL_NAME);
+					name = cur.getString(nameCol);
 				}
 				final String mimetype = cur.getString(mimetypeCol);
 				if (mimetype.equals(Phone.CONTENT_ITEM_TYPE)) {
-					if (cur.getInt(COL_PHONE_TYPE) == Phone.TYPE_MOBILE) {
-						phones.add(cur.getString(COL_PHONE_NUMBER));
+					if (cur.getInt(phoneTypeCol) == Phone.TYPE_MOBILE) {
+						phones.add(cur.getString(phoneNumberCol));
 					}
 				} else if (mimetype.equals(Email.CONTENT_ITEM_TYPE)) {
-					emails.add(cur.getString(COL_EMAIL));
+					emails.add(cur.getString(emailDataCol));
 				}
 			}
 			return new Contact(id, name, phones, emails);
