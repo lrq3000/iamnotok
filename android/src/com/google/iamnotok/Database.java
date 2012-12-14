@@ -31,7 +31,9 @@ public class Database {
 	private static final String NOTIFICATION_TYPE = "type";
 	private static final String NOTIFICATION_TARGET = "target";
 	private static final String NOTIFICATION_LABEL = "label";
-
+	
+	private static final String CONTACT_NOTIFICTION_INDEX = "contact_notification";
+	
 	private static final String NOTIFICATION_TYPE_EMAIL = "EMAIL";
 	private static final String NOTIFICATION_TYPE_SMS = "SMS";
 	
@@ -43,12 +45,13 @@ public class Database {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			Log.d(LOG, "creating database");
+			Log.i(LOG, "creating database");
 			db.execSQL("create table " + CONTACT_TABLE + " ("
 					    + CONTACT_ID + " integer primary key autoincrement not null, "
 						+ CONTACT_SYSTEM_ID + " text not null, "
 						+ CONTACT_NAME + " text not null"
 						+ " )");
+			
 			db.execSQL("create table " + NOTIFICATION_TABLE + " ( "
 						+ NOTIFICATION_ID + " integer primary key autoincrement not null, "
 						+ NOTIFICATION_CONTACT_ID + " text not null references " + CONTACT_TABLE + "(" + CONTACT_ID + "), "
@@ -56,7 +59,9 @@ public class Database {
 						+ NOTIFICATION_TARGET + " text not null, "
 						+ NOTIFICATION_LABEL + " text not null"
 					+ ")");
-			db.execSQL("create unique index contact_notification on " + NOTIFICATION_TABLE + "("
+			
+			// Ensure that there is only one notification per contact, type and target
+			db.execSQL("create unique index " + CONTACT_NOTIFICTION_INDEX + " on " + NOTIFICATION_TABLE + "("
 						+ NOTIFICATION_CONTACT_ID + ", "
 						+ NOTIFICATION_TYPE + ", "
 						+ NOTIFICATION_TARGET
@@ -65,7 +70,25 @@ public class Database {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			Log.d(LOG, "upgrading database from version: " + oldVersion + " to version: " + newVersion);
+			Log.i(LOG, "upgrading database from version: " + oldVersion + " to version: " + newVersion);
+			// XXX Temporary "upgrade" until we ship the application.
+			clear(db);
+			onCreate(db);
+		}
+		
+		@Override
+		public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			Log.i(LOG, "downgrading database from version: " + oldVersion + " to version: " + newVersion);
+			// I don't see better solution for downgrade - we cannot know the schema of a future version.
+			clear(db);
+			onCreate(db);
+		}
+		
+		private void clear(SQLiteDatabase db) {
+			// Drop indexes and tables we are going to create.
+			db.execSQL("drop index if exists " + CONTACT_NOTIFICTION_INDEX);
+			db.execSQL("drop table if exists " + NOTIFICATION_TABLE);
+			db.execSQL("drop table if exists " + CONTACT_TABLE);
 		}
 	}
 
