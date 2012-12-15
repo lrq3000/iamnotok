@@ -20,6 +20,7 @@ import android.telephony.TelephonyManager;
  * installs of the application should go to the database.
  */
 public class ApplicationSettingsActivity extends PreferenceActivity {
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -49,6 +50,7 @@ public class ApplicationSettingsActivity extends PreferenceActivity {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
 			Preference preference) {
