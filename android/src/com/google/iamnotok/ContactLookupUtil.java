@@ -72,7 +72,8 @@ public class ContactLookupUtil implements ContactLookup {
 			
 			String name = null;
 			Set<String> seen = new HashSet<String>();
-			List<Notification> notifications = new ArrayList<Notification>();
+			List<Notification> phones = new ArrayList<Notification>();
+			List<Notification> emails = new ArrayList<Notification>();
 			
 			while (cur.moveToNext()) {
 				if (name == null) {
@@ -90,7 +91,7 @@ public class ContactLookupUtil implements ContactLookup {
 							if (label == null)
 								label = context.getString(Phone.getTypeLabelResource(type));
 							Log.d(LOG, "adding phone number: " + value + " label: " + label);
-							notifications.add(new Notification(Notification.TYPE_SMS, value, label));
+							phones.add(new Notification(Notification.TYPE_SMS, value, label));
 						}
 					}
 				} else if (mimetype.equals(Email.CONTENT_ITEM_TYPE)) {
@@ -104,11 +105,11 @@ public class ContactLookupUtil implements ContactLookup {
 							label = context.getString(Email.getTypeLabelResource(type));
 						}
 						Log.d(LOG, "adding email data: " + value + " label: " + label);
-						notifications.add(new Notification(Notification.TYPE_EMAIL, value, label));
+						emails.add(new Notification(Notification.TYPE_EMAIL, value, label));
 					}
 				}
 			}
-			return new Contact(id, name, notifications);
+			return new Contact(id, name, phones, emails);
 		} finally {
 			cur.close();
 		}

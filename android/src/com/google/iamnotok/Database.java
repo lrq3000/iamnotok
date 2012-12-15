@@ -114,8 +114,9 @@ public class Database {
 				long id = cursor.getLong(0);
 				String systemID = cursor.getString(1);
 				String name = cursor.getString(2);
-				List<Notification> notifications = getNotifications(id);
-				result.add(new Contact(id, systemID, name, notifications));
+				List<Notification> phones = getNotifications(id, Notification.TYPE_SMS);
+				List<Notification> emails = getNotifications(id, Notification.TYPE_EMAIL);
+				result.add(new Contact(id, systemID, name, phones, emails));
 			}
 		} finally {
 			cursor.close();
@@ -132,8 +133,11 @@ public class Database {
 			values.put(CONTACT_SYSTEM_ID, contact.getSystemID());
 			values.put(CONTACT_NAME, contact.getName());
 			long id = db.insertOrThrow(CONTACT_TABLE, null, values);
-			for (Notification n : contact.getAllNotifications()) {
-				addNotification(id, n);
+			for (Notification phone : contact.getSMSNotifications()) {
+				addNotification(id, phone);
+			}
+			for (Notification email : contact.getEmailNotifications()) {
+				addNotification(id, email);
 			}
 			db.setTransactionSuccessful();
 		} finally {
@@ -171,27 +175,26 @@ public class Database {
 
 	// Accessing notifications
 	
-	private List<Notification> getNotifications(long contactID) {
+	private List<Notification> getNotifications(long contactID, String type) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		List<Notification> result = new ArrayList<Notification>();
-		String[] args = {String.valueOf(contactID)};
+		String[] args = {String.valueOf(contactID), type};
 		Cursor cursor = db.rawQuery(
 				"select " + NOTIFICATION_ID + "," 
-						+ NOTIFICATION_TYPE + "," 
-						+ NOTIFICATION_TARGET + "," 
-						+ NOTIFICATION_LABEL + "," 
-						+ NOTIFICATION_ENABLED
+						  + NOTIFICATION_TARGET + "," 
+						  + NOTIFICATION_LABEL + "," 
+						  + NOTIFICATION_ENABLED
 				+ " from " + NOTIFICATION_TABLE
-				+ " where " + NOTIFICATION_CONTACT_ID + "=?"
+				+ " where " + NOTIFICATION_CONTACT_ID + "=? and " 
+							+ NOTIFICATION_TYPE + "=?"
 				+ " order by " + NOTIFICATION_ID, 
 				args);
 		try {
 			while (cursor.moveToNext()) {
 				long id = cursor.getLong(0);
-				String type = cursor.getString(1);
-				String target = cursor.getString(2);
-				String label = cursor.getString(3);
-				boolean enabled = cursor.getInt(4) == 1;
+				String target = cursor.getString(1);
+				String label = cursor.getString(2);
+				boolean enabled = cursor.getInt(3) == 1;
 				result.add(new Notification(id, type, target, label, enabled));
 			}
 		} finally {
