@@ -1,7 +1,9 @@
 package com.google.iamnotok;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -69,6 +71,7 @@ public class ContactLookupUtil implements ContactLookup {
 			final int emailLabelCol = cur.getColumnIndex(Email.LABEL);
 			
 			String name = null;
+			Set<String> seen = new HashSet<String>();
 			List<Notification> notifications = new ArrayList<Notification>();
 			
 			while (cur.moveToNext()) {
@@ -80,20 +83,29 @@ public class ContactLookupUtil implements ContactLookup {
 					final int type = cur.getInt(phoneTypeCol);
 					if (type == Phone.TYPE_MOBILE) {
 						final String value = cur.getString(phoneNumberCol);
-						String label = cur.getString(phoneLabelCol);
-						if (label == null)
-							label = context.getString(Phone.getTypeLabelResource(type));
-						Log.d(LOG, "adding phone number: " + value + " label: " + label);
-						notifications.add(new Notification(Notification.TYPE_SMS, value, label));
+						// Add phone, ignoring duplicates
+						if (!seen.contains(value)) {
+							seen.add(value);
+							String label = cur.getString(phoneLabelCol);
+							if (label == null)
+								label = context.getString(Phone.getTypeLabelResource(type));
+							Log.d(LOG, "adding phone number: " + value + " label: " + label);
+							notifications.add(new Notification(Notification.TYPE_SMS, value, label));
+						}
 					}
 				} else if (mimetype.equals(Email.CONTENT_ITEM_TYPE)) {
-					final int type = cur.getInt(emailTypeCol);
 					final String value = cur.getString(emailDataCol);
-					String label = cur.getString(emailLabelCol);
-					if (label == null)
-						label = context.getString(Email.getTypeLabelResource(type));
-					Log.d(LOG, "adding email data: " + value + " label: " + label);
-					notifications.add(new Notification(Notification.TYPE_EMAIL, value, label));
+					// Add email, ignoring duplicates
+					if (!seen.contains(value)) {
+						seen.add(value);
+						String label = cur.getString(emailLabelCol);
+						if (label == null) {
+							final int type = cur.getInt(emailTypeCol);
+							label = context.getString(Email.getTypeLabelResource(type));
+						}
+						Log.d(LOG, "adding email data: " + value + " label: " + label);
+						notifications.add(new Notification(Notification.TYPE_EMAIL, value, label));
+					}
 				}
 			}
 			return new Contact(id, name, notifications);
