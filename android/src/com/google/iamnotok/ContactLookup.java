@@ -1,7 +1,5 @@
 package com.google.iamnotok;
 
-import android.content.Context;
-
 public interface ContactLookup {
 
 	/**

@@ -29,7 +29,6 @@ import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.google.iamnotok.Notification;
 import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.utils.AccountUtils;
 

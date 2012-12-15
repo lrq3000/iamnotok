@@ -7,7 +7,6 @@ import java.util.List;
 import android.util.Log;
 
 import com.google.iamnotok.Contact;
-import com.google.iamnotok.Notification;
 import com.google.iamnotok.LocationTracker;
 import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.Preferences.VigilanceState;

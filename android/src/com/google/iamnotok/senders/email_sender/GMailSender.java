@@ -111,8 +111,6 @@ public class GMailSender extends javax.mail.Authenticator {
     	public final int REPLY_TO_ADDRESSES_AMOUNT = 1;
     	
     	private String subject;
-    	private String body;
-    	private String sender;
     	private String recipients;
     	private InternetAddress from;
     	private InternetAddress[] replyToAddresses;
@@ -122,8 +120,6 @@ public class GMailSender extends javax.mail.Authenticator {
     	public EmailSenderTask(final String from, String subject, String body, String sender,
                                       String recipients) {
     		this.subject = subject;
-    		this.body = body;
-    		this.sender = sender;
     		this.recipients = recipients;
     		
     		try {
