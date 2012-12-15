@@ -32,6 +32,12 @@ public class ContactLookupUtil implements ContactLookup {
 	private static final String WHERE_CLAUSE = Data.CONTACT_ID + " = ? AND ("
 			+ Data.MIMETYPE + " =? OR " + Data.MIMETYPE + " =?)";
 
+	private final Context context;
+
+	public ContactLookupUtil(Context context) {
+		this.context = context;
+	}
+	
 	/**
 	 * @param id
 	 *            The id of the contact to look for.
@@ -39,7 +45,7 @@ public class ContactLookupUtil implements ContactLookup {
 	 *            The context to use for the lookup service.
 	 * @return the contact with the given id, or null if no such contact exists.
 	 */
-	public Contact lookup(Context context, String id) {
+	public Contact lookup(String id) {
 		ContentResolver cr = context.getContentResolver();
 		final String[] whereArgs = { id,
 				CommonDataKinds.Email.CONTENT_ITEM_TYPE,

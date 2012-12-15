@@ -97,7 +97,7 @@ public class EmergencyNotificationService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		contactHelper = new EmergencyContactsHelper(this, new ContactLookupUtil(), new Database(this));
+		contactHelper = new EmergencyContactsHelper(new ContactLookupUtil(this), new Database(this));
 		locationTracker = new LocationTracker();
 		preferences = new Preferences(this);
 

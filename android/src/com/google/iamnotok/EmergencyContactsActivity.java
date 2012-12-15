@@ -53,7 +53,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			updateActionBar();
 		}
 
-		contactsHelper = new EmergencyContactsHelper(this, new ContactLookupUtil(), new Database(this));
+		contactsHelper = new EmergencyContactsHelper(new ContactLookupUtil(this), new Database(this));
 		setListAdapter(createAdapter());
 
 		emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);

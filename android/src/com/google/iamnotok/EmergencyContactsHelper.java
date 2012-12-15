@@ -3,7 +3,6 @@ package com.google.iamnotok;
 import java.util.Collection;
 import java.util.List;
 
-import android.content.Context;
 import android.util.Log;
 
 /**
@@ -13,12 +12,10 @@ public class EmergencyContactsHelper {
 	
 	private static final String LOG = "EmergencyContactsHelper";
 
-	private Context context;
 	private ContactLookup lookupUtil;
 	private Database database;
 
-	public EmergencyContactsHelper(Context context, ContactLookup lookupUtil, Database database) {
-		this.context = context;
+	public EmergencyContactsHelper(ContactLookup lookupUtil, Database database) {
 		this.lookupUtil = lookupUtil;
 		this.database = database;
 	}
@@ -34,7 +31,7 @@ public class EmergencyContactsHelper {
 			Log.d(LOG, "contact " + systemID + " already exists");
 			return false;
 		}
-		Contact contact = lookupContact(systemID);
+		Contact contact = lookupUtil.lookup(systemID);
 		if (contact == null) {
 			Log.d(LOG, "no system contact with id: " + systemID);
 			return false;
@@ -71,10 +68,6 @@ public class EmergencyContactsHelper {
 		//				copy first email from system contact
 		// 		if contact was modifed:
 		//			update contact in database
-	}
-	
-	private Contact lookupContact(String systemID) {
-		return lookupUtil.lookup(context, systemID);
 	}
 
 }
