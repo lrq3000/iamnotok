@@ -22,18 +22,33 @@ public class EmergencyContactsHelper {
 
 	public Collection<Contact> getAllContacts() {
 		Collection<Contact> contacts = database.getAllContacts();
-		validateContacts(contacts);
+		for (Contact contact : contacts) {
+			validateContact(contact);
+		}
 		return contacts;
+	}
+
+	public void validateContact(Contact contact) {
+		Log.d(LOG, "validating contact: " + contact.getName());
+		Contact source = lookupUtil.lookup(contact.getSystemID());
+		if (source == null) {
+			Log.d(LOG, "Keeping stored info for contact " + contact.getName());
+			return;
+		}
+		contact.validate(source);
+		if (contact.isDirty()) {
+			Log.d(LOG, "contact " + contact.getName() + " was modfied");
+			database.updateContact(contact);
+		}
 	}
 
 	public boolean addContact(String systemID) {
 		if (database.containsContactWithSystemID(systemID)) {
-			Log.d(LOG, "contact " + systemID + " already exists");
+			Log.d(LOG, "Contact " + systemID + " already exists");
 			return false;
 		}
 		Contact contact = lookupUtil.lookup(systemID);
 		if (contact == null) {
-			Log.d(LOG, "no system contact with id: " + systemID);
 			return false;
 		}
 		
@@ -54,20 +69,4 @@ public class EmergencyContactsHelper {
 		database.deleteContactWithID(id);
 	}
 	
-	private void validateContacts(Collection<Contact> contacts) {
-		// XXX Validate with system database and store modified contacts
-		// for each contact
-		// 		get system contact
-		// 		if system contacts has phones:
-		//			remove contact phones which are not in system contacts phones.
-		//			if contacts has no phone:
-		//				copy first phone from system contact
-		// 		if system contacts has emails:
-		//			remove contact emals which are not in system contacts phones.
-		//			if contacts has no email:
-		//				copy first email from system contact
-		// 		if contact was modifed:
-		//			update contact in database
-	}
-
 }

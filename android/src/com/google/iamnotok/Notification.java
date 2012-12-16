@@ -1,7 +1,13 @@
 package com.google.iamnotok;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.util.Log;
+
 public class Notification {
 	
+	public static final String LOG = "Notification";
 	public static final long NO_ID = 0;
 	public static final String TYPE_SMS = "SMS";
 	public static final String TYPE_EMAIL = "EMAIL";
@@ -14,6 +20,39 @@ public class Notification {
 	private boolean enabled;
 	private boolean dirty;
 	
+	public static boolean containsTarget(List<Notification> notifications, String target) {
+		for (Notification n : notifications) {
+			if (n.target.equals(target))
+				return true;
+		}
+		return false;
+	}
+	
+	public static boolean containsEnabled(List<Notification> notifications) {
+		for (Notification n : notifications) {
+			if (n.isEnabled())
+				return true;
+		}
+		return false;
+	}
+	
+	public static boolean containsDirty(List<Notification> notifications) {
+		for (Notification n : notifications) {
+			if (n.isDirty())
+				return true;
+		}
+		return false;
+	}
+	
+	public static List<String> enabledTargets(List<Notification> notifications) {
+		List<String> enabled = new ArrayList<String>();
+		for (Notification n : notifications) {
+			if (n.isEnabled())
+				enabled.add(n.target);
+		}
+		return enabled;
+	}
+
 	// For creating from system contacts database
 	public Notification(String type, String target, String label) {
 		this(NO_ID, type, target, label, false);
@@ -37,6 +76,7 @@ public class Notification {
 		if (enabled != this.enabled) {
 			this.enabled = enabled;
 			this.dirty = true;
+			Log.d(LOG, (enabled ? "enabled " : "disabled ") + this);
 		}
 	}
 	
@@ -56,5 +96,6 @@ public class Notification {
 				+ " label: " + label 
 				+ " enabled: " + enabled + ">"; 
 	}
+
 }
 

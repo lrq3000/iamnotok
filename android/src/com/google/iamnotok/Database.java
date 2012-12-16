@@ -142,9 +142,33 @@ public class Database {
 			db.setTransactionSuccessful();
 		} finally {
 			db.endTransaction();
+			// New contact is always dirty
+			contact.setDirty(false);
 		}
 	}
 	
+	public void updateContact(Contact contact) {
+		Log.d(LOG, "updating contact: " + contact);
+		SQLiteDatabase db = helper.getWritableDatabase();
+		db.beginTransaction();
+		try {
+			// XXX Update contact name
+			// Since contact notifications may have been removed, the simplest
+			// way is to remove and add.
+			deleteNotifications(contact.getID());
+			for (Notification phone : contact.getSMSNotifications()) {
+				addNotification(contact.getID(), phone);
+			}
+			for (Notification email : contact.getEmailNotifications()) {
+				addNotification(contact.getID(), email);
+			}
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+			contact.setDirty(false);
+		}
+	}
+
 	public void deleteContactWithID(long id) {
 		Log.d(LOG, "deleting contact: " + id);
 		SQLiteDatabase db = helper.getWritableDatabase();
@@ -217,6 +241,13 @@ public class Database {
 		values.put(NOTIFICATION_LABEL, n.label);
 		values.put(NOTIFICATION_ENABLED, n.isEnabled() ? 1 : 0);
 		db.insertOrThrow(NOTIFICATION_TABLE, null, values);
+	}
+	
+	private void deleteNotifications(long contactID) {
+		Log.d(LOG, "deleting notifications for contactID: " + contactID);
+		SQLiteDatabase db = helper.getWritableDatabase();
+		String[] args = {String.valueOf(contactID)};
+		db.delete(NOTIFICATION_TABLE, NOTIFICATION_CONTACT_ID + "=?", args);
 	}
 
 }
