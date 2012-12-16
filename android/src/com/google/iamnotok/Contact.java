@@ -45,7 +45,7 @@ public class Contact {
 		boolean removed = false;
 		List<Notification> updated = new ArrayList<Notification>();
 		for (Notification n : dst) {
-			if (Notification.containsTarget(src, n.target)) {
+			if (Notification.containsTarget(src, n.getTarget())) {
 				updated.add(n);
 			} else {
 				Log.d(LOG, "removing " + n);
@@ -56,7 +56,7 @@ public class Contact {
 		// Add new notifications from src
 		boolean added = false;
 		for (Notification n : src) {
-			if (!Notification.containsTarget(updated, n.target)) {
+			if (!Notification.containsTarget(updated, n.getTarget())) {
 				Log.d(LOG, "adding " + n);
 				updated.add(n);
 				added = true;

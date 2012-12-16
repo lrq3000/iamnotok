@@ -229,16 +229,16 @@ public class Database {
 
 	private void addNotification(long contactID, Notification n) {
 		Log.d(LOG, "adding notification contactID: " + contactID 
-				+ " type: " + n.type 
-				+ " target: " + n.target 
-				+ " label: " + n.label 
+				+ " type: " + n.getType()
+				+ " target: " + n.getTarget() 
+				+ " label: " + n.getLabel() 
 				+ " enabled: " + n.isEnabled());
 		SQLiteDatabase db = helper.getWritableDatabase();
 		ContentValues values = new ContentValues();
 		values.put(NOTIFICATION_CONTACT_ID, contactID);
-		values.put(NOTIFICATION_TYPE, n.type);
-		values.put(NOTIFICATION_TARGET, n.target);
-		values.put(NOTIFICATION_LABEL, n.label);
+		values.put(NOTIFICATION_TYPE, n.getType());
+		values.put(NOTIFICATION_TARGET, n.getTarget());
+		values.put(NOTIFICATION_LABEL, n.getLabel());
 		values.put(NOTIFICATION_ENABLED, n.isEnabled() ? 1 : 0);
 		db.insertOrThrow(NOTIFICATION_TABLE, null, values);
 	}

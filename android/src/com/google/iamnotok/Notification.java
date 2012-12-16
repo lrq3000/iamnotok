@@ -12,17 +12,17 @@ public class Notification {
 	public static final String TYPE_SMS = "SMS";
 	public static final String TYPE_EMAIL = "EMAIL";
 	
-	public final long id;
-	public final String type;
-	public final String target;
-	public final String label;
+	private final long id;
+	private final String type;
+	private final String target;
 	
+	private String label;
 	private boolean enabled;
 	private boolean dirty;
 	
 	public static boolean containsTarget(List<Notification> notifications, String target) {
 		for (Notification n : notifications) {
-			if (n.target.equals(target))
+			if (n.getTarget().equals(target))
 				return true;
 		}
 		return false;
@@ -48,7 +48,7 @@ public class Notification {
 		List<String> enabled = new ArrayList<String>();
 		for (Notification n : notifications) {
 			if (n.isEnabled())
-				enabled.add(n.target);
+				enabled.add(n.getTarget());
 		}
 		return enabled;
 	}
@@ -68,6 +68,29 @@ public class Notification {
 		this.dirty = (id == NO_ID); // Not stored in database yet
 	}
 	
+	public long getID() {
+		return id;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public String getTarget() {
+		return target;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		if (!this.label.equals(label)) {
+			this.label = label;
+			this.dirty = true;
+		}
+	}
+
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -90,10 +113,10 @@ public class Notification {
 	
 	@Override
 	public String toString() {
-		return "<Notifiction id: " + id 
-				+ " type: " + type 
-				+ " target: " + target 
-				+ " label: " + label 
+		return "<Notifiction id: " + getID() 
+				+ " type: " + getType() 
+				+ " target: " + getTarget() 
+				+ " label: " + getLabel() 
 				+ " enabled: " + enabled + ">"; 
 	}
 
