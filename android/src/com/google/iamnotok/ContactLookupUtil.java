@@ -48,6 +48,7 @@ public class ContactLookupUtil implements ContactLookup {
 	 * @return the contact with the given id, or null if no such contact exists.
 	 */
 	public Contact lookup(String id) {
+		Log.d(LOG, "Looking up id: " + id);
 		ContentResolver cr = context.getContentResolver();
 		final String[] whereArgs = { id,
 				CommonDataKinds.Email.CONTENT_ITEM_TYPE,
@@ -60,6 +61,11 @@ public class ContactLookupUtil implements ContactLookup {
 			return null;
 		}
 		try {
+			if (cur.getCount() == 0) {
+				Log.d(LOG, "No phones or emails for id: " + id);
+				return null;
+			}
+			
 			// Getting indexes dynamically make it easier to modify the projection.
 			final int mimetypeCol = cur.getColumnIndex(Data.MIMETYPE);
 			final int nameCol = cur.getColumnIndex(Data.DISPLAY_NAME);
@@ -90,7 +96,7 @@ public class ContactLookupUtil implements ContactLookup {
 							String label = cur.getString(phoneLabelCol);
 							if (label == null)
 								label = context.getString(Phone.getTypeLabelResource(type));
-							Log.d(LOG, "adding phone number: " + value + " label: " + label);
+							Log.d(LOG, "found phone number: " + value + " label: " + label);
 							phones.add(new Notification(Notification.TYPE_SMS, value, label));
 						}
 					}
@@ -104,7 +110,7 @@ public class ContactLookupUtil implements ContactLookup {
 							final int type = cur.getInt(emailTypeCol);
 							label = context.getString(Email.getTypeLabelResource(type));
 						}
-						Log.d(LOG, "adding email data: " + value + " label: " + label);
+						Log.d(LOG, "found email data: " + value + " label: " + label);
 						emails.add(new Notification(Notification.TYPE_EMAIL, value, label));
 					}
 				}
