@@ -20,12 +20,16 @@ public class Notification {
 	private boolean enabled;
 	private boolean dirty;
 	
-	public static boolean containsTarget(List<Notification> notifications, String target) {
+	public static Notification lookupTarget(List<Notification> notifications, String target) {
 		for (Notification n : notifications) {
 			if (n.getTarget().equals(target))
-				return true;
+				return n;
 		}
-		return false;
+		return null;
+	}
+
+	public static boolean containsTarget(List<Notification> notifications, String target) {
+		return lookupTarget(notifications, target) != null;
 	}
 	
 	public static boolean containsEnabled(List<Notification> notifications) {

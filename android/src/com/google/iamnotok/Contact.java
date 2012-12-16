@@ -41,42 +41,48 @@ public class Contact {
 		if (src.isEmpty())
 			return;
 		
+		List<Notification> result = new ArrayList<Notification>();
+		
 		// Remove notifications that do not exists in src
 		boolean removed = false;
-		List<Notification> updated = new ArrayList<Notification>();
 		for (Notification n : dst) {
 			if (Notification.containsTarget(src, n.getTarget())) {
-				updated.add(n);
+				result.add(n);
 			} else {
 				Log.d(LOG, "removing " + n);
 				removed = true;
 			}
 		}
 		
-		// Add new notifications from src
+		// Add new notifications from src and update existing notifications
 		boolean added = false;
-		for (Notification n : src) {
-			if (!Notification.containsTarget(updated, n.getTarget())) {
-				Log.d(LOG, "adding " + n);
-				updated.add(n);
+		boolean updated = false;
+		for (Notification a : src) {
+			Notification b = Notification.lookupTarget(result, a.getTarget());
+			if (b == null) {
+				Log.d(LOG, "adding " + a);
+				result.add(a);
 				added = true;
+			} else {
+				b.setLabel(a.getLabel());
+				if (b.isDirty())
+					updated = true;
 			}
-			// XXX Update label
 		}
 		
 		// Ensure that contact is not invalidated after removing enabled
 		// notifications by enabling first notification.
 		if (removed) {
-			if (!Notification.containsEnabled(updated)) {
-				updated.get(0).setEnabled(true);
+			if (!Notification.containsEnabled(result)) {
+				result.get(0).setEnabled(true);
 			}
 		}
 
 		// Update dst if needed
-		if (added || removed) {
+		if (added || removed || updated) {
 			Log.d(LOG, "notifications were modified");
 			dst.clear();
-			dst.addAll(updated);
+			dst.addAll(result);
 			dirty  = true;
 		}
 	}
