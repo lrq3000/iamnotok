@@ -66,7 +66,7 @@ public class Contact {
 				validated.add(a);
 				added = true;
 			} else {
-				b.setLabel(a.getLabel());
+				b.validate(a);
 				if (b.isDirty())
 					updated = true;
 			}

@@ -72,6 +72,10 @@ public class Notification {
 		this.dirty = (id == NO_ID); // Not stored in database yet
 	}
 	
+	public void validate(Notification other) {
+		setLabel(other.getLabel());
+	}
+	
 	public long getID() {
 		return id;
 	}
