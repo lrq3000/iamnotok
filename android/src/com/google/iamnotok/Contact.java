@@ -128,17 +128,14 @@ public class Contact {
 		return dirty || Notification.containsDirty(phones) || Notification.containsDirty(emails);
 	}
 	
-	public void setDirty(boolean dirty) {
-		if (this.dirty != dirty) {
-			this.dirty = dirty;
-			// Clean notifications when clean
-			if (!dirty) {
-				for (Notification phone : phones) {
-					phone.setDirty(false);
-				}
-				for (Notification email : emails) {
-					email.setDirty(false);
-				}
+	public void beClean() {
+		if (dirty) {
+			dirty = false;
+			for (Notification phone : phones) {
+				phone.beClean();
+			}
+			for (Notification email : emails) {
+				email.beClean();
 			}
 		}
 	}

@@ -143,7 +143,7 @@ public class Database {
 		} finally {
 			db.endTransaction();
 			// New contact is always dirty
-			contact.setDirty(false);
+			contact.beClean();
 		}
 	}
 	
@@ -168,7 +168,7 @@ public class Database {
 			db.setTransactionSuccessful();
 		} finally {
 			db.endTransaction();
-			contact.setDirty(false);
+			contact.beClean();
 		}
 	}
 

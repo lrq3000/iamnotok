@@ -111,8 +111,8 @@ public class Notification {
 		return dirty;
 	}
 
-	public void setDirty(boolean dirty) {
-		this.dirty = dirty;
+	public void beClean() {
+		this.dirty = false;
 	}
 	
 	@Override
