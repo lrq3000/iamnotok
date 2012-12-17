@@ -43,13 +43,13 @@ public class Contact {
 		if (src.isEmpty())
 			return;
 		
-		List<Notification> result = new ArrayList<Notification>();
+		List<Notification> validated = new ArrayList<Notification>();
 		
 		// Remove notifications that do not exists in src
 		boolean removed = false;
 		for (Notification n : dst) {
 			if (Notification.containsTarget(src, n.getTarget())) {
-				result.add(n);
+				validated.add(n);
 			} else {
 				Log.d(LOG, "removing " + n);
 				removed = true;
@@ -60,10 +60,10 @@ public class Contact {
 		boolean added = false;
 		boolean updated = false;
 		for (Notification a : src) {
-			Notification b = Notification.lookupTarget(result, a.getTarget());
+			Notification b = Notification.lookupTarget(validated, a.getTarget());
 			if (b == null) {
 				Log.d(LOG, "adding " + a);
-				result.add(a);
+				validated.add(a);
 				added = true;
 			} else {
 				b.setLabel(a.getLabel());
@@ -75,8 +75,8 @@ public class Contact {
 		// Ensure that contact is not invalidated after removing enabled
 		// notifications by enabling first notification.
 		if (removed) {
-			if (!Notification.containsEnabled(result)) {
-				result.get(0).setEnabled(true);
+			if (!Notification.containsEnabled(validated)) {
+				validated.get(0).setEnabled(true);
 			}
 		}
 
@@ -84,7 +84,7 @@ public class Contact {
 		if (added || removed || updated) {
 			Log.d(LOG, "notifications were modified");
 			dst.clear();
-			dst.addAll(result);
+			dst.addAll(validated);
 			dirty  = true;
 		}
 	}
