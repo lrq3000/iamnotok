@@ -12,9 +12,10 @@ public class Contact {
 	
 	private final long id;
 	private final String systemID;
-	private final String name;
 	private final List<Notification> phones;
 	private final List<Notification> emails;
+	
+	private String name;
 	private boolean dirty;
 
 	// Creating contact from system contacts database
@@ -33,6 +34,7 @@ public class Contact {
 	}
 
 	public void validate(Contact source) {
+		setName(source.getName());
 		validateNotifications(source.phones, phones);
 		validateNotifications(source.emails, emails);
 	}
@@ -97,6 +99,13 @@ public class Contact {
 
 	public String getName() {
 		return name;
+	}
+	
+	public void setName(String name) {
+		if (!this.name.equals(name)) {
+			this.name = name;
+			this.dirty = true;
+		}
 	}
 
 	public List<Notification> getSMSNotifications() {

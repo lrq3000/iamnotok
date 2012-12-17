@@ -152,7 +152,10 @@ public class Database {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		db.beginTransaction();
 		try {
-			// XXX Update contact name
+			ContentValues values = new ContentValues();
+			values.put(CONTACT_NAME, contact.getName());
+			String[] args = {String.valueOf(contact.getID())};
+			db.update(CONTACT_TABLE, values, CONTACT_ID + "=?", args);
 			// Since contact notifications may have been removed, the simplest
 			// way is to remove and add.
 			deleteNotifications(contact.getID());
