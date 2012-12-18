@@ -1,8 +1,6 @@
 package com.google.iamnotok;
 
 import java.util.Collection;
-import java.util.List;
-
 import android.util.Log;
 
 /**
@@ -54,10 +52,10 @@ public class EmergencyContactsHelper {
 		
 		// XXX Select the first phone and email until the user interface for
 		// selecting phones and emails is done.
-		List<Notification> phones = contact.getSMSNotifications();
+		NotificationList phones = contact.getSMSNotifications();
 		if (!phones.isEmpty())
 			phones.get(0).setEnabled(true);
-		List<Notification> emails = contact.getEmailNotifications();
+		NotificationList emails = contact.getEmailNotifications();
 		if (!emails.isEmpty())
 			emails.get(0).setEnabled(true);
 		

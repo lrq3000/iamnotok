@@ -1,19 +1,15 @@
 package com.google.iamnotok;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import android.util.Log;
 
 public class Contact {
 
-	private final static String LOG = "Contact";
 	private final static int NO_ID = 0;
 	
 	private final long id;
 	private final String systemID;
-	private final List<Notification> phones;
-	private final List<Notification> emails;
+	private final NotificationList phones;
+	private final NotificationList emails;
 	
 	private String name;
 	private boolean dirty;
@@ -28,65 +24,15 @@ public class Contact {
 		this.id = id;
 		this.systemID = systemID;
 		this.name = name;
-		this.phones = phones;
-		this.emails = emails;
+		this.phones = new NotificationList(phones);
+		this.emails = new NotificationList(emails);
 		this.dirty = (id == NO_ID); // Not stored yet
 	}
 
-	public void validate(Contact source) {
-		setName(source.getName());
-		validateNotifications(source.phones, phones);
-		validateNotifications(source.emails, emails);
-	}
-
-	private void validateNotifications(List<Notification> src, List<Notification> dst) {
-		if (src.isEmpty())
-			return;
-		
-		List<Notification> validated = new ArrayList<Notification>();
-		
-		// Remove notifications that do not exists in src
-		boolean removed = false;
-		for (Notification n : dst) {
-			if (Notification.containsTarget(src, n.getTarget())) {
-				validated.add(n);
-			} else {
-				Log.d(LOG, "removing " + n);
-				removed = true;
-			}
-		}
-		
-		// Add new notifications from src and update existing notifications
-		boolean added = false;
-		boolean updated = false;
-		for (Notification a : src) {
-			Notification b = Notification.lookupTarget(validated, a.getTarget());
-			if (b == null) {
-				Log.d(LOG, "adding " + a);
-				validated.add(a);
-				added = true;
-			} else {
-				b.validate(a);
-				if (b.isDirty())
-					updated = true;
-			}
-		}
-		
-		// Ensure that contact is not invalidated after removing enabled
-		// notifications by enabling first notification.
-		if (removed) {
-			if (!Notification.containsEnabled(validated)) {
-				validated.get(0).setEnabled(true);
-			}
-		}
-
-		// Update dst if needed
-		if (added || removed || updated) {
-			Log.d(LOG, "notifications were modified");
-			dst.clear();
-			dst.addAll(validated);
-			dirty  = true;
-		}
+	public void validate(Contact other) {
+		setName(other.getName());
+		phones.validate(other.getSMSNotifications());
+		emails.validate(other.getEmailNotifications());
 	}
 
 	public long getID() {
@@ -108,35 +54,31 @@ public class Contact {
 		}
 	}
 
-	public List<Notification> getSMSNotifications() {
+	public NotificationList getSMSNotifications() {
 		return phones;
 	}
 
 	public List<String> getEnabledPhones() {
-		return Notification.enabledTargets(phones);
+		return phones.getEnabledTargets();
 	}
 
-	public List<Notification> getEmailNotifications() {
+	public NotificationList getEmailNotifications() {
 		return emails;
 	}
 	
 	public List<String> getEnabledEmails() {
-		return Notification.enabledTargets(emails);
+		return emails.getEnabledTargets();
 	}
 
 	public boolean isDirty() {
-		return dirty || Notification.containsDirty(phones) || Notification.containsDirty(emails);
+		return dirty || phones.isDirty() || emails.isDirty();
 	}
 	
 	public void beClean() {
 		if (dirty) {
 			dirty = false;
-			for (Notification phone : phones) {
-				phone.beClean();
-			}
-			for (Notification email : emails) {
-				email.beClean();
-			}
+			phones.beClean();
+			emails.beClean();
 		}
 	}
 
