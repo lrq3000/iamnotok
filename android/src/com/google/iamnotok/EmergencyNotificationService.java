@@ -56,7 +56,7 @@ public class EmergencyNotificationService extends Service {
 
 	private final NotificationSender emailNotificationSender = new EmailNotificationSender(formatUtils, accountUtils);
 	private final NotificationSender smsNotificationSender = new SmsNotificationSender(this, formatUtils, accountUtils);
-	private final EmergencyCaller emergencyCaller = new EmergencyCaller(getBaseContext());
+	private final EmergencyCaller emergencyCaller = new EmergencyCaller(this);
 
 	private Database database;
 	private EmergencyContactsHelper contactHelper;
