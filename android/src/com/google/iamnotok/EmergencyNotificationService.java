@@ -58,6 +58,7 @@ public class EmergencyNotificationService extends Service {
 	private final NotificationSender smsNotificationSender = new SmsNotificationSender(this, formatUtils, accountUtils);
 	private final EmergencyCaller emergencyCaller = new EmergencyCaller(getBaseContext());
 
+	private Database database;
 	private EmergencyContactsHelper contactHelper;
 
 	NotificationManager notificationManager;
@@ -96,7 +97,8 @@ public class EmergencyNotificationService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		contactHelper = new EmergencyContactsHelper(new ContactLookupUtil(this), new Database(this));
+		database = new Database(this);
+		contactHelper = new EmergencyContactsHelper(new ContactLookupUtil(this), database);
 		locationTracker = new LocationTracker();
 		preferences = new Preferences(this);
 
@@ -104,7 +106,14 @@ public class EmergencyNotificationService extends Service {
 		this.notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
 		this.alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 	}
-
+	
+	@Override
+	public void onDestroy() {
+		if (database != null)
+			database.close();
+		super.onDestroy();
+	}
+	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		final String action = intent.getAction();
