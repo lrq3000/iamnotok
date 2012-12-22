@@ -2,6 +2,7 @@ package com.google.iamnotok.utils;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -69,10 +70,11 @@ public class AccountUtils {
 	public String getAccountName() {
 		String email = getMailAddress();
 		if (email.contains("@")) {
-			// in case we have a mail, lets try to resolve the username.
+			// In case we have a mail, lets try to resolve the user name.
+			ContentResolver resolver = context.getContentResolver();
 			Uri uri = Uri.withAppendedPath(Email.CONTENT_LOOKUP_URI, Uri.encode(email));
-			Cursor cur = context.getContentResolver().query(
-					uri, new String[]{Phone.DISPLAY_NAME}, null, null, null);
+			String[] projection = {Phone.DISPLAY_NAME};
+			Cursor cur = resolver.query(uri, projection, null, null, null);
 			try {
 				if (cur.moveToFirst()) {
 					return cur.getString(cur.getColumnIndex(Phone.DISPLAY_NAME));
