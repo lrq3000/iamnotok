@@ -73,10 +73,14 @@ public class AccountUtils {
 			Uri uri = Uri.withAppendedPath(Email.CONTENT_LOOKUP_URI, Uri.encode(email));
 			Cursor cur = context.getContentResolver().query(
 					uri, new String[]{Phone.DISPLAY_NAME}, null, null, null);
-			if (cur.moveToFirst()) {
-				return cur.getString(cur.getColumnIndex(Phone.DISPLAY_NAME));
-			} else {
-				return email.substring(0, email.indexOf('@'));
+			try {
+				if (cur.moveToFirst()) {
+					return cur.getString(cur.getColumnIndex(Phone.DISPLAY_NAME));
+				} else {
+					return email.substring(0, email.indexOf('@'));
+				}				
+			} finally {
+				cur.close();
 			}
 		}
 		return email;
