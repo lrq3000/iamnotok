@@ -37,6 +37,7 @@ import com.google.iamnotok.utils.AccountUtils;
  */
 public class EmergencyContactsActivity extends ListActivity implements OnSharedPreferenceChangeListener {
 	private static final int CONTACT_PICKER_RESULT = 1001;
+	private Database database;
 	private EmergencyContactsHelper contactsHelper;
 
 	private Button emergencyButton = null;
@@ -52,7 +53,8 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			updateActionBar();
 		}
 
-		contactsHelper = new EmergencyContactsHelper(new ContactLookupUtil(this), new Database(this));
+		database = new Database(this);
+		contactsHelper = new EmergencyContactsHelper(new ContactLookupUtil(this), database);
 		setListAdapter(createAdapter());
 
 		emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
@@ -84,6 +86,13 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 		super.onPause();
 	}
 
+	@Override
+	protected void onStop() {
+		if (database != null)
+			database.close();
+		super.onStop();
+	}
+	
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		if (key.equals(Preferences.VIGILANCE_STATE_KEY)) {
