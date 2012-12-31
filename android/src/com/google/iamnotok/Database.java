@@ -140,10 +140,10 @@ public class Database {
 				addNotification(id, email);
 			}
 			db.setTransactionSuccessful();
-		} finally {
-			db.endTransaction();
 			// New contact is always dirty
 			contact.beClean();
+		} finally {
+			db.endTransaction();
 		}
 	}
 	
@@ -166,9 +166,9 @@ public class Database {
 				addNotification(contact.getID(), email);
 			}
 			db.setTransactionSuccessful();
+			contact.beClean();
 		} finally {
 			db.endTransaction();
-			contact.beClean();
 		}
 	}
 
