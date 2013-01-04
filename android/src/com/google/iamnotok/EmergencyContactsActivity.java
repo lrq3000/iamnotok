@@ -171,8 +171,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 							ContactAdapter adapter = (ContactAdapter) getListAdapter();
 							Contact contact = (Contact) adapter.getItem(pos);
 							application.deleteContact(contact.getID());
-							adapter.setList(new ArrayList<Contact>(
-									application.getAllContacts()));
+							adapter.setList(application.getAllContacts());
 							adapter.notifyDataSetChanged();
 							break;
 						case DialogInterface.BUTTON_NEGATIVE:
@@ -230,9 +229,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 	}
 
 	protected ListAdapter createAdapter() {
-		List<Contact> list = new ArrayList<Contact>(
-				application.getAllContacts());
-		return new ContactAdapter(this, list);
+		return new ContactAdapter(this, application.getAllContacts());
 	}
 
 	@Override
@@ -245,7 +242,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 					break;
 				}
 				ContactAdapter adapter = (ContactAdapter) getListAdapter();
-				adapter.setList(new ArrayList<Contact>(application.getAllContacts()));
+				adapter.setList(application.getAllContacts());
 				adapter.notifyDataSetChanged();
 				break;
 			}

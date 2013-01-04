@@ -1,6 +1,6 @@
 package com.google.iamnotok;
 
-import java.util.Collection;
+import java.util.List;
 import android.util.Log;
 
 /**
@@ -19,8 +19,8 @@ public class Application extends android.app.Application {
 		Log.i(LOG, "created");
 	}
 	
-	public Collection<Contact> getAllContacts() {
-		Collection<Contact> contacts = database.getAllContacts();
+	public List<Contact> getAllContacts() {
+		List<Contact> contacts = database.getAllContacts();
 		for (Contact contact : contacts) {
 			validateContact(contact);
 		}

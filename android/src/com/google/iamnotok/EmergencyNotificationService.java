@@ -1,6 +1,6 @@
 package com.google.iamnotok;
 
-import java.util.Collection;
+import java.util.List;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -197,7 +197,7 @@ public class EmergencyNotificationService extends Service {
 	private void sendEmergencyMessages() {
 		Log.i(LOG_TAG, "Sending emergency messages");
 		LocationAddress locationAddress = getLocationAddress();		
-		Collection<Contact> contacts = application.getAllContacts();
+		List<Contact> contacts = application.getAllContacts();
 		if (preferences.getNotifyViaSMS()) {
 			smsNotificationSender.sendNotifications(contacts, locationAddress, preferences.getVigilanceState());
 		}
@@ -232,7 +232,7 @@ public class EmergencyNotificationService extends Service {
 	private void invokeEmergencyResponse() {
 		Log.d(LOG_TAG, "Invoking emergency response");
 		if (preferences.getNotifyViaCall()) {
-			emergencyCaller.makeCall(this.application.getAllContacts());
+			emergencyCaller.makeCall(application.getAllContacts());
 		}
 		sendMessageAndResetNotificationsTimer();
 	}
