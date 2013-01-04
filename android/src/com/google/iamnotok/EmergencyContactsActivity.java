@@ -1,6 +1,5 @@
 package com.google.iamnotok;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.annotation.TargetApi;
