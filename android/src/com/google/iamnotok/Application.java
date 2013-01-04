@@ -4,20 +4,21 @@ import java.util.Collection;
 import android.util.Log;
 
 /**
- * Maintains a list of contacts
+ * Maintains application data
  */
-public class EmergencyContactsHelper {
+public class Application extends android.app.Application {
 	
-	private static final String LOG = "EmergencyContactsHelper";
+	private static final String LOG = "Application";
 
-	private ContactLookup lookupUtil;
-	private Database database;
+	private ContactLookup lookupUtil = new ContactLookupUtil(this);
+	private Database database = new Database(this);
 
-	public EmergencyContactsHelper(ContactLookup lookupUtil, Database database) {
-		this.lookupUtil = lookupUtil;
-		this.database = database;
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		Log.i(LOG, "created");
 	}
-
+	
 	public Collection<Contact> getAllContacts() {
 		Collection<Contact> contacts = database.getAllContacts();
 		for (Contact contact : contacts) {
