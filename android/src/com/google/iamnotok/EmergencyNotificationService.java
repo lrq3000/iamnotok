@@ -165,6 +165,12 @@ public class EmergencyNotificationService extends Service {
 		Log.i(LOG_TAG, "Activating emergency state");
 		notificationManager.cancel(NOTIFICATION_ID);
 		changeState(VigilanceState.EMERGENCY_STATE);
+		
+		// Validate stored contacts in case they were modified in the system
+		// contacts database after they were added to the application. We will
+		// not update the contacts again for this emergency session.
+		application.validateContacts();
+		
 		invokeEmergencyResponse();		
 	}
 	

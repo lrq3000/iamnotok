@@ -188,19 +188,6 @@ public class Database {
 		}		
 	}
 
-	public boolean containsContactWithSystemID(String systemID) {
-		SQLiteDatabase db = helper.getWritableDatabase();
-		String[] args = {systemID};
-		Cursor cursor = db.rawQuery(
-				"select " + CONTACT_ID + " from " + CONTACT_TABLE + " where " + CONTACT_SYSTEM_ID + "=?",
-				args);
-		try {
-			return cursor.getCount() > 0;
-		} finally {
-			cursor.close();
-		}
-	}
-
 	// Accessing notifications
 	
 	private List<Notification> getNotifications(long contactID, String type) {

@@ -53,6 +53,11 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 		}
 
 		application = (Application) getApplication();
+		
+		// Validate stored contacts in case they were modified in the system
+		// contacts database after they were added to the application.
+		application.validateContacts();
+		
 		setListAdapter(createAdapter());
 
 		emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
@@ -170,7 +175,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 							// Remove contact.
 							ContactAdapter adapter = (ContactAdapter) getListAdapter();
 							Contact contact = (Contact) adapter.getItem(pos);
-							application.deleteContact(contact.getID());
+							application.deleteContact(contact);
 							adapter.setList(application.getAllContacts());
 							adapter.notifyDataSetChanged();
 							break;

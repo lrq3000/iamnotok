@@ -12,6 +12,7 @@ public class Application extends android.app.Application {
 
 	private ContactLookup lookupUtil = new ContactLookupUtil(this);
 	private Database database = new Database(this);
+	private List<Contact> contacts;
 
 	@Override
 	public void onCreate() {
@@ -19,32 +20,36 @@ public class Application extends android.app.Application {
 		Log.i(LOG, "created");
 	}
 	
+	public void validateContacts() {
+		Log.i(LOG, "validating contacts");
+		for (Contact contact : getAllContacts()) {
+			Log.d(LOG, "validating contact: " + contact.getName());
+			Contact source = lookupUtil.lookup(contact.getSystemID());
+			if (source == null) {
+				Log.d(LOG, "Keeping stored info for contact " + contact.getName());
+				continue;
+			}
+			contact.validate(source);
+			if (contact.isDirty()) {
+				Log.d(LOG, "contact " + contact.getName() + " was modfied");
+				database.updateContact(contact);
+			}			
+		}
+	}
+	
 	public List<Contact> getAllContacts() {
-		List<Contact> contacts = database.getAllContacts();
-		for (Contact contact : contacts) {
-			validateContact(contact);
+		if (contacts == null) {
+			contacts = database.getAllContacts();
 		}
 		return contacts;
 	}
 
-	public void validateContact(Contact contact) {
-		Log.d(LOG, "validating contact: " + contact.getName());
-		Contact source = lookupUtil.lookup(contact.getSystemID());
-		if (source == null) {
-			Log.d(LOG, "Keeping stored info for contact " + contact.getName());
-			return;
-		}
-		contact.validate(source);
-		if (contact.isDirty()) {
-			Log.d(LOG, "contact " + contact.getName() + " was modfied");
-			database.updateContact(contact);
-		}
-	}
-
 	public boolean addContact(String systemID) {
-		if (database.containsContactWithSystemID(systemID)) {
-			Log.d(LOG, "Contact " + systemID + " already exists");
-			return false;
+		for (Contact contact : getAllContacts()) {
+			if (contact.getSystemID().equals(systemID)) {
+				Log.d(LOG, "Contact " + systemID + " already exists");
+				return false;
+			}
 		}
 		Contact contact = lookupUtil.lookup(systemID);
 		if (contact == null) {
@@ -61,11 +66,13 @@ public class Application extends android.app.Application {
 			emails.get(0).setEnabled(true);
 		
 		database.addContact(contact);
+		contacts.add(contact);
 		return true;
 	}
 
-	public void deleteContact(long id) {
-		database.deleteContactWithID(id);
+	public void deleteContact(Contact contact) {
+		database.deleteContactWithID(contact.getID());
+		contacts.remove(contact);
 	}
 	
 }
