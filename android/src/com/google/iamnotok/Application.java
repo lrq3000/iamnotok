@@ -70,7 +70,19 @@ public class Application extends android.app.Application {
 		return true;
 	}
 
-	public void deleteContact(Contact contact) {
+    public Contact getContact(long id) {
+        for (Contact contact : getAllContacts()) {
+            if (contact.getID() == id)
+                return contact;
+        }
+        return null;
+    }
+
+    public void updateContact(Contact contact) {
+        database.updateContact(contact);
+    }
+
+    public void deleteContact(Contact contact) {
 		database.deleteContactWithID(contact.getID());
 		contacts.remove(contact);
 	}
