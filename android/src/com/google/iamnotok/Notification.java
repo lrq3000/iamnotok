@@ -12,7 +12,7 @@ public class Notification {
 	public static final String TYPE_SMS = "SMS";
 	public static final String TYPE_EMAIL = "EMAIL";
 	
-	private final long id;
+	private long id;
 	private final String type;
 	private final String target;
 	
@@ -78,6 +78,10 @@ public class Notification {
 	
 	public long getID() {
 		return id;
+	}
+
+	public void setID(long id) {
+		this.id = id;
 	}
 
 	public String getType() {

@@ -141,6 +141,7 @@ public class Database {
 			}
 			db.setTransactionSuccessful();
 			// New contact is always dirty
+			contact.setID(id);
 			contact.beClean();
 		} finally {
 			db.endTransaction();
@@ -243,7 +244,8 @@ public class Database {
 		values.put(NOTIFICATION_TARGET, n.getTarget());
 		values.put(NOTIFICATION_LABEL, n.getLabel());
 		values.put(NOTIFICATION_ENABLED, n.isEnabled() ? 1 : 0);
-		db.insertOrThrow(NOTIFICATION_TABLE, null, values);
+		long id = db.insertOrThrow(NOTIFICATION_TABLE, null, values);
+		n.setID(id);
 	}
 	
 	private void deleteNotifications(long contactID) {

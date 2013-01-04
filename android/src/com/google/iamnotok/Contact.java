@@ -6,7 +6,7 @@ public class Contact {
 
 	private final static int NO_ID = 0;
 	
-	private final long id;
+	private long id;
 	private final String systemID;
 	private final NotificationList phones;
 	private final NotificationList emails;
@@ -37,6 +37,10 @@ public class Contact {
 
 	public long getID() {
 		return id;
+	}
+
+	public void setID(long id) {
+		this.id = id;
 	}
 
 	public String getSystemID() {
