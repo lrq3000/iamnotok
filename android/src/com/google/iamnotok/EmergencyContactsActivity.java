@@ -37,8 +37,7 @@ import com.google.iamnotok.utils.AccountUtils;
  */
 public class EmergencyContactsActivity extends ListActivity implements OnSharedPreferenceChangeListener {
 	private static final int CONTACT_PICKER_RESULT = 1001;
-	private Database database;
-	private EmergencyContactsHelper contactsHelper;
+	private Application application;
 
 	private Button emergencyButton = null;
 	private Button cancelButton = null;
@@ -53,8 +52,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			updateActionBar();
 		}
 
-		database = new Database(this);
-		contactsHelper = new EmergencyContactsHelper(new ContactLookupUtil(this), database);
+		application = (Application) getApplication();
 		setListAdapter(createAdapter());
 
 		emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
@@ -84,13 +82,6 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 	protected void onPause() {
 		PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
 		super.onPause();
-	}
-
-	@Override
-	protected void onStop() {
-		if (database != null)
-			database.close();
-		super.onStop();
 	}
 	
 	@Override
@@ -179,9 +170,9 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 							// Remove contact.
 							ContactAdapter adapter = (ContactAdapter) getListAdapter();
 							Contact contact = (Contact) adapter.getItem(pos);
-							contactsHelper.deleteContact(contact.getID());
+							application.deleteContact(contact.getID());
 							adapter.setList(new ArrayList<Contact>(
-									contactsHelper.getAllContacts()));
+									application.getAllContacts()));
 							adapter.notifyDataSetChanged();
 							break;
 						case DialogInterface.BUTTON_NEGATIVE:
@@ -240,7 +231,7 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 
 	protected ListAdapter createAdapter() {
 		List<Contact> list = new ArrayList<Contact>(
-				contactsHelper.getAllContacts());
+				application.getAllContacts());
 		return new ContactAdapter(this, list);
 	}
 
@@ -250,11 +241,11 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 			switch (requestCode) {
 			case CONTACT_PICKER_RESULT:
 				String contactSystemID = intent.getData().getLastPathSegment();
-				if (!contactsHelper.addContact(contactSystemID)) {
+				if (!application.addContact(contactSystemID)) {
 					break;
 				}
 				ContactAdapter adapter = (ContactAdapter) getListAdapter();
-				adapter.setList(new ArrayList<Contact>(contactsHelper.getAllContacts()));
+				adapter.setList(new ArrayList<Contact>(application.getAllContacts()));
 				adapter.notifyDataSetChanged();
 				break;
 			}

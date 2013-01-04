@@ -58,8 +58,7 @@ public class EmergencyNotificationService extends Service {
 	private final NotificationSender smsNotificationSender = new SmsNotificationSender(this, formatUtils, accountUtils);
 	private final EmergencyCaller emergencyCaller = new EmergencyCaller(this);
 
-	private Database database;
-	private EmergencyContactsHelper contactHelper;
+	private Application application;
 
 	NotificationManager notificationManager;
 	AlarmManager alarmManager;
@@ -97,8 +96,7 @@ public class EmergencyNotificationService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		database = new Database(this);
-		contactHelper = new EmergencyContactsHelper(new ContactLookupUtil(this), database);
+		application = (Application)getApplication();
 		locationTracker = new LocationTracker();
 		preferences = new Preferences(this);
 
@@ -106,14 +104,7 @@ public class EmergencyNotificationService extends Service {
 		this.notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
 		this.alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 	}
-	
-	@Override
-	public void onDestroy() {
-		if (database != null)
-			database.close();
-		super.onDestroy();
-	}
-	
+		
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		final String action = intent.getAction();
@@ -206,7 +197,7 @@ public class EmergencyNotificationService extends Service {
 	private void sendEmergencyMessages() {
 		Log.i(LOG_TAG, "Sending emergency messages");
 		LocationAddress locationAddress = getLocationAddress();		
-		Collection<Contact> contacts = contactHelper.getAllContacts();
+		Collection<Contact> contacts = application.getAllContacts();
 		if (preferences.getNotifyViaSMS()) {
 			smsNotificationSender.sendNotifications(contacts, locationAddress, preferences.getVigilanceState());
 		}
@@ -241,7 +232,7 @@ public class EmergencyNotificationService extends Service {
 	private void invokeEmergencyResponse() {
 		Log.d(LOG_TAG, "Invoking emergency response");
 		if (preferences.getNotifyViaCall()) {
-			emergencyCaller.makeCall(this.contactHelper.getAllContacts());
+			emergencyCaller.makeCall(this.application.getAllContacts());
 		}
 		sendMessageAndResetNotificationsTimer();
 	}
