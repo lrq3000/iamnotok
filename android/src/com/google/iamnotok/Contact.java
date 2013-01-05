@@ -79,11 +79,9 @@ public class Contact {
 	}
 	
 	public void beClean() {
-		if (dirty) {
-			dirty = false;
-			phones.beClean();
-			emails.beClean();
-		}
+		dirty = false;
+		phones.beClean();
+		emails.beClean();
 	}
 
 	@Override
