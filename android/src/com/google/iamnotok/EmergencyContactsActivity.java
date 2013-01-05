@@ -52,11 +52,6 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 		}
 
 		application = (Application) getApplication();
-		
-		// Validate stored contacts in case they were modified in the system
-		// contacts database after they were added to the application.
-		application.validateContacts();
-		
 		setListAdapter(createAdapter());
 
 		emergencyButton = (Button) findViewById(R.id.ContactListEmergencyButton);
@@ -80,6 +75,15 @@ public class EmergencyContactsActivity extends ListActivity implements OnSharedP
 		Preferences pref = new Preferences(this);
 		updateEmergencyButtonStatus(pref.getVigilanceState());
 		PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
+		
+		// Validate stored contacts in case they were modified in the system
+		// contacts database after they were added to the application.
+		application.validateContacts();
+		
+		// Update adapter in case contacts were modified during validation.
+		ContactAdapter adapter = (ContactAdapter) getListAdapter();
+		adapter.setList(application.getAllContacts());
+		adapter.notifyDataSetChanged();
 	}
 
 	@Override
