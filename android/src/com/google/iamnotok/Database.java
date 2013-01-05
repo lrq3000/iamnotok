@@ -3,6 +3,8 @@ package com.google.iamnotok;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.iamnotok.utils.StringUtils;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -116,7 +118,9 @@ public class Database {
 				String name = cursor.getString(2);
 				List<Notification> phones = getNotifications(id, Notification.TYPE_SMS);
 				List<Notification> emails = getNotifications(id, Notification.TYPE_EMAIL);
-				result.add(new Contact(id, systemID, name, phones, emails));
+				Contact c = new Contact(id, systemID, name, phones, emails);
+				Log.d(LOG, "loding " + c);
+				result.add(c);
 			}
 		} finally {
 			cursor.close();
@@ -157,14 +161,18 @@ public class Database {
 			values.put(CONTACT_NAME, contact.getName());
 			String[] args = {String.valueOf(contact.getID())};
 			db.update(CONTACT_TABLE, values, CONTACT_ID + "=?", args);
-			// Since contact notifications may have been removed, the simplest
-			// way is to remove and add.
-			deleteNotifications(contact.getID());
-			for (Notification phone : contact.getSMSNotifications()) {
-				addNotification(contact.getID(), phone);
+			deleteRemovedNotifications(contact);
+			for (Notification n : contact.getSMSNotifications()) {
+				if (n.getID() == Notification.NO_ID)
+					addNotification(contact.getID(), n);
+				else if (n.isDirty())
+					updateNotification(n);
 			}
-			for (Notification email : contact.getEmailNotifications()) {
-				addNotification(contact.getID(), email);
+			for (Notification n : contact.getEmailNotifications()) {
+				if (n.getID() == Notification.NO_ID)
+					addNotification(contact.getID(), n);
+				else if (n.isDirty())
+					updateNotification(n);
 			}
 			db.setTransactionSuccessful();
 			contact.beClean();
@@ -210,7 +218,9 @@ public class Database {
 				String target = cursor.getString(1);
 				String label = cursor.getString(2);
 				boolean enabled = cursor.getInt(3) == 1;
-				result.add(new Notification(id, type, target, label, enabled));
+				Notification n =new Notification(id, type, target, label, enabled); 
+				Log.d(LOG, "loading " + n);
+				result.add(n);
 			}
 		} finally {
 			cursor.close();
@@ -234,12 +244,31 @@ public class Database {
 		long id = db.insertOrThrow(NOTIFICATION_TABLE, null, values);
 		n.setID(id);
 	}
-	
-	private void deleteNotifications(long contactID) {
-		Log.d(LOG, "deleting notifications for contactID: " + contactID);
+
+	private void updateNotification(Notification n) {
+		Log.d(LOG, "updating " + n);
 		SQLiteDatabase db = helper.getWritableDatabase();
-		String[] args = {String.valueOf(contactID)};
-		db.delete(NOTIFICATION_TABLE, NOTIFICATION_CONTACT_ID + "=?", args);
+		ContentValues values = new ContentValues();
+		values.put(NOTIFICATION_LABEL, n.getLabel());
+		values.put(NOTIFICATION_ENABLED, n.isEnabled() ? 1 : 0);
+		String[] args = {String.valueOf(n.getID())};
+		db.update(NOTIFICATION_TABLE, values, NOTIFICATION_ID + "=?", args);
+	}
+	
+	private void deleteRemovedNotifications(Contact contact) {
+		Log.d(LOG, "deleting removed notifications for contact: " + contact.getID());
+		List<String> ids = new ArrayList<String>();
+		for (Notification n : contact.getSMSNotifications()) {
+			ids.add(String.valueOf(n.getID()));
+		}
+		for (Notification n : contact.getEmailNotifications()) {
+			ids.add(String.valueOf(n.getID()));
+		}
+		String where = NOTIFICATION_CONTACT_ID + "=" + contact.getID()
+				+ " and " + NOTIFICATION_ID + " not in ("
+				+ StringUtils.join(ids, ",") + ")";
+		SQLiteDatabase db = helper.getWritableDatabase();
+		db.delete(NOTIFICATION_TABLE, where, null);
 	}
 
 }
