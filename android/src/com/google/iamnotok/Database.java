@@ -128,8 +128,8 @@ public class Database {
 		return result;
 	}
 
-	public void addContact(Contact contact) {
-		Log.d(LOG, "adding contact: " + contact);
+	public void insertContact(Contact contact) {
+		Log.d(LOG, "inserting " + contact);
 		SQLiteDatabase db = helper.getWritableDatabase();
 		db.beginTransaction();
 		try {
@@ -138,10 +138,10 @@ public class Database {
 			values.put(CONTACT_NAME, contact.getName());
 			long id = db.insertOrThrow(CONTACT_TABLE, null, values);
 			for (Notification phone : contact.getSMSNotifications()) {
-				addNotification(id, phone);
+				insertNotification(id, phone);
 			}
 			for (Notification email : contact.getEmailNotifications()) {
-				addNotification(id, email);
+				insertNotification(id, email);
 			}
 			db.setTransactionSuccessful();
 			// New contact is always dirty
@@ -153,7 +153,7 @@ public class Database {
 	}
 	
 	public void updateContact(Contact contact) {
-		Log.d(LOG, "updating contact: " + contact);
+		Log.d(LOG, "updating " + contact);
 		SQLiteDatabase db = helper.getWritableDatabase();
 		db.beginTransaction();
 		try {
@@ -164,13 +164,13 @@ public class Database {
 			deleteRemovedNotifications(contact);
 			for (Notification n : contact.getSMSNotifications()) {
 				if (n.getID() == Notification.NO_ID)
-					addNotification(contact.getID(), n);
+					insertNotification(contact.getID(), n);
 				else if (n.isDirty())
 					updateNotification(n);
 			}
 			for (Notification n : contact.getEmailNotifications()) {
 				if (n.getID() == Notification.NO_ID)
-					addNotification(contact.getID(), n);
+					insertNotification(contact.getID(), n);
 				else if (n.isDirty())
 					updateNotification(n);
 			}
@@ -181,7 +181,7 @@ public class Database {
 		}
 	}
 
-	public void deleteContactWithID(long id) {
+	public void deleteContact(long id) {
 		Log.d(LOG, "deleting contact: " + id);
 		SQLiteDatabase db = helper.getWritableDatabase();
 		db.beginTransaction();
@@ -228,7 +228,7 @@ public class Database {
 		return result;
 	}
 
-	private void addNotification(long contactID, Notification n) {
+	private void insertNotification(long contactID, Notification n) {
 		Log.d(LOG, "adding notification contactID: " + contactID 
 				+ " type: " + n.getType()
 				+ " target: " + n.getTarget() 

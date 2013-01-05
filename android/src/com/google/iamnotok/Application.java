@@ -65,7 +65,7 @@ public class Application extends android.app.Application {
 		if (!emails.isEmpty())
 			emails.get(0).setEnabled(true);
 		
-		database.addContact(contact);
+		database.insertContact(contact);
 		contacts.add(contact);
 		return true;
 	}
@@ -83,7 +83,7 @@ public class Application extends android.app.Application {
     }
 
     public void deleteContact(Contact contact) {
-		database.deleteContactWithID(contact.getID());
+		database.deleteContact(contact.getID());
 		contacts.remove(contact);
 	}
 	
