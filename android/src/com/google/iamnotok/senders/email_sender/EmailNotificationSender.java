@@ -72,7 +72,7 @@ public class EmailNotificationSender implements NotificationSender {
 	    String mailAddress = accountUtils.getMailAddress();
 	    sender.sendMail(mailAddress, subject, message, "imnotokandroidapplication@gmail.com", recipients);
 	  } catch (Exception e) {
-	    Log.e("SendMail", e.getMessage(), e);
+	    Log.e(LOG, e.getMessage(), e);
 	  }
 	}
 
