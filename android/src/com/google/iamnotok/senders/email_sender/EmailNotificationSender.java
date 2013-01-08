@@ -15,7 +15,8 @@ import com.google.iamnotok.utils.AccountUtils;
 import com.google.iamnotok.utils.FormatUtils;
 
 public class EmailNotificationSender implements NotificationSender {
-	private static final String LOG_TAG = "IAMNOTOK - emailer";
+	
+	private static final String LOG = "EmailNotificationSender";
 
 	private final FormatUtils formatUtils;
 	private final AccountUtils accountUtils;
@@ -52,14 +53,14 @@ public class EmailNotificationSender implements NotificationSender {
 	private void sendEmailMessage(
 			List<String> to, LocationAddress locationAddress, VigilanceState state) {
 	  String recipients = formatUtils.formatRecipients(to);
-	  Log.d(LOG_TAG, "Sending email to: " + to);
+	  Log.d(LOG, "Sending email to: " + to);
 	  String subject = formatUtils.formatSubject(accountUtils.getAccountName(), accountUtils.getPhoneNumber());
 	  String message = "";
 	  if (state == VigilanceState.NORMAL_STATE) {
 	    message = "I am OK now";
-	    Log.d(LOG_TAG, "Sending the email " + message);
+	    Log.d(LOG, "Sending the email " + message);
 	  } else {
-	    Log.d(LOG_TAG, "Getting location");
+	    Log.d(LOG, "Getting location");
 	    message = formatUtils.formatMessage(locationAddress, accountUtils.getCustomMessage());
 	    if (locationAddress.location != null) {
 	      message += " " + getMapUrl(locationAddress);

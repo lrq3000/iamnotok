@@ -54,7 +54,7 @@ public class LocationTracker extends IntentService {
 		void notify(LocationAddress locationAddress);
 	}
 
-	private static final String LOG_TAG = "LocationTracker";
+	private static final String LOG = "LocationTracker";
 
 	private static final long UPDATE_INTERVAL_MS = 60000;
 	private static final float METERS_THRESHOLD_FOR_NOTIFY = 1000;
@@ -92,7 +92,7 @@ public class LocationTracker extends IntentService {
 	}
 
 	public static void activate(Context context) {
-		Log.i(LOG_TAG,"In activate");
+		Log.i(LOG,"In activate");
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
 		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
@@ -123,14 +123,14 @@ public class LocationTracker extends IntentService {
 	 * Update location if more accurate or significantly newer
 	 */
 	private void updateLocation(Location newLocation) {
-		Log.i(LOG_TAG, "In updatLocation");
+		Log.i(LOG, "In updatLocation");
 
 		LocationAddress currentLocationAddress = getCurrentLocation(preferences);
 		if (LocationUtils.isBetterLocation(newLocation, currentLocationAddress.location)) {
 			currentLocationAddress = new LocationAddress(newLocation, null);
 			updateAddressAndNotify(currentLocationAddress.location);
 
-			Log.i(LOG_TAG,"Updatitng best location to "+newLocation);
+			Log.i(LOG,"Updatitng best location to "+newLocation);
 		}
 	}
 
@@ -158,7 +158,7 @@ public class LocationTracker extends IntentService {
 	                    preferences.setCurrentLocation(new LocationAddress(location, address));
 	                }
 	            } catch (IOException e) {
-	                Log.e(LOG_TAG, "Impossible to connect to Geocoder", e);
+	                Log.e(LOG, "Impossible to connect to Geocoder", e);
 	            } finally {
 	            	if (shouldNotify()) {
 	            		notifyListeners();
@@ -170,7 +170,7 @@ public class LocationTracker extends IntentService {
 	}
 
 	public static void deactivate(Context context) {
-		Log.i(LOG_TAG, "Deactivating");
+		Log.i(LOG, "Deactivating");
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		locationManager.removeUpdates(getUpdateLocationPendingIntent(context));
 		// TODO: keep last known location?
@@ -187,7 +187,7 @@ public class LocationTracker extends IntentService {
 		if (listener != null)
 			listener.notify(currentLocationAddress);
 		preferences.setLastNotifiedLocation(currentLocationAddress);
-		Log.i(LOG_TAG, "Done notifying all listeners with best location " + currentLocationAddress);
+		Log.i(LOG, "Done notifying all listeners with best location " + currentLocationAddress);
 	}
 
 	

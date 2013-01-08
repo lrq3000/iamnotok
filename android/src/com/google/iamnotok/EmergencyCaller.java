@@ -8,7 +8,8 @@ import android.net.Uri;
 import android.util.Log;
 
 public class EmergencyCaller {
-	private static final String LOG_TAG = "IamNotOk - caller";
+	
+	private static final String LOG = "EmergencyCaller";
 
 	private final Context context;
 
@@ -19,7 +20,7 @@ public class EmergencyCaller {
 	public boolean makeCall(Collection<Contact> contacts) {
 		String phone = getFirstPhone(contacts);
 		if (phone == null) {
-			Log.w(LOG_TAG,
+			Log.w(LOG,
 					"Unable to find a contact with number, disabled emergency call");
 			return false;
 		}

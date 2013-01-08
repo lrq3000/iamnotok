@@ -10,6 +10,8 @@ import com.google.iamnotok.utils.LimitedQueue;
 
 public class ScreenOnOffReceiver extends BroadcastReceiver {
 
+	private static final String LOG = "ScreenOnOffReceiver";
+	
 	private static ScreenOnOffReceiver _instance = null;
 	private ScreenOnOffReceiver() {
 		super();
@@ -43,7 +45,7 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.w("ImNotOK", "We're on "+ intent.getAction());
+		Log.d(LOG, "received " + intent.getAction());
 
 		long time = System.currentTimeMillis();
 		this.clicksQueue.offer(Long.valueOf(time));
@@ -51,10 +53,10 @@ public class ScreenOnOffReceiver extends BroadcastReceiver {
 		if (clicksQueue.size() < CLICK_NUMBER) return;
 
 		long timeInterval = clicksQueue.get(CLICK_NUMBER-1).longValue() - clicksQueue.get(0).longValue();
-		Log.w("ImNotOK",Long.toString(timeInterval/1000));
+		Log.d(LOG , "timeInternal: " + Long.toString(timeInterval/1000) + " seconds");
 
 		if (timeInterval < timeLimit){
-			Log.w("ImNotOK","triggering the event");
+			Log.i(LOG, "triggering the event");
 			this.triggerEvent(context.getApplicationContext());
 			clicksQueue.clear();
 		}

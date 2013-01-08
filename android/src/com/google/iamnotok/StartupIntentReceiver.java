@@ -8,12 +8,13 @@ import android.content.Intent;
 import android.util.Log;
 
 public class StartupIntentReceiver extends BroadcastReceiver {
-  private final String mLogTag = "ImNotOk - StartupIntentReceiver";
+  
+	private static final String LOG = "StartupIntentReceiver";
 
   @Override
   public void onReceive(Context context, Intent intent) {
     Log.d(
-        mLogTag,
+        LOG,
         "Received BOOT_COMPLETED intent, starting up PatternTrackingService.");
 
     registerReceivers(context.getApplicationContext());

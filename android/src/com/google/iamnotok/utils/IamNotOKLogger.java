@@ -7,11 +7,10 @@ import android.util.Log;
 
 public class IamNotOKLogger {
 
+	private static final String LOG = "IamNotOKLogger";
 	private static final String LOG_FILE_NAME = "log.txt";
-
+	
 	private static int DEBUG_LOG_LEVEL = 3;
-
-	private static final String LOG_TAG = "IAMNOTOK";
 
 	public static void Log(Context context, String tag, String msg) {
 		log(DEBUG_LOG_LEVEL, msg);
@@ -32,26 +31,26 @@ public class IamNotOKLogger {
 			out.write(tag + ":" + msg);
 			out.close();
 		} catch (java.io.IOException e) {
-			Log.e("IamNotOKLogger", "unable to write to file ", e);
+			Log.e(LOG, "unable to write to file ", e);
 		}
 	}
 
 	public static void log(int level, String str) {
 		switch (level) {
 		case 0:
-			Log.e(LOG_TAG, str);
+			Log.e(LOG, str);
 			break;
 		case 1:
-			Log.w(LOG_TAG, str);
+			Log.w(LOG, str);
 			break;
 		case 2:
-			Log.i(LOG_TAG, str);
+			Log.i(LOG, str);
 			break;
 		case 3:
-			Log.d(LOG_TAG, str);
+			Log.d(LOG, str);
 			break;
 		default:
-			Log.v(LOG_TAG, str);
+			Log.v(LOG, str);
 			break;
 		}
 	}
@@ -59,19 +58,19 @@ public class IamNotOKLogger {
 	public static void log(int level, String str, Throwable e) {
 		switch (level) {
 		case 0:
-			Log.e(LOG_TAG, str, e);
+			Log.e(LOG, str, e);
 			break;
 		case 1:
-			Log.w(LOG_TAG, str, e);
+			Log.w(LOG, str, e);
 			break;
 		case 2:
-			Log.i(LOG_TAG, str, e);
+			Log.i(LOG, str, e);
 			break;
 		case 3:
-			Log.d(LOG_TAG, str, e);
+			Log.d(LOG, str, e);
 			break;
 		default:
-			Log.v(LOG_TAG, str, e);
+			Log.v(LOG, str, e);
 			break;
 		}
 

@@ -25,6 +25,9 @@ import javax.mail.internet.MimeMessage;
  */
 
 public class GMailSender extends javax.mail.Authenticator {
+	
+	private static final String LOG = "GMailSender";
+	
     private String mailhost = "smtp.gmail.com";
     private String user;
     private String password;
@@ -125,7 +128,7 @@ public class GMailSender extends javax.mail.Authenticator {
     		try {
 				this.from = new InternetAddress(from.contains("@") ? from : sender);
 			} catch (AddressException e) {
-				Log.e("sendMail", e.getMessage(), e);
+				Log.e(LOG, e.getMessage(), e);
 			}
     		
     		this.replyToAddresses = new InternetAddress[REPLY_TO_ADDRESSES_AMOUNT];
@@ -154,7 +157,7 @@ public class GMailSender extends javax.mail.Authenticator {
 	            			this.recipients));
 	            }
     		} catch(Exception e) {
-    			Log.e("sendMail", e.getMessage(), e);
+    			Log.e(LOG, e.getMessage(), e);
     		}
     	}
     	
@@ -163,7 +166,7 @@ public class GMailSender extends javax.mail.Authenticator {
             try {
                 Transport.send(this.message);
             } catch (Exception e) {
-                Log.e("sendMail", e.getMessage(), e);
+                Log.e(LOG, e.getMessage(), e);
             }
 
             return null;

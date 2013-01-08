@@ -14,7 +14,8 @@ import android.util.Log;
 import com.google.iamnotok.Preferences;
 
 public class AccountUtils {
-	private static final String LOG_TAG = "AccountUtils";
+	
+	private static final String LOG = "AccountUtils";
 	
 	private final Context context;
 
@@ -34,7 +35,7 @@ public class AccountUtils {
 		Account[] accounts = AccountManager.get(context).getAccountsByType("com.google");
 		for (Account account : accounts) {
 			if (account.name != null && account.name.equals(accountName)) {
-				Log.d(LOG_TAG, "using prefered account: " + accountName);
+				Log.d(LOG, "using prefered account: " + accountName);
 				return account;
 			}
 		}
@@ -46,12 +47,12 @@ public class AccountUtils {
 		// TODO: Should we notify the user here?
 		
 		if (!accountName.equals("")) {
-			Log.d(LOG_TAG, "no such account: " + accountName + " clearing preferred account");
+			Log.d(LOG, "no such account: " + accountName + " clearing preferred account");
 			pref.setAccountName("");
 		}
 		
 		if (accounts.length > 0) {
-			Log.d(LOG_TAG, "using default gmail account: " + accounts[0].name);
+			Log.d(LOG, "using default gmail account: " + accounts[0].name);
 			return accounts[0];
 		}
 
@@ -59,11 +60,11 @@ public class AccountUtils {
 		// NOTE: This can only be used to get the name from.
 		accounts = AccountManager.get(context).getAccounts();
 		if (accounts.length > 0) {
-			Log.d(LOG_TAG, "using default account: " + accounts[0].name);
+			Log.d(LOG, "using default account: " + accounts[0].name);
 			return accounts[0];
 		}
 
-		Log.d(LOG_TAG, "using dummy account");
+		Log.d(LOG, "using dummy account");
 		return new Account("Unidentified User", "com.dummy");
 	}
 
