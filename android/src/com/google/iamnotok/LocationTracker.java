@@ -94,45 +94,49 @@ public class LocationTracker extends IntentService {
 	}
 
 	public static void activate(Context context) {
-		Log.i(LOG,"In activate");
+		Log.i(LOG, "activating");
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
 		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
 
 		Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		Log.d(LOG, "last known network location: " + networkLocation);
+		
 		Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		Log.d(LOG, "last known gps location: " + gpsLocation);
 
 		if (gpsLocation != null && networkLocation != null) {
 			if (LocationUtils.isBetterLocation(networkLocation, gpsLocation)) {
-				gpsLocation = null;
+				updateLastKnownLocation(context, networkLocation);
 			} else {
-				networkLocation = null;
+				updateLastKnownLocation(context, gpsLocation);
 			}
-		}
-		Location bestCurrentLocation = null;
-		if (gpsLocation != null) {
-			bestCurrentLocation = gpsLocation;
+		} else if (gpsLocation != null) {
+			updateLastKnownLocation(context, gpsLocation);
 		} else if (networkLocation != null) {
-			bestCurrentLocation = networkLocation;
-		}
-
-		if (bestCurrentLocation != null) {
-			context.startService(getUpdateLocationIntent(context).putExtra(LocationManager.KEY_LOCATION_CHANGED, bestCurrentLocation));
-		}
+			updateLastKnownLocation(context, networkLocation);
+		} else {
+			Log.d(LOG, "last location unknown");
+		}		
 	}
 
+	private static void updateLastKnownLocation(Context context, Location location) {
+		Log.d(LOG, "last known location provider: " + location.getProvider());
+		Intent intent = getUpdateLocationIntent(context);
+		intent.putExtra(LocationManager.KEY_LOCATION_CHANGED, location);
+		context.startService(intent);		
+	}
+	
 	/**
 	 * Update location if more accurate or significantly newer
 	 */
 	private void updateLocation(Location newLocation) {
-		Log.i(LOG, "In updatLocation");
-
+		Log.d(LOG, "received new location: " + newLocation);
 		LocationAddress currentLocationAddress = getCurrentLocation(preferences);
+		Log.d(LOG, "current location: " + currentLocationAddress.location);
 		if (LocationUtils.isBetterLocation(newLocation, currentLocationAddress.location)) {
-			currentLocationAddress = new LocationAddress(newLocation, null);
-			updateAddressAndNotify(currentLocationAddress.location);
-
-			Log.i(LOG,"Updatitng best location to "+newLocation);
+			Log.i(LOG, "updating current location to " + newLocation);
+			updateAddressAndNotify(newLocation);
 		}
 	}
 
@@ -143,9 +147,13 @@ public class LocationTracker extends IntentService {
 	 */
 	private boolean shouldNotify() {
 		LocationAddress lastNotifiedLocationAddress = preferences.getLastNotifiedLocation();
-		if (lastNotifiedLocationAddress == null)
+		if (lastNotifiedLocationAddress == null) {
+			Log.d(LOG, "last notified location unknown");
 			return false;
+		}
+		Log.d(LOG, "last notified location: " + lastNotifiedLocationAddress.location);
 		LocationAddress currentLocationAddress = getCurrentLocation(preferences);
+		Log.d(LOG, "current location: " + currentLocationAddress.location);
 		float distance = lastNotifiedLocationAddress.location.distanceTo(currentLocationAddress.location);
 		return distance > METERS_THRESHOLD_FOR_NOTIFY;
 	}
@@ -157,10 +165,15 @@ public class LocationTracker extends IntentService {
 	                List<Address> list = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
 	                if (list != null && list.size() > 0) {
 	                    Address address = list.get(0);
+	                    Log.i(LOG, "current address: " + address);
 	                    preferences.setCurrentLocation(new LocationAddress(location, address));
+	                } else {
+	                	Log.i(LOG, "current address unknown");
+	                	// XXX Store current location with null address?
 	                }
 	            } catch (IOException e) {
 	                Log.e(LOG, "Impossible to connect to Geocoder", e);
+                	// XXX Store current location with null address?
 	            } finally {
 	            	if (shouldNotify()) {
 	            		notifyListeners();
@@ -172,7 +185,7 @@ public class LocationTracker extends IntentService {
 	}
 
 	public static void deactivate(Context context) {
-		Log.i(LOG, "Deactivating");
+		Log.i(LOG, "deactivating");
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		locationManager.removeUpdates(getUpdateLocationPendingIntent(context));
 		// TODO: keep last known location?
@@ -186,10 +199,14 @@ public class LocationTracker extends IntentService {
 	// Synchronized so 2 concurrent calls() won't confuse listeners
 	private synchronized void notifyListeners() {
 		LocationAddress currentLocationAddress = getCurrentLocation(preferences);
-		if (listener != null)
+		if (listener != null) {
+			Log.i(LOG, "notifying listener");
 			listener.notify(currentLocationAddress);
+		}
+		// XXX: It does not makes sense to update last notified location if
+		// notification was not sent.
+		Log.i(LOG, "storing last notified address " + currentLocationAddress);
 		preferences.setLastNotifiedLocation(currentLocationAddress);
-		Log.i(LOG, "Done notifying all listeners with best location " + currentLocationAddress);
 	}
 
 	
@@ -198,7 +215,11 @@ public class LocationTracker extends IntentService {
 	public static LocationAddress getLocationAddress(Context context) {
 		Preferences pref = new Preferences(context);
 		LocationAddress currentLocationAddress = getCurrentLocation(pref);
+		
+		// XXX: This does not make sense - querying current location should not
+		// change last notified location.
 		pref.setLastNotifiedLocation(currentLocationAddress);
+		
 		return currentLocationAddress;
 	}
 	
