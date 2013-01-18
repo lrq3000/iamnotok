@@ -19,6 +19,7 @@ import android.util.Log;
 import com.google.iamnotok.utils.LocationUtils;
 
 public class LocationTracker extends IntentService {
+	
 	public static class LocationAddress implements Parcelable {
 		/**
 		 * location instance holding the full location information
@@ -50,6 +51,7 @@ public class LocationTracker extends IntentService {
 			return new LocationAddress(Location.CREATOR.createFromParcel(source), Address.CREATOR.createFromParcel(source));
 		}
 	}
+	
 	public interface DistanceThresholdListener {
 		void notify(LocationAddress locationAddress);
 	}
