@@ -95,16 +95,22 @@ public class LocationTracker extends IntentService {
 
 	public static void activate(Context context) {
 		Log.i(LOG, "activating");
+		Location gpsLocation = null;
+		Location networkLocation = null;
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
-		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
-
-		Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		Log.d(LOG, "last known network location: " + networkLocation);
+		if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+					UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
+			gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			Log.d(LOG, "last known gps location: " + gpsLocation);
+		}
+		if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+					UPDATE_INTERVAL_MS, 0, getUpdateLocationPendingIntent(context));
+			networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+			Log.d(LOG, "last known network location: " + networkLocation);
+		}
 		
-		Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		Log.d(LOG, "last known gps location: " + gpsLocation);
-
 		if (gpsLocation != null && networkLocation != null) {
 			if (LocationUtils.isBetterLocation(networkLocation, gpsLocation)) {
 				updateLastKnownLocation(context, networkLocation);
