@@ -3,7 +3,7 @@ package com.google.iamnotok.senders;
 import java.util.Collection;
 
 import com.google.iamnotok.Contact;
-import com.google.iamnotok.LocationTracker.LocationAddress;
+import com.google.iamnotok.LocationAddress;
 import com.google.iamnotok.Preferences.VigilanceState;
 
 public interface NotificationSender {

@@ -4,7 +4,7 @@ import java.util.List;
 
 import android.location.Address;
 
-import com.google.iamnotok.LocationTracker;
+import com.google.iamnotok.LocationAddress;
 
 public class FormatUtils {
 	public String formatRecipients(List<String> to) {
@@ -19,7 +19,7 @@ public class FormatUtils {
 	}
 
 	public String formatMessage(
-			LocationTracker.LocationAddress locationAddress, String customMessage) {
+			LocationAddress locationAddress, String customMessage) {
 		String message = "I am not OK!";
 		if (customMessage != null && !"".equals(message)) {
 			message += " " + customMessage;

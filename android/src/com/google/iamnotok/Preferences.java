@@ -1,7 +1,5 @@
 package com.google.iamnotok;
 
-import com.google.iamnotok.LocationTracker.LocationAddress;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Parcel;

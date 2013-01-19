@@ -7,8 +7,7 @@ import java.util.List;
 import android.util.Log;
 
 import com.google.iamnotok.Contact;
-import com.google.iamnotok.LocationTracker;
-import com.google.iamnotok.LocationTracker.LocationAddress;
+import com.google.iamnotok.LocationAddress;
 import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.senders.NotificationSender;
 import com.google.iamnotok.utils.AccountUtils;
@@ -76,7 +75,7 @@ public class EmailNotificationSender implements NotificationSender {
 	  }
 	}
 
-	private String getMapUrl(LocationTracker.LocationAddress locAddr) {
+	private String getMapUrl(LocationAddress locAddr) {
 		String template = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=%f,%f&sll=%f,%f&sspn=0.005055,0.009645&ie=UTF8&z=16";
 		return String.format(template, locAddr.location.getLatitude(), locAddr.location.getLongitude(),
 				locAddr.location.getLatitude(), locAddr.location.getLongitude());

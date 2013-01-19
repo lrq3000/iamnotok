@@ -16,7 +16,6 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.iamnotok.LocationTracker.LocationAddress;
 import com.google.iamnotok.Preferences.VigilanceState;
 import com.google.iamnotok.senders.NotificationSender;
 import com.google.iamnotok.senders.SmsNotificationSender;
@@ -282,7 +281,7 @@ public class EmergencyNotificationService extends Service {
 		registeredDistanceThresholdListener = true;
 		locationTracker.setDistanceThresholdListener(new LocationTracker.DistanceThresholdListener() {
 			@Override
-			public void notify(LocationTracker.LocationAddress locationAddress) {
+			public void notify(LocationAddress locationAddress) {
 				onDistanceThresholdPassed(locationAddress);
 			}
 		});
